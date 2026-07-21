@@ -1,0 +1,7979 @@
+[
+    {
+        "type": "text",
+        "text": "深入理解软件性能一种动态视角",
+        "text_level": 1,
+        "bbox": [
+            20,
+            133,
+            832,
+            448
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "[美]理查德·L.赛茨(Richard L. Sites)著",
+        "bbox": [
+            350,
+            479,
+            830,
+            501
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "赵利通 译",
+        "bbox": [
+            713,
+            507,
+            830,
+            529
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "吴咏炜 审校",
+        "bbox": [
+            688,
+            535,
+            830,
+            557
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "image",
+        "img_path": "images/68d3fedb7e853122b9f4770f87e80f236b57813a4e2ef90ffe7d13e941c53838.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            30,
+            507,
+            416,
+            914
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "数据中心的发明人与云计算的奠基人",
+        "bbox": [
+            430,
+            820,
+            828,
+            843
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Luiz André Barroso ",
+        "bbox": [
+            484,
+            854,
+            828,
+            883
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "倾情作序 ",
+        "bbox": [
+            686,
+            886,
+            828,
+            914
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "E ",
+        "bbox": [
+            16,
+            34,
+            61,
+            72
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "异步图书",
+        "bbox": [
+            63,
+            35,
+            191,
+            61
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "www.epubit.com ",
+        "bbox": [
+            65,
+            61,
+            191,
+            72
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "P ",
+        "bbox": [
+            756,
+            34,
+            802,
+            69
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "header",
+        "text": "Pearson ",
+        "bbox": [
+            729,
+            71,
+            830,
+            89
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "aside_text",
+        "text": "UNDERSTANDING SOFTWARE DYNAMICS ",
+        "bbox": [
+            919,
+            37,
+            964,
+            914
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "footer",
+        "text": "园",
+        "bbox": [
+            26,
+            948,
+            72,
+            982
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "footer",
+        "text": "中国工信出版集团",
+        "bbox": [
+            80,
+            953,
+            272,
+            976
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "footer",
+        "text": "# ",
+        "bbox": [
+            301,
+            950,
+            331,
+            981
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "footer",
+        "text": "人民邮电出版社",
+        "bbox": [
+            336,
+            950,
+            492,
+            969
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "footer",
+        "text": "POSTS & TELECOM PRESS ",
+        "bbox": [
+            336,
+            970,
+            490,
+            979
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "深入理解软件性能一种动态视角",
+        "text_level": 1,
+        "bbox": [
+            84,
+            131,
+            861,
+            447
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "[美]理查德·L.赛茨(Richard L. Sites)著",
+        "bbox": [
+            373,
+            478,
+            859,
+            501
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "赵利通 译",
+        "bbox": [
+            740,
+            506,
+            859,
+            527
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "吴咏炜 审校",
+        "bbox": [
+            715,
+            533,
+            859,
+            556
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/b7dc6f373a1062ae6c54b38bb59732f1750859f43a6cc29a956459114500b0f4.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            86,
+            539,
+            435,
+            906
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "header",
+        "text": "Pearson ",
+        "bbox": [
+            754,
+            33,
+            859,
+            88
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "footer",
+        "text": "人民邮电出版社",
+        "bbox": [
+            358,
+            929,
+            616,
+            950
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "footer",
+        "text": "北京",
+        "bbox": [
+            457,
+            958,
+            517,
+            973
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "图书在版编目（CIP）数据",
+        "text_level": 1,
+        "bbox": [
+            129,
+            55,
+            408,
+            73
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "深入理解软件性能：一种动态视角／（美）理查德",
+        "bbox": [
+            129,
+            93,
+            602,
+            112
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "·L.赛茨（Richard L.Sites）著；赵利通译.--北京：人民邮电出版社，2024.1",
+        "bbox": [
+            90,
+            113,
+            620,
+            145
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "ISBN 978-7-115-61656-2 ",
+        "bbox": [
+            131,
+            149,
+            364,
+            164
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "I. $①$ 深…Ⅱ. $①$ 理… $②$ 赵…Ⅲ. $①$ 软件工程IV. $①$ TP311.5",
+        "bbox": [
+            88,
+            182,
+            583,
+            219
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "中国国家版本馆CIP数据核字(2023)第077105号",
+        "bbox": [
+            131,
+            236,
+            560,
+            254
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "版权声明",
+        "text_level": 1,
+        "bbox": [
+            90,
+            299,
+            197,
+            319
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Authorized translation from the English language edition, entitled Understanding Software Dynamics, ISBN: 9780137589739 by Richard L. Sites, published by Pearson Education, Inc, publishing as Addison-Wesley Professional, Copyright © 2022. This edition is authorized for distribution and sale in the People's Republic of China (excluding Hong Kong SAR, Macao SAR and Taiwan). ",
+        "bbox": [
+            88,
+            325,
+            967,
+            403
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "All rights reserved. No part of this book may be reproduced or transmitted in any form or by any means, electronic or mechanical, including photocopying, recording or by any information storage retrieval system, without permission from Pearson Education, Inc. Chinese Simplified edition published by POSTS AND TELECOM PRESS CO., LTD., Copyright © 2023. ",
+        "bbox": [
+            88,
+            407,
+            964,
+            483
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "本书中文简体版由 Pearson Education, Inc. 授权人民邮电出版社出版。未经出版者书面许可，不得以任何方式或任何手段复制和抄袭本书内容。本书经授权在中华人民共和国境内（香港特别行政区、澳门特别行政区和台湾地区除外）发行和销售。",
+        "bbox": [
+            88,
+            486,
+            964,
+            542
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "本书封面贴有 Pearson Education（培生教育出版集团）激光防伪标签，无标签者不得销售。  \n版权所有，侵权必究。",
+        "bbox": [
+            88,
+            546,
+            853,
+            583
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "$\\spadesuit$ 著 [美]理查德·L.赛茨（Richard L. Sites）",
+        "bbox": [
+            278,
+            617,
+            719,
+            637
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "译 赵利通",
+        "bbox": [
+            307,
+            640,
+            461,
+            658
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "审校吴咏炜 ",
+        "bbox": [
+            307,
+            663,
+            461,
+            680
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "责任编辑 谢晓芳",
+        "bbox": [
+            307,
+            685,
+            461,
+            703
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "责任印制 王郁 焦志炜",
+        "bbox": [
+            307,
+            706,
+            534,
+            723
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "$\\spadesuit$ 人民邮电出版社出版发行 北京市丰台区成寿寺路11号",
+        "bbox": [
+            280,
+            726,
+            746,
+            745
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "邮编 100164 电子邮件 315@ptpress.com.cn",
+        "bbox": [
+            307,
+            746,
+            643,
+            763
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "网址 https://www.ptpress.com.cn",
+        "bbox": [
+            307,
+            766,
+            531,
+            781
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "涿州市京南印刷厂印刷 ",
+        "bbox": [
+            307,
+            784,
+            496,
+            801
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "$\\spadesuit$ 开本： $800\\times 1000$ 1/16 彩插：6",
+        "bbox": [
+            280,
+            806,
+            610,
+            821
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "印张：25.25 2024年1月第1版",
+        "bbox": [
+            307,
+            824,
+            684,
+            840
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "字数：543千字 2024年1月河北第1次印刷",
+        "bbox": [
+            307,
+            843,
+            746,
+            858
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "著作权合同登记号 图字：01-2022-2655号",
+        "bbox": [
+            364,
+            861,
+            721,
+            877
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "定价：129.80元",
+        "bbox": [
+            474,
+            887,
+            610,
+            904
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "读者服务热线：(010)81055410 印装质量热线：(010)81055316",
+        "bbox": [
+            278,
+            910,
+            808,
+            927
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "反盗版热线：(010)81055315",
+        "bbox": [
+            424,
+            929,
+            663,
+            944
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "广告经营许可证：京东市监广登字20170147号",
+        "bbox": [
+            348,
+            947,
+            736,
+            964
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/75f8e38ac9f0575d023462805f8deda86208f27b7342f44f171ddb934f93046a.jpg",
+        "image_caption": [
+            "图6-7一次Web搜索的两级RPC调用树，旨在将一次搜索拆分为对一个Web索引的不同部分的大约2000次部分搜索。每个矩形代表包含大约50台服务器计算机的机架。浅绿色弧线显示了从机架“hsdr”上的一台机器发送到另外100台机器的大约100个一级RPC。深蓝色弧线显示了从这100台机器中的每一台发送到约2000台服务器的大约20个二级RPC"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            16,
+            53,
+            931,
+            421
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "image",
+        "img_path": "images/8abcc116d7d7377cac5a759b4a8aeb595ca192225626dd5999c3fe85f8ce5c7e.jpg",
+        "image_caption": [
+            "图6-8一次Web搜索RPC的大约100个一级RPC的图，每条线右侧的“pyxxxx”表示服务器的名称"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            72,
+            530,
+            872,
+            886
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "image",
+        "img_path": "images/183b68b9465ccf0e49281fe2bc2f233d553e624f1acc641d65cd77e23326ae54.jpg",
+        "image_caption": [
+            "(a) 每个 RPC 写 1MB 数据的 2400 个写 RPC 的图形, 不同颜色的客户端将向同一个服务器发送这些 RPC (使用绝对开始时间)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            117,
+            52,
+            915,
+            273
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/2485ecbb76444f5d1e68df5db15b963d9abc7d4872b3a70dbb15cf070c1cdf6c.jpg",
+        "image_caption": [
+            "（b）每个RPC写1MB数据的2400个写RPC的图形，不同颜色的客户端将向同一个服务器发送这些RPC（相对于开始时间）",
+            "图7-6 测量结果"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            119,
+            308,
+            909,
+            531
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/2bedcb10496d4b4d8eb92054293339f63ec3b4b3f79d23b58d9d99eac84e338c.jpg",
+        "image_caption": [
+            "图7-7 从两个客户端切换到4个客户端"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            136,
+            609,
+            896,
+            834
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/47ccc0a46ff8fe406f55a664fc568663adf2666a2429c41c3ea667475888d069.jpg",
+        "image_caption": [
+            "图7-8 从两个客户端切换到一个客户端"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            84,
+            50,
+            853,
+            277
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "image",
+        "img_path": "images/42f0395027c92af3461c7c1917fe5d0c5dea4d7c6a7fb42264a29a9a7739e63f.jpg",
+        "image_caption": [
+            "图7-93个客户端向磁盘服务器写1MB的数据，自旋锁内多出了 $5\\mathrm{ms}$ 的RPC处理时间"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            90,
+            361,
+            859,
+            582
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "image",
+        "img_path": "images/15e05e6f710c79c44902cd8d5c86f0c4b485b9bb6a18661f3a38ae949d8c4c28.jpg",
+        "image_caption": [
+            "图7-10 从一个客户端切换到3个客户端"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            94,
+            631,
+            859,
+            889
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "image",
+        "img_path": "images/6e0fedf79b31ea65dfe93374e839561b8d362534f30306ff449a90f5b0e71148.jpg",
+        "image_caption": [
+            "图7-11 这里增加了 $30\\mathrm{ms}$ 的阶段变化"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            138,
+            50,
+            905,
+            271
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/b1eb9c47bb951ce13100d56a3d466a9366f26706370126932cedbea2a02d26f3.jpg",
+        "image_caption": [
+            "图7-12 $2.2\\mathrm{s}$ 的长延迟，观察最右侧，看起来内存写缓冲区变空了"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            131,
+            316,
+            911,
+            576
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/defda9261d981ac7e028803c4e6cc616a53276c0ac9b91a226a2cb4ea285853f.jpg",
+        "image_caption": [
+            "（a）绝对开始时间"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            131,
+            654,
+            513,
+            850
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/3ce4fa3d4868ca2b73ddd45c9ae26f00e07c2a2b6c12f78abc85d54c7652b315.jpg",
+        "image_caption": [
+            "（b）相对开始时间为0",
+            "图7-13 3个客户端对磁盘服务器上的1MB值求校验和"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            534,
+            654,
+            911,
+            850
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/e2442973c851a27e745c91f3e0f30dd0e794ab1838580993ae4c6ab559e5cfb0.jpg",
+        "image_caption": [
+            "图7-143个客户端对磁盘服务器上的1MB值求校验和（这里对图7-13中client2和client3的启动过程进行了扩展）"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            131,
+            55,
+            818,
+            271
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/1a5a421a5bf2b4cd51d1c4aa97498084ad82dd6c281d8c4f41bea2ffb48328f5.jpg",
+        "image_caption": [
+            "图7-15 剩下的两个客户端对磁盘服务器上的1MB值求校验和（这里对图7-13中变慢的活动进行了扩展）"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            127,
+            406,
+            824,
+            627
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/7aef6d37c9708569c16b4c016698256f188f82e9774c8e01251bc44c38138061.jpg",
+        "image_caption": [
+            "图9-9在 $1\\mathrm{h}$ 的时间间隔内，13块磁盘的第99个百分位磁盘读取时延的热点图。时间解析度是 $10s$ 的间隔。蓝色表示低于 $50~\\mathrm{ms}$ 的时延，红色表示超过 $200~\\mathrm{ms}$ 的时延，白色表示没有活动。这是我们在一个日志页面上记录的 $24\\mathrm{h}$ 活动的一个子集"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            65,
+            762,
+            882,
+            809
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/4dc5b2d9bf261c80999cbd8f5d113922b904fa0126e95c3c596fbd1b7146e999.jpg",
+        "image_caption": [
+            "（a）在显示主程序的非零个PC样本时，使文本高度与样本计数成比例。代码片段11-3中的for循环的代码行在顶部刚刚能够看到，位于计数5615的上方"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            90,
+            55,
+            484,
+            433
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "image",
+        "img_path": "images/8236b11a9d621fbc137024ebfe19733864bea2051965564e6aea68330e1f6488.jpg",
+        "image_caption": [
+            "（b）运行性能分析基准25s后得到的完整样本集合，可以看到，只有 $30\\%$ 的时间用在基准代码自身（中间的蓝色部分）中，其余时间用在性能分析工具（顶部的红色部分）和运行时数学库（底部的黑色部分）中"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            540,
+            55,
+            934,
+            430
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "image",
+        "img_path": "images/21a010457b947ca484927134154a85f91d443ecf700998062727cd61a782aa03.jpg",
+        "image_caption": [
+            "图11-1 样本",
+            "(a) "
+        ],
+        "image_footnote": [],
+        "bbox": [
+            61,
+            540,
+            509,
+            858
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "image",
+        "img_path": "images/04757fcb9cf6eaa8a4e74f64c199d902ef2c7cdd5d348ff81939dc5303298354.jpg",
+        "image_caption": [
+            "（b）",
+            "图12-1 CRT输出：程序计数器的跟踪与时间对比图，这里跟踪的是IBM7010上sort例程的启动过程"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            521,
+            542,
+            969,
+            857
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "image",
+        "img_path": "images/c926b083ffb2af15ce8a4c95b21ab0ef2b683578ab585a50becbbcdebc7d5c9e.jpg",
+        "image_caption": [
+            "图12-3针对早期Gmail代码上传消息的过程，记录的函数调用/返回所经过时间的跟踪。为每个消息创建一个新行，整个页面占用 $500\\mathrm{ms}$ "
+        ],
+        "image_footnote": [],
+        "bbox": [
+            16,
+            56,
+            931,
+            430
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "image",
+        "img_path": "images/5be2f2accf3deb6ae1dbd90050271a3a5f057bbe1c4918d1e48a462557f51c82.jpg",
+        "image_caption": [
+            "图14-1 4个CPU核心上经过后处理的跟踪示例"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            84,
+            602,
+            853,
+            829
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "image",
+        "img_path": "images/20f0e5aa104e43346206dd8a6f5ebef66777480dd19a1deab4e59da8d5d142d5.jpg",
+        "image_caption": [
+            "图19-1 show_cpu.html的浏览器布局"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            84,
+            164,
+            950,
+            514
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "image",
+        "img_path": "images/2926aa0701ed32309593671ef9931e49cc9534cdecc8c54ac26c7e108b2cf34e.jpg",
+        "image_caption": [
+            "图21-5mystery21程序的KUtrace显示了大约50个RPC，每 $4\\mathrm{ms}$ 就会有非空闲的PC样本"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            131,
+            660,
+            911,
+            764
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "image",
+        "img_path": "images/31819a885d8e0273950a82f5e53a5fd55661225a920f33fa47b962a663529142.jpg",
+        "image_caption": [
+            "图22-1 Whetstone基准程序独自执行了 $1.6\\mathrm{s}$ ，为每个循环（模块）显示了IPC"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            80,
+            188,
+            859,
+            260
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/a8b042d17025d033bd3412edc0a0acca4885ac64de846d6328450a0cb8910f36.jpg",
+        "image_caption": [
+            "图23-4在4个CPU上调度5个进程时的启动阶段，显示了在子进程3573完全运行前存在3个连续的 $30~\\mu \\mathrm{s}$ 延迟，横向有 $130~\\mu \\mathrm{s}$ "
+        ],
+        "image_footnote": [],
+        "bbox": [
+            28,
+            418,
+            909,
+            722
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/3286a78005134fa78047106cdb433ea17f9f2ebc32d08e987044b0b2482b9650.jpg",
+        "image_caption": [
+            "PID (2) ",
+            "图27-2 一次争用锁交互的例子"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            206,
+            182,
+            915,
+            354
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "image",
+        "img_path": "images/70014bbc09a1b227fd4fd4b6f4c0d2f2be7a297fd9b22f18926f77ca6a0f4f76.jpg",
+        "image_caption": [
+            "图29-7 图29-5的详细版本"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            129,
+            513,
+            876,
+            734
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "image",
+        "img_path": "images/d87403bce5c829fca282c334ea07f0ad9c10501646e893e009b75acf9d147632.jpg",
+        "image_caption": [
+            "图29-8 图29-6的详细版本"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            86,
+            148,
+            835,
+            369
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/37d0c2c3c54fd36721c89d7dadc7b3eb0b2b87d6d2592b98be59e70bde90586b.jpg",
+        "image_caption": [
+            "图29-10 图29-9中的前几个请求"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            86,
+            493,
+            855,
+            794
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/17b294ce3fe34db0413c0ad62bf811deb7c6eee3a811ac4fcc6f0ea27e447a50.jpg",
+        "image_caption": [
+            "图29-17 图29-16中的跟踪，这里显示了PC样本和IPC"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            129,
+            50,
+            917,
+            239
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "内容提要",
+        "text_level": 1,
+        "bbox": [
+            32,
+            145,
+            301,
+            203
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "本书不仅介绍了如何测量CPU、内存、磁盘/SSD、网络的性能，如何观察、记录、跟踪、汇总性能指标，还讨论了如何设计和创建性能测试工具KUtrace，以及如何对观察结果进行推理。",
+        "bbox": [
+            30,
+            257,
+            911,
+            326
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "本书不仅适合软件开发人员阅读，还适合计算机相关专业的师生参考。",
+        "bbox": [
+            74,
+            329,
+            746,
+            352
+        ],
+        "page_idx": 15
+    },
+    {
+        "type": "text",
+        "text": "推荐序 ",
+        "text_level": 1,
+        "bbox": [
+            32,
+            145,
+            247,
+            202
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "Richard解决问题的方式非常罕见，在今天可以说已经罕见到令人吃惊。对于他来说，把猜测作为解决问题的方式是难以接受的。相反，他坚持认为，应该首先理解现象背后的原因，然后再着手解决问题。如果面对复杂的现代计算机系统，包括软/硬件在内，需要调试其性能，大部分程序员采用的方法是用直觉来判断发生了什么，然后“先试试这么做，再试试那么做”，他们希望这种方式能够刚好解决问题。在采用这种方法时，我们其实暗自认为，程序性能不佳的原因在于一些复杂的软/硬件交互，但我们是没有办法真正理解这些交互的。显然，对于Richard来说，“与计算机有关的东西是无法理解的”这种说法并不成立。很多时候，难以理解是因为缺少基本工具来提供关于程序行为的信息。在这种情况下，Richard就会做（对他来说）该做的事情：创建这些工具，包括创建可视化框架，将关于程序执行的关键信息压缩到易读的图表中，从而为分析程序动态提供帮助。",
+        "bbox": [
+            30,
+            257,
+            917,
+            495
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "纵览 Richard 精彩的职业生涯，你就能够明白他为什么对理解复杂的计算系统有这种自信。他早在 1959 年就成了一名“程序员”，当时他才 10 岁。对计算的浓厚兴趣让他职业生涯中有机会与这个领域的先驱一同学习或工作过，其中包括 Fran Allen、Fred Brooks、John Cocke、Donald Knuth 和 Chuck Seitz 等人。Richard 在业界取得了广泛的成就：从共同设计 DEC 的 Alpha Architecture，到参与开发 Adobe 的 Photoshop，最后到加快 Google 的 Web 服务（如 Gmail）问世。",
+        "bbox": [
+            30,
+            496,
+            917,
+            638
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "初识 Richard 时（我在 1995 年加入 DEC 公司），他就已经是这个领域的传奇人物。他在 Google 任职期间，我也有幸与他共事，目睹了他解决问题的方法。读者会欣喜地发现，在本书中，Richard 利用他对软硬件交互的渊博知识，通过对程序进行细致追踪揭示的线索，清晰地描述了性能调试问题是可以解决的难题，并带领读者详细跟踪程序的执行过程。本书对程序员和计算机设计人员具有巨大的帮助，这在很大程度上是因为目前还没有同类图书可供他们参考。本书与它的作者一样独一无二。",
+        "bbox": [
+            32,
+            639,
+            915,
+            783
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "footer",
+        "text": "Luiz Andre Barroso ",
+        "bbox": [
+            736,
+            834,
+            913,
+            851
+        ],
+        "page_idx": 16
+    },
+    {
+        "type": "text",
+        "text": "序 ",
+        "text_level": 1,
+        "bbox": [
+            37,
+            151,
+            146,
+            211
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "想要理解复杂软件的性能十分困难。当软件具有时间约束但时不时神秘地超出这个约束时，这将变得更加困难。对于自己的软件的执行动态，开发人员在脑海中会有一幅幅画面：软件的各个部分在一段时间内如何工作以及协作，每个部分大概执行多长时间等。有些时候，他们甚至会把这些画面记录下来。但是，当时间约束无法满足时，并没有多少工具能帮助我们理解为什么没有满足时间约束，导致延迟的根本原因是什么，以及还有其他哪些性能异常。本书针对的就是这类软件的开发人员以及理解能力较强的学生。",
+        "bbox": [
+            37,
+            266,
+            919,
+            407
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "“软件动态”不仅指的是单个线程的性能和执行时间，还包括线程之间、不相关的程序之间以及操作系统和用户程序之间的交互。复杂软件中的延迟常常是由一些交互导致的，其中包括代码被阻塞并等待其他代码唤醒，可运行的代码等待调度程序为其分配CPU，其他代码占用共享硬件导致某段代码运行缓慢，中断例程使用CPU导致代码完全不运行，代码以不可见的方式将大量时间用在操作系统的服务以及缺页错误的处理上，代码等待I/O设备或来自其他计算机的网络消息，等等。",
+        "bbox": [
+            37,
+            411,
+            917,
+            552
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "具有时间约束的软件将处理周期性的、有时间限制的重复任务，或者那些不定期收到新请求且每个新请求都有时间限制的任务。这些任务对于向移动中的机器（飞机、汽车、工业机器人等）发送控制信号既有硬性时间限制，也有软性时间限制（例如，将语音即时转换为文本）。此外，还有理想的时间限制（针对客户的数据库查询或者Web搜索的响应时间等）。“时间约束”也适用于手机/平板电脑/桌面/游戏的用户界面响应。“时间约束”这个术语要比“实时”的含义更广，“实时”通常意味着硬性约束。",
+        "bbox": [
+            37,
+            555,
+            919,
+            696
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "在以上所有情况下，软件任务都有一个刺激因素（或称请求）和一个结果（或称响应）。刺激因素与结果之间经过的时间（称为延迟或响应时间）具有一定的时间限制。超出时间限制的任务即会失败，有时会导致灾难性后果，有时则只会让人感到沮丧。在本书中，你将学习如何找出导致这些失败的根本原因。",
+        "bbox": [
+            37,
+            697,
+            917,
+            791
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "取决于具体的上下文，可以把这种软件中的单个任务称为事务、查询、控制-响应或游戏-反应。我们将使用术语“事务”称呼所有这些名称。通常，端到端任务包含一些子任务，其中一些子任务并行运行，另一些子任务则依赖其他子任务执行完。子任务可能是CPU密集型、内存密集型、磁盘密集型或网络密集型的。它们可能正在执行，但受共享的硬件资源的干扰以及现代CPU芯片的节能策略的影响，它们的运行速度比预期的速度慢。它们可能在等待获得软件锁，也可能在等待其他任务、计算机或外部设备的响应，所以在此期间没有执行。",
+        "bbox": [
+            37,
+            794,
+            919,
+            935
+        ],
+        "page_idx": 17
+    },
+    {
+        "type": "text",
+        "text": "可能不是程序员的用户态下的代码，而是底层操作系统或内核态下的设备驱动程序导致产生延迟或者造成干扰。",
+        "bbox": [
+            80,
+            93,
+            960,
+            139
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "许多时候，软件由几十个层或子系统组成，其中每个层或子系统都有可能导致意外的延迟，并且它们很可能运行在不同的联网计算机上。例如，一次 Google 搜索可能将查询分散到 2000 台计算机上，每台计算机执行一小部分搜索，然后返回结果并确定结果的优先级。云端在收到电子邮件消息后，可能触发数据库、网盘存储、索引、锁定、加密、复制和洲际传输等子系统。汽车驾驶系统可能运行 50 个不同的程序，其中一些程序处理来自多个摄像头和雷达的每个视频帧，并相应地改变 GPS 坐标、车辆的 3D 加速力以及关于下雨、可见度、轮胎湿滑度的反馈等。小型数据库系统可能具有查询优化和磁盘访问子系统，进而使用多台联网计算机上的许多磁盘。游戏可能具有本地计算、图形处理以及与其他玩家进行网上互动的子系统。",
+        "bbox": [
+            80,
+            142,
+            962,
+            354
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "在本书中，你将学到如何为这种软件设计观察能力、日志记录和时间戳，如何测量CPU、内存、磁盘、网络的性能，如何设计低开销的观察工具，以及如何分析产生的性能数据。一旦知道了正常事务和慢事务的任务或子任务真正消耗的时间，你就能够看出现实情况与自己脑海中形成的画面有怎样的区别。此时，也许花 $20\\mathrm{min}$ 的时间来修改软件，就能够让慢事务的速度得到显著提升。但是，如果没有获得真实的数据，我们就只能采用猜测和做实验的方法来缩短长延迟与提高性能。本书要表达的就是不要靠猜测，而要知道真正发生了什么。",
+        "bbox": [
+            80,
+            357,
+            962,
+            522
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "本书的所有示例、程序练习以及提供的软件都使用C或 $\\mathrm{C + + }$ 编写，针对在64位AMD、ARM或Intel处理器上运行的Linux操作系统。本书假定读者已经熟悉在这种环境中开发软件。本书还假定读者的某个软件具有时间约束，并且存在我们想要解决的性能问题。这个软件应该已经能够工作且已经经过调试，具有可以接受的平均性能，只不过有时候会出现难以解释的性能变化。另外，本书假定读者能够在脑海中分析出软件如何运行，并且在需要的时候，能够勾勒典型事务的各个部分的交互方式。最后，本书假定读者对CPU、虚拟内存、磁盘和网络I/O、软件锁、多核执行以及并行处理有一定了解。我们将基于这些假定开始讨论。",
+        "bbox": [
+            80,
+            525,
+            962,
+            715
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "本书将探索如下主题。",
+        "bbox": [
+            125,
+            718,
+            334,
+            738
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "- 测量。对于任何性能分析，首先都需要对发生了什么进行测量。数字测量值（每秒事务数、第99百分位响应时间或者丢失的视频帧数）只能告诉你发生了什么，而无法解释为什么发生这些行为。",
+        "bbox": [
+            125,
+            741,
+            962,
+            809
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "- 观察。为了理解为什么有的测量结果出现的速度异常慢，但再次测量时结果出现的速度很快，就有必要仔细观察对于正常实例和慢实例，时间都消耗在了什么地方，或者执行了什么处理。对于只有在存在大量实时负载的情况下才会发生的异常行为，我们必须在足够长的时间内进行观察，因为这样更有可能多次观察到慢实例，而且必须在运行实时负载的原位置进行观察，以便将受干扰的程度降到最低。",
+        "bbox": [
+            125,
+            814,
+            962,
+            930
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "page_number",
+        "text": "2序 ",
+        "bbox": [
+            78,
+            61,
+            131,
+            76
+        ],
+        "page_idx": 18
+    },
+    {
+        "type": "text",
+        "text": "- 推理（与修复）。针对我们通过仔细观察得到的结果，推测慢实例与正常实例有什么区别，软件和硬件的交互如何导致出现慢实例，如何改善这种情况。在本书的第四部分，我们将采用案例分析的方式探讨如何进行推理，以及可以采用的一些修复方法。",
+        "bbox": [
+            74,
+            90,
+            911,
+            180
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "text",
+        "text": "按照这3个主题，本书分为四部分，其中一部分介绍了如何创建低开销的KUtrace。",
+        "bbox": [
+            72,
+            187,
+            870,
+            205
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- 第一部分（第1章～第7章）介绍如何仔细测量4种基本的计算机资源——CPU、内存、磁盘/SSD和网络的性能。",
+            "- 第二部分（第8章～第13章）讲述标准观察工具——日志、仪表板与跟踪工具等。",
+            "- 第三部分（第14章～第19章）讨论如何设计并创建低开销的KUtrace，并用它记录每个CPU核心在每纳秒做了什么工作。此外，我们还将开发一些后处理程序，以创建动态的HTML页面来显示时间线和交互情况。",
+            "- 第四部分（第20章～第30章）采用案例分析的方式，讨论我们观察到异常延迟的干扰因素——执行的代码过多，指令执行缓慢，等待CPU、内存、磁盘、网络、软件锁、队列和计时器并对它们进行推理。"
+        ],
+        "bbox": [
+            74,
+            211,
+            911,
+            421
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "image",
+        "img_path": "images/9abd4b831a01675a792986d24ce60a00cfccd7b1e7a4957028c24c16fc1363a5.jpg",
+        "image_caption": [
+            "图0-1存在无法解释的延迟，利用上面这些思想，你将能够把图0-1转换为包含详细信息的图0-2。",
+            "图0-1"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            197,
+            484,
+            750,
+            611
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "image",
+        "img_path": "images/dc9a42877add32023f4f841315caf323f0e015c67b2891674d3b82eedc48fb04.jpg",
+        "image_caption": [
+            "图0-2显示了在什么时候执行了哪些子任务，哪些子任务是并行执行的，而哪些子任务依赖于另一个步骤来完成，从而准确地说明了为什么这个任务执行了 $3\\mathrm{h}$ 。",
+            "图0-2",
+            "基于相同的思想，我们可以把一个示例软件延迟转换为图0-3（第三部分将介绍如何为各种软件创建这种图），以说明运行在CPU2上的远程登录守护进程ssh是如何唤醒运行在CPU1上的文本编辑器gedit的。"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            113,
+            714,
+            837,
+            806
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "page_number",
+        "text": "序3 ",
+        "bbox": [
+            861,
+            55,
+            911,
+            70
+        ],
+        "page_idx": 19
+    },
+    {
+        "type": "image",
+        "img_path": "images/94d5d5d6d9af19264ed6c9b85ebb915248bb350c3c0fe4c443d9ebb79c3d4b43.jpg",
+        "image_caption": [
+            "图0-3"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            131,
+            82,
+            903,
+            258
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "在阅读本书时，强烈建议读者做一下书中的习题，并实现本书介绍的软件观察工具的部分代码。",
+        "bbox": [
+            80,
+            305,
+            956,
+            348
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "本书夹杂着对复杂的现代处理器芯片及其性能增强机制的介绍。无意间违反这些机制有可能会导致令人意外的延迟。读者在学完本书后，将能够更加深入地理解计算机架构和微架构，并掌握一些其他知识。",
+        "bbox": [
+            80,
+            351,
+            956,
+            420
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "本书是针对软件从业人员的软件性能优化指南，但也讲解了计算机硬件架构师、操作系统开发人员、系统架构师、实时系统设计人员和游戏开发人员感兴趣的内容。本书着重于让你理解用户所能够感受到的延迟，掌握相关技能对于任何程序员的职业生涯都会有所助益。",
+        "bbox": [
+            80,
+            423,
+            956,
+            491
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "page_number",
+        "text": "4 序 ",
+        "bbox": [
+            76,
+            52,
+            127,
+            67
+        ],
+        "page_idx": 20
+    },
+    {
+        "type": "text",
+        "text": "致谢 ",
+        "text_level": 1,
+        "bbox": [
+            43,
+            150,
+            309,
+            205
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "本书最终问世，得益于许多人的帮助。Amer Diwan、V. Bruce Hunt、Richard Kaufmann 和 Hal Murry 阅读了本书并对内容提供了反馈。Connor Sites-Bowen、J. Craig Mudge、Jim Maurer 和 Rik Farrow 对本书进行了评审，并提出了宝贵的意见。Brian Kernighan 认真阅读了本书的手稿，他提出的建议让本书的品质得到了显著提升。",
+        "bbox": [
+            43,
+            260,
+            925,
+            354
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "我在2016年从Google退休后，开始教授研究生课程，本书的许多资料就源于我教授的课程。非常感谢新加坡国立大学的Michael Brown，瑞士洛桑联邦理工学院的Jim Larus和Willy Zwaenepoel，斯坦福大学的Christos Kozyrakis，以及北卡罗来纳大学的Kevin Jeffay和Fred Brooks，感谢他们为我提供授课的机会。",
+        "bbox": [
+            43,
+            355,
+            925,
+            450
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "Joshua Bakita、Drew Gallatin 和 Hal Murray 将 KUtrace 移植到了不同的 UNIX 版本中。Jim Keller 和 Pete Bannon 则让我有机会在 Tesla Motors 上进行移植。Sandhya Dwarkadas 提出了一个关于如何检测缓存干扰的关键问题，让我最终在 KUtrace 中添加了统计每个周期执行的指令数的功能。",
+        "bbox": [
+            43,
+            452,
+            925,
+            546
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "感谢IBM的Elaine Bond、Pat Goldberg、Ray Hedberg、Fran Allen和John Cocke，斯坦福大学的Donald Knuth，以及Digital Equipment Corporation的Joel Emer、Anita Borg和Sharon Perl。受到他们的影响并得到他们的指导，我在职业生涯的早期就重点关注CPU的性能和跟踪。",
+        "bbox": [
+            43,
+            547,
+            925,
+            642
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "与我共度37年时光的妻子Lucey Bowen的包容，在我需要投入大量的时间来完成本书时，她给予我巨大的支持。",
+        "bbox": [
+            43,
+            642,
+            925,
+            690
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "组稿编辑 Greg Doench 为本书能够顺利出版提供了巨大帮助，他在早期开始设计本书的版式，这为后期节省了时间。文字编辑 Kim Wimpsett 帮我梳理和润色本书的文字。感谢两位编辑。",
+        "bbox": [
+            43,
+            691,
+            925,
+            762
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "Richard L. Sites ",
+        "bbox": [
+            779,
+            812,
+            925,
+            831
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "2021年9月",
+        "bbox": [
+            804,
+            835,
+            923,
+            855
+        ],
+        "page_idx": 21
+    },
+    {
+        "type": "text",
+        "text": "资源与支持",
+        "text_level": 1,
+        "bbox": [
+            70,
+            156,
+            338,
+            196
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "本书由异步社区出品，社区（https://www.epubit.com/）为您提供相关资源和后续服务。",
+        "bbox": [
+            88,
+            239,
+            907,
+            260
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "配套资源",
+        "text_level": 1,
+        "bbox": [
+            45,
+            286,
+            171,
+            312
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "本书提供相关程序的源代码。",
+        "bbox": [
+            88,
+            340,
+            364,
+            361
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "要获得以上配套资源，请在异步社区本书页面中单击“配套资源”，跳转到下载界面，按提示进行操作即可。注意，为保证购书读者的权益，该操作会给出相关提示，要求输入提取码进行验证。",
+        "bbox": [
+            43,
+            365,
+            925,
+            434
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "如果您是教师，希望获得教学配套资源，请在社区本书页面中直接联系本书的责任编辑。",
+        "bbox": [
+            88,
+            437,
+            921,
+            458
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "提交勘误信息",
+        "text_level": 1,
+        "bbox": [
+            45,
+            484,
+            235,
+            512
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "作者、译者和编辑尽最大努力来确保书中内容的准确性，但难免会存在疏漏。欢迎您将发现的问题反馈给我们，帮助我们提升图书的质量。",
+        "bbox": [
+            45,
+            539,
+            923,
+            584
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "当您发现错误时，请登录异步社区，按书名搜索，进入本书页面，单击“发表勘误”，输入相关信息，单击“提交勘误”按钮即可，如下图所示。本书的作者和编辑会对您提交的相关信息进行审核，确认并接受后，您将获赠异步社区的100积分。积分可用于在异步社区兑换优惠券、样书或奖品。",
+        "bbox": [
+            43,
+            587,
+            925,
+            679
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "image",
+        "img_path": "images/ef73a71836e6a1a0f46ed6d7c7e0745e89140ba86e877cd2fccb4d08e091199f.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            181,
+            703,
+            789,
+            930
+        ],
+        "page_idx": 22
+    },
+    {
+        "type": "text",
+        "text": "与我们联系",
+        "text_level": 1,
+        "bbox": [
+            80,
+            115,
+            232,
+            141
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "我们的联系邮箱是contact@epubit.com.cn。",
+        "bbox": [
+            119,
+            168,
+            519,
+            190
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "如果您对本书有任何疑问或建议，请您发邮件给我们，并请在邮件标题中注明本书书名，以便我们更高效地做出反馈。",
+        "bbox": [
+            78,
+            193,
+            952,
+            236
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "如果您有兴趣出版图书、录制教学视频，或者参与图书翻译、技术审校等工作，可以发邮件给我们；有意出版图书的作者也可以到异步社区投稿（直接访问 www.epubit.com/contribute 即可）。",
+        "bbox": [
+            78,
+            239,
+            956,
+            308
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "如果您所在的学校、培训机构或企业想批量购买本书或异步社区出版的其他图书，也可以发邮件给我们。",
+        "bbox": [
+            78,
+            311,
+            954,
+            356
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "如果您在网上发现有针对异步社区出品图书的各种形式的盗版行为，包括对图书全部或部分内容的非授权传播，请您将怀疑有侵权行为的链接通过邮件发送给我们。您的这一举动是对作者权益的保护，也是我们持续为您提供有价值的内容的动力之源。",
+        "bbox": [
+            78,
+            360,
+            956,
+            428
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "关于异步社区和异步图书",
+        "text_level": 1,
+        "bbox": [
+            80,
+            456,
+            420,
+            483
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "“异步社区”是人民邮电出版社旗下IT专业图书社区，致力于出版精品IT图书和相关学习产品，为作译者提供优质出版服务。异步社区创办于2015年8月，提供大量精品IT图书和电子书，以及高品质技术文章和视频课程。更多详情请访问异步社区官网https://www.epubit.com。",
+        "bbox": [
+            78,
+            509,
+            956,
+            577
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "“异步图书”是由异步社区编辑团队策划出版的精品IT专业图书的品牌，依托于人民邮电出版社的计算机图书出版积累和专业编辑团队，相关图书在封面上印有异步图书的LOGO。异步图书的出版领域包括软件开发、大数据、人工智能、测试、前端、网络技术等。",
+        "bbox": [
+            78,
+            582,
+            956,
+            651
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "image",
+        "img_path": "images/f2f398238a06f72abe061db304752df5899062d31b61c418f6b20ff45266a3ed.jpg",
+        "image_caption": [
+            "异步社区"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            294,
+            665,
+            408,
+            752
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "image",
+        "img_path": "images/f3e4028b1b55818f3752ece32de89ac95f7c27a047f43644ffb597676350c1fe.jpg",
+        "image_caption": [
+            "微信服务号"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            620,
+            665,
+            738,
+            752
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "page_number",
+        "text": "2 ",
+        "bbox": [
+            76,
+            56,
+            94,
+            70
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "header",
+        "text": "资源与支持",
+        "bbox": [
+            105,
+            56,
+            191,
+            70
+        ],
+        "page_idx": 23
+    },
+    {
+        "type": "text",
+        "text": "目录",
+        "text_level": 1,
+        "bbox": [
+            63,
+            151,
+            268,
+            188
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "第一部分 测量",
+        "text_level": 1,
+        "bbox": [
+            389,
+            266,
+            569,
+            289
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "第1章 我的程序太慢了",
+        "text_level": 1,
+        "bbox": [
+            39,
+            303,
+            459,
+            323
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "1.1 数据中心环境",
+            "1.2 数据中心的硬件 5",
+            "1.3 数据中心的软件 6",
+            "1.4 长尾时延",
+            "1.5 思维框架",
+            "1.6 数量级估测 ",
+            "1.7 为什么事务很慢",
+            "1.8 5种基本资源· 11",
+            "1.9 小结 12"
+        ],
+        "bbox": [
+            82,
+            329,
+            457,
+            538
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "第2章 测量CPU时间 13",
+        "text_level": 1,
+        "bbox": [
+            39,
+            544,
+            457,
+            564
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "2.1 发展历史 14",
+            "2.2 现状 17",
+            "2.3 测量add指令的时延 18 ",
+            "2.4 直线代码失败 19",
+            "2.5 简单循环、循环开销失败、优化编译器失败 ",
+            "2.6 死变量失败 22 ",
+            "2.7 更好的循环 23 ",
+            "2.8 依赖变量· 24 ",
+            "2.9 实际执行时延 25 ",
+            "2.10 更多细微差别 25",
+            "2.11 小结 26"
+        ],
+        "bbox": [
+            82,
+            570,
+            457,
+            849
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "习题 26",
+        "bbox": [
+            82,
+            855,
+            459,
+            872
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "第3章 测量内存层次 28",
+        "text_level": 1,
+        "bbox": [
+            41,
+            878,
+            459,
+            898
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "3.1 内存计时 28",
+        "bbox": [
+            82,
+            904,
+            459,
+            921
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "3.2 关于内存 29",
+            "3.3 缓存组织 30",
+            "3.4 数据对齐 32",
+            "3.5 页表缓存组织",
+            "3.6 测量内存的步骤 34 ",
+            "3.7 测量缓存行的大小 34",
+            "3.8 问题：预取第 $N + 1$ 行",
+            "3.9 依赖加载· 37 ",
+            "3.10 非随机的DRAM 38",
+            "3.11 测量每个缓存级别的总大小……39 ",
+            "3.12 测量每个级别的缓存相联度…41 ",
+            "3.13 页表缓存时间· 42",
+            "3.14 缓存利用不足 42",
+            "3.15 小结 42"
+        ],
+        "bbox": [
+            542,
+            305,
+            915,
+            634
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "习题 43",
+        "bbox": [
+            544,
+            641,
+            915,
+            657
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "第4章 CPU与内存的交互 45",
+        "text_level": 1,
+        "bbox": [
+            501,
+            664,
+            915,
+            682
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "4.1 缓存交互 45 ",
+            "4.2 简单矩阵乘法的动态 47 ",
+            "4.3 估测· 47 ",
+            "4.4 初始化、反复核对和观察 48 ",
+            "4.5 初始结果 49",
+            "4.6 更快的矩阵乘法，转置方法 51",
+            "4.7 更快的矩阵乘法，子块方法 53",
+            "4.8 感知缓存的计算 54",
+            "4.9 小结 55"
+        ],
+        "bbox": [
+            542,
+            688,
+            915,
+            897
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "习题 55",
+        "bbox": [
+            544,
+            903,
+            915,
+            921
+        ],
+        "page_idx": 24
+    },
+    {
+        "type": "text",
+        "text": "第5章 测量磁盘/SSD的传输时间… 56",
+        "text_level": 1,
+        "bbox": [
+            76,
+            84,
+            496,
+            105
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "text",
+        "text": "第6章 测量网络流量 79",
+        "text_level": 1,
+        "bbox": [
+            76,
+            445,
+            494,
+            465
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "5.1 关于硬盘 56",
+            "5.2 关于SSD 58",
+            "5.3 软件磁盘访问和磁盘缓冲 60",
+            "5.4 磁盘读取有多快 62 ",
+            "5.5 一次粗略估算 65",
+            "5.6 磁盘写入有多快 66 ",
+            "5.7 结果 66",
+            "5.8 从磁盘读取· 67",
+            "5.9 写入磁盘 71 ",
+            "5.10 从SSD读取… 74",
+            "5.11 写入SSD 75 ",
+            "5.12 多次传输· 76",
+            "5.13 小结 77",
+            "习题· 77 ",
+            "6.1 关于以太网 81",
+            "6.2 关于集线器、交换机和路由器… 82",
+            "6.3 关于TCP/IP 83",
+            "6.4 关于数据包 84",
+            "6.5 关于RPC 85",
+            "6.6 空程差 87",
+            "6.7 观察网络流量 88",
+            "6.8 示例RPC消息的定义 90"
+        ],
+        "bbox": [
+            76,
+            84,
+            496,
+            655
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "6.9 示例日志设计 92",
+            "6.10 使用RPC的示例客户-服务器系统 93",
+            "6.11 示例服务器程序 94",
+            "6.12 自旋锁 95",
+            "6.13 示例客户端程序 96",
+            "6.14 测量一个示例客户-服务器RPC·",
+            "6.15 后处理RPC日志 99",
+            "6.16 观察 100 ",
+            "6.17 小结 101  \n习题 102"
+        ],
+        "bbox": [
+            577,
+            86,
+            954,
+            367
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "text",
+        "text": "第7章 磁盘和网络数据库的交互……103",
+        "text_level": 1,
+        "bbox": [
+            536,
+            373,
+            954,
+            393
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "7.1 时间对齐 103",
+            "7.2 多个客户端 109",
+            "7.3 自旋锁的应用 109",
+            "7.4 实验1 110 ",
+            "7.5 磁盘数据库 113",
+            "7.6 实验2 113 ",
+            "7.7 实验3 117 ",
+            "7.8 日志 119",
+            "7.9 理解事务时延的变化 120",
+            "7.10 小结 120"
+        ],
+        "bbox": [
+            577,
+            397,
+            954,
+            632
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "text",
+        "text": "习题 121",
+        "bbox": [
+            579,
+            637,
+            954,
+            655
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "text",
+        "text": "第二部分 观察",
+        "text_level": 1,
+        "bbox": [
+            426,
+            672,
+            606,
+            694
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "text",
+        "text": "第8章 日志 125",
+        "text_level": 1,
+        "bbox": [
+            76,
+            709,
+            494,
+            729
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "8.1 观察工具 125",
+            "8.2 日志· 125",
+            "8.3 基本日志 126",
+            "8.4 扩展日志 127",
+            "8.5 时间戳 127",
+            "8.6 RPC ID 128 ",
+            "8.7 日志文件的格式 129",
+            "8.8 管理日志文件 130"
+        ],
+        "bbox": [
+            117,
+            734,
+            494,
+            918
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "text",
+        "text": "8.9 小结 131",
+        "bbox": [
+            577,
+            709,
+            954,
+            728
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "text",
+        "text": "第9章 聚合措施测量 132",
+        "text_level": 1,
+        "bbox": [
+            536,
+            732,
+            954,
+            752
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "9.1 均匀的事件率与阵发的事件率 133",
+            "9.2 测量间隔 133 ",
+            "9.3 时间线 134",
+            "9.4 进一步汇总时间线 136",
+            "9.5 直方图的时间尺度 138",
+            "9.6 聚合每个事件的测量结果 140 ",
+            "9.7一段时间的值的模式 142"
+        ],
+        "bbox": [
+            577,
+            758,
+            954,
+            918
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "page_number",
+        "text": "2 目录",
+        "bbox": [
+            76,
+            50,
+            142,
+            66
+        ],
+        "page_idx": 25
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "9.8 更新间隔 143 ",
+            "9.9 事务采样 ………………………………………… 144",
+            "9.10 小结 145"
+        ],
+        "bbox": [
+            78,
+            92,
+            455,
+            157
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "text",
+        "text": "第10章 仪表板· 147",
+        "text_level": 1,
+        "bbox": [
+            39,
+            162,
+            455,
+            182
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "10.1 示例服务 147",
+            "10.2 示例仪表板 149",
+            "10.3 主仪表板 149",
+            "10.4 实例仪表板 153",
+            "10.5 服务器仪表板· 154",
+            "10.6 健全检查 154",
+            "10.7 小结 155"
+        ],
+        "bbox": [
+            80,
+            188,
+            455,
+            349
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "text",
+        "text": "习题 155",
+        "bbox": [
+            80,
+            355,
+            455,
+            372
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "text",
+        "text": "第11章 其他现有工具 156",
+        "text_level": 1,
+        "bbox": [
+            39,
+            378,
+            455,
+            398
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "11.1 观察工具的分类 156",
+            "11.2 要观察的数据 158",
+            "11.3 top命令 159",
+            "11.4 /proc和/sys伪文件 160",
+            "11.5 time命令 160",
+            "11.6 perf命令 161",
+            "11.7 oprofile 162 ",
+            "11.8 strace 165 ",
+            "11.9 ltrace 168 ",
+            "11.10 ftrace 169 ",
+            "11.11 mtrace 172 ",
+            "11.12 blktrace 174 "
+        ],
+        "bbox": [
+            80,
+            404,
+            455,
+            684
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "11.13 tcpdump和Wireshark 177 ",
+            "11.14 locktrace 179 ",
+            "11.15 输入负载、出站调用 179",
+            "11.16 小结 180"
+        ],
+        "bbox": [
+            542,
+            93,
+            915,
+            180
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "text",
+        "text": "习题 181",
+        "bbox": [
+            542,
+            188,
+            915,
+            205
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "text",
+        "text": "第12章 跟踪工具 182",
+        "text_level": 1,
+        "bbox": [
+            498,
+            211,
+            915,
+            230
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "12.1 跟踪工具的优势 182 ",
+            "12.2 跟踪工具的缺点 183",
+            "12.3 3个起始问题 183",
+            "12.4 示例1：早期的程序计数器跟踪 186",
+            "12.5 示例2：每个函数的计数和时间",
+            "12.6 案例分析：Gmail的按函数跟踪· 191",
+            "12.7 小结 196"
+        ],
+        "bbox": [
+            542,
+            236,
+            915,
+            469
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "text",
+        "text": "第13章 优秀观察工具的设计原则……197",
+        "text_level": 1,
+        "bbox": [
+            498,
+            475,
+            915,
+            493
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "13.1 需要观察什么 197",
+            "13.2 有多频繁？要多久… 198",
+            "13.3 开销有多大 199",
+            "13.4 设计的后果 200",
+            "13.5 案例分析：直方图桶 200 ",
+            "13.6 设计数据显示 202",
+            "13.7 小结 203"
+        ],
+        "bbox": [
+            542,
+            500,
+            915,
+            661
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "text",
+        "text": "第三部分 内核-用户跟踪",
+        "text_level": 1,
+        "bbox": [
+            331,
+            700,
+            624,
+            723
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "text",
+        "text": "第14章 KUtrace的目标、设计、实现 207",
+        "text_level": 1,
+        "bbox": [
+            39,
+            737,
+            455,
+            780
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "14.1 概述 207",
+            "14.2 目标 208",
+            "14.3 设计 209",
+            "14.4 实现 211 ",
+            "14.5 内核补丁和Linux内核可加载模块 211"
+        ],
+        "bbox": [
+            80,
+            786,
+            455,
+            924
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "14.6 控制程序 212",
+            "14.7 后处理 213",
+            "14.8 关于安全问题的一点说明 213",
+            "14.9 小结 213"
+        ],
+        "bbox": [
+            542,
+            739,
+            915,
+            828
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "text",
+        "text": "第15章 KUtrace中的Linux内核补丁· 214",
+        "text_level": 1,
+        "bbox": [
+            498,
+            834,
+            915,
+            875
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "15.1 跟踪缓冲区数据结构 215",
+            "15.2 原始跟踪块的格式 216"
+        ],
+        "bbox": [
+            542,
+            883,
+            915,
+            924
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "header",
+        "text": "目录 3",
+        "bbox": [
+            851,
+            56,
+            915,
+            72
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "page_number",
+        "text": "3 ",
+        "bbox": [
+            898,
+            58,
+            915,
+            70
+        ],
+        "page_idx": 26
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "15.3 跟踪条目 217",
+            "15.4 IPC跟踪条目 218",
+            "15.5 时间戳 219",
+            "15.6 事件编号· 219",
+            "15.7 嵌套的跟踪条目 219",
+            "15.8 代码· 220",
+            "15.9 数据包跟踪 221",
+            "15.10 AMD/Intel x86-64 补丁 222",
+            "15.11 小结 224",
+            "习题 224"
+        ],
+        "bbox": [
+            121,
+            87,
+            496,
+            322
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "text",
+        "text": "第16章 KUtrace的Linux内核可加载模块· 225",
+        "bbox": [
+            80,
+            327,
+            496,
+            370
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "16.1 内核接口数据结构 225",
+            "16.2 模块加载/卸载 226",
+            "16.3 初始化和控制跟踪 226",
+            "16.4 实现跟踪调用 227",
+            "16.5 Insert1 227 ",
+            "16.6 InsertN 229 ",
+            "16.7 切换到一个新的跟踪块 230",
+            "16.8 小结 230"
+        ],
+        "bbox": [
+            121,
+            374,
+            496,
+            560
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "text",
+        "text": "第17章 KUtrace的用户态的运行时控制· 231",
+        "bbox": [
+            80,
+            565,
+            496,
+            609
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "17.1 控制跟踪· 232",
+            "17.2 独立的kutrace_control程序…232"
+        ],
+        "bbox": [
+            121,
+            615,
+            496,
+            658
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "17.3 底层的kutrace_lib库 233",
+            "17.4 可加载模块的控制接口 233",
+            "17.5 小结 234"
+        ],
+        "bbox": [
+            581,
+            87,
+            956,
+            153
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "text",
+        "text": "第18章 KUtrace的后处理 235",
+        "bbox": [
+            538,
+            158,
+            956,
+            179
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "18.1 后处理的细节 235",
+            "18.2 rawtoevent程序 236 ",
+            "18.3 eventtospan程序 237 ",
+            "18.4 spantotrim程序 239",
+            "18.5 spantospan程序 239",
+            "18.6 samptoname_k和samptoname_程序 240 ",
+            "18.7 makeself程序 240",
+            "18.8 KUtrace的JSON格式 240",
+            "18.9 小结 242"
+        ],
+        "bbox": [
+            581,
+            184,
+            956,
+            417
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "text",
+        "text": "第19章 KUtrace中软件动态的显示 243",
+        "bbox": [
+            538,
+            422,
+            956,
+            442
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "19.1 概述 243",
+            "19.2 区域①——控件 244",
+            "19.3 区域②—y轴 246 ",
+            "19.4 区域 $③$ 一主时间线… 246",
+            "19.5 区域 $④$ IPC图例· 251",
+            "19.6 区域 $⑤$ 一 $\\mathcal{X}$ 轴· 252",
+            "19.7 区域 $⑥$ 保存/还原· 252",
+            "19.8 辅助控件 252",
+            "19.9 小结 253"
+        ],
+        "bbox": [
+            581,
+            447,
+            956,
+            657
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "text",
+        "text": "第四部分 推理",
+        "text_level": 1,
+        "bbox": [
+            428,
+            672,
+            608,
+            695
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "text",
+        "text": "第20章 寻找什么 257",
+        "bbox": [
+            80,
+            709,
+            496,
+            729
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "20.1 概述 257",
+            "20.2 寻找原因 258"
+        ],
+        "bbox": [
+            121,
+            735,
+            496,
+            777
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "text",
+        "text": "第21章 执行太多 259",
+        "bbox": [
+            80,
+            781,
+            496,
+            801
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "21.1 概述 259 ",
+            "21.2 程序 259",
+            "21.3 谜团 260",
+            "21.4 探索和分析 261",
+            "21.5 理解谜团 265"
+        ],
+        "bbox": [
+            121,
+            807,
+            496,
+            921
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "21.6 小结 265",
+            "第22章 执行缓慢 267",
+            "22.1 概述 267",
+            "22.2 程序 268",
+            "22.3 谜团 268",
+            "22.4 浮点运算对立程序 270",
+            "22.5 内存对立程序 273",
+            "22.6 理解谜团 274",
+            "22.7 小结 274"
+        ],
+        "bbox": [
+            581,
+            709,
+            956,
+            921
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "page_number",
+        "text": "4目录",
+        "bbox": [
+            78,
+            52,
+            146,
+            67
+        ],
+        "page_idx": 27
+    },
+    {
+        "type": "text",
+        "text": "第23章 等待CPU 276",
+        "bbox": [
+            32,
+            96,
+            453,
+            116
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "23.1 程序 276",
+            "23.2 谜团1· 276 ",
+            "23.3 探索和分析 277",
+            "23.4 谜团 2· 279",
+            "23.5 理解谜团 2 ………………………………………… 280",
+            "23.6 附加谜团· 282 ",
+            "23.7 小结 284",
+            "习题 284"
+        ],
+        "bbox": [
+            74,
+            122,
+            453,
+            306
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "text",
+        "text": "第24章 等待内存 285",
+        "bbox": [
+            35,
+            312,
+            453,
+            332
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "24.1 程序 285",
+            "24.2 谜团1 286 ",
+            "24.3 探索和分析 286",
+            "24.4 谜团2：访问页表· 290 ",
+            "24.5 理解谜团 2 ………………………………………… 290",
+            "24.6 小结 292"
+        ],
+        "bbox": [
+            74,
+            338,
+            453,
+            475
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "text",
+        "text": "习题 292",
+        "bbox": [
+            74,
+            481,
+            453,
+            500
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "text",
+        "text": "第25章 等待磁盘 293",
+        "bbox": [
+            35,
+            504,
+            453,
+            523
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "25.1 程序 293",
+            "25.2 谜团 294",
+            "25.3 探索和分析 294",
+            "25.4 读取40MB· 296 ",
+            "25.5 顺序读取4KB的块… 297 ",
+            "25.6 随机读取4KB的块 299 ",
+            "25.7 在SSD上写入和同步  \n40 MB 301",
+            "25.8 在SSD上读取40MB 301",
+            "25.9 两个程序同时访问两个文件……302",
+            "25.10 理解谜团 303",
+            "25.11 小结 304",
+            "习题 304"
+        ],
+        "bbox": [
+            74,
+            529,
+            453,
+            834
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "text",
+        "text": "第26章 等待网络 305",
+        "bbox": [
+            35,
+            838,
+            453,
+            858
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "26.1 概述 305",
+            "26.2 程序 306",
+            "26.3 实验1 307 "
+        ],
+        "bbox": [
+            74,
+            865,
+            453,
+            929
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "26.4 实验1中的谜团 308",
+            "26.5 实验1的探索与分析 309",
+            "26.6 实验1中RPC之间的时间 313",
+            "26.7 实验2 315 ",
+            "26.8 实验3 315 ",
+            "26.9 实验4 316 ",
+            "26.10 理解谜团 319",
+            "26.11 附加异常 320 ",
+            "26.12 小结 322"
+        ],
+        "bbox": [
+            534,
+            98,
+            911,
+            306
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "text",
+        "text": "第27章 等待锁 323",
+        "bbox": [
+            496,
+            312,
+            911,
+            332
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "27.1 概述 323",
+            "27.2 程序 327",
+            "27.3 实验1：长时间持有锁 330",
+            "27.4 实验1中的谜团 331",
+            "27.5 探索和分析实验 1 … 332",
+            "27.6 实验2：修复锁捕获 334 ",
+            "27.7 实验3：通过多个锁修复锁 争用· 335 ",
+            "27.8 实验4：通过锁住更少的工作来修复锁争用 337",
+            "27.9 实验5：通过为仪表板使用RCU来修复锁争用 338",
+            "27.10 小结 340"
+        ],
+        "bbox": [
+            534,
+            338,
+            911,
+            642
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "text",
+        "text": "第28章 等待时间 341",
+        "bbox": [
+            496,
+            648,
+            911,
+            667
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "28.1 定期工作 341",
+            "28.2 超时 342",
+            "28.3 时间分片 342",
+            "28.4 内在的执行延迟 343",
+            "28.5 小结 343"
+        ],
+        "bbox": [
+            534,
+            673,
+            911,
+            786
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "text",
+        "text": "第29章 等待队列 344",
+        "bbox": [
+            496,
+            792,
+            911,
+            811
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "29.1 概述 344",
+            "29.2 请求的分布 346",
+            "29.3 队列的结构 347",
+            "29.4 工作任务 348",
+            "29.5 主任务 348"
+        ],
+        "bbox": [
+            534,
+            817,
+            911,
+            929
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "header",
+        "text": "目录",
+        "bbox": [
+            847,
+            62,
+            882,
+            78
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "page_number",
+        "text": "5 ",
+        "bbox": [
+            896,
+            64,
+            911,
+            76
+        ],
+        "page_idx": 28
+    },
+    {
+        "type": "text",
+        "text": "6目录",
+        "text_level": 1,
+        "bbox": [
+            78,
+            59,
+            146,
+            75
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "29.6 Dequeue 操作 … 348",
+            "29.7 Enqueue 操作 349",
+            "29.8 PlainSpinLock 类 349 ",
+            "29.9 “工作”例程 350",
+            "29.10 简单的示例 350",
+            "29.11 哪些地方可能发生了问题……351",
+            "29.12 CPU频率 352 ",
+            "29.13 复杂的示例 353",
+            "29.14 等待CPU：RPC日志 353",
+            "29.15 等待CPU：KUtrace 354",
+            "29.16 PlainSpinLock存在的缺陷… 357",
+            "29.17 根本原因 358",
+            "29.18 修复PlainSpinLock:可观察性· 359",
+            "29.19 负载均衡 360 ",
+            "29.20 队列深度：可观察性 361"
+        ],
+        "bbox": [
+            119,
+            95,
+            498,
+            473
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "29.21 结尾处的自旋 361 ",
+            "29.22 剩下的最后一个缺陷 362",
+            "29.23 交叉检查· 362",
+            "29.24 小结 363"
+        ],
+        "bbox": [
+            579,
+            95,
+            956,
+            185
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "text",
+        "text": "习题 363",
+        "bbox": [
+            579,
+            190,
+            956,
+            208
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "text",
+        "text": "第30章全书回顾 365",
+        "bbox": [
+            538,
+            213,
+            958,
+            233
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "30.1 你学到了什么… 365",
+            "30.2 我们没有讲什么 367",
+            "30.3 接下来的工作 367",
+            "30.4 全书小结 368"
+        ],
+        "bbox": [
+            579,
+            239,
+            958,
+            328
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "附录A 示例服务器 369",
+            "附录B 跟踪条目 372",
+            "术语表 377",
+            "参考文献· 383",
+            "KUtrace HTML 图例 384"
+        ],
+        "bbox": [
+            538,
+            334,
+            958,
+            448
+        ],
+        "page_idx": 29
+    },
+    {
+        "type": "text",
+        "text": "PART ",
+        "text_level": 1,
+        "bbox": [
+            185,
+            171,
+            331,
+            205
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "第一部分",
+        "text_level": 1,
+        "bbox": [
+            521,
+            378,
+            822,
+            438
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "测量",
+        "text_level": 1,
+        "bbox": [
+            668,
+            476,
+            822,
+            532
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "理解变化是在质量和商业上取得成功的关键。",
+        "bbox": [
+            68,
+            659,
+            498,
+            679
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "W. Edwards Deming ",
+        "bbox": [
+            674,
+            685,
+            905,
+            705
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "测量是确定某个东西的大小、数量或程度的行为。仔细测量是理解软件性能的基础。",
+        "bbox": [
+            65,
+            731,
+            870,
+            751
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "第一部分介绍一种复杂的硬件和软件环境，本书重点关注时延分布的概念、事务时延，以及较长的第99百分位时延的影响。",
+        "bbox": [
+            26,
+            754,
+            890,
+            797
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "我们的总体目标是理解造成事务时延中的变化的根本原因——为什么复杂软件中有明显随机的、意料之外的长响应时间。",
+        "bbox": [
+            26,
+            803,
+            903,
+            845
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "在探究数据库事务的性能、桌面软件的时延、专用控制器的时延或者游戏中的时延时，你会配置环境，我们将要采用的数据中心环境是你配置的环境的一个超集。第一部分还将介绍一种重要的方法：在分析代码应该执行多长时间时，使用10的倍数进行估算。作为本书剩",
+        "bbox": [
+            26,
+            851,
+            903,
+            918
+        ],
+        "page_idx": 30
+    },
+    {
+        "type": "text",
+        "text": "2 第一部分 测量",
+        "text_level": 1,
+        "bbox": [
+            78,
+            61,
+            230,
+            76
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "text",
+        "text": "余部分的基础，第一部分将带领读者详细测量CPU、内存、磁盘和网络时延。我们将使用预先提供的但存在缺陷的程序，每个读者都可以运行它们并获得一些认识，然后根据说明修复这些程序中的缺陷，从而得到更深入的了解。得到的测量结果将揭示出在简单的程序中时延变化的来源。",
+        "bbox": [
+            80,
+            95,
+            960,
+            187
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "text",
+        "text": "第一部分的目的是使具有不同背景的读者能够站在同一起点，对性能测量、用户态和内核态下的软件交互、跨线程和跨程序的软件干扰，以及复杂软件和计算机硬件之间的交互有基本的了解。学完第一部分后，每个读者都将能够合理估测每段代码的执行时长。",
+        "bbox": [
+            80,
+            190,
+            960,
+            259
+        ],
+        "page_idx": 31
+    },
+    {
+        "type": "image",
+        "img_path": "images/c44624659ec6319042f499032c1585745b142475038217de2072e4a15306e4b1.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            105,
+            50,
+            822,
+            300
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "text",
+        "text": "第1章 我的程序太慢了",
+        "text_level": 1,
+        "bbox": [
+            181,
+            368,
+            758,
+            411
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "text",
+        "text": "某人走进我的办公室，说：“我的程序太慢了。”我顿了一下，问他：“那应该多慢呢？”",
+        "bbox": [
+            72,
+            450,
+            882,
+            470
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "text",
+        "text": "对于这个问题，优秀的程序员已经有成竹在胸的答案，他们会描述程序要执行的工作，并估测每个部分应该需要的时间。例如，他们可能会说：“这个数据库查询访问了10000条记录，结果发现其中只有1000条是我关心的数据。每次访问大约应该需要 $10\\mathrm{ms}$ ，并且这些记录分布在20块磁盘上，所以10000次访问应该总共需要5s。没有网络活动，CPU处理和内存使用都很小，也很简单，比起访问磁盘的速度要快得多。实际查询用了15s，这太慢了。”",
+        "bbox": [
+            28,
+            475,
+            913,
+            611
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "text",
+        "text": "还有一些程序员可能这么回答：“我整晚写了1000行代码，使用了大量现有的库。代码能够工作，但每次查询使用了大约 $15\\mathrm{s}$ 。我想让它只使用 $0.1\\mathrm{s}$ 。肯定有一个库太慢了，我怎么才能找出这个库？”问他们问题时，他们不知道 $0.1\\mathrm{s}$ 是不是合理的期望时间，也不知道每次调用库应该需要多长时间，更不知道自己使用库的方式是否合适，因为没有在代码中设计一种观察代码动态的方式，所以无法判断出时间都消耗在什么地方。本书将探讨所有这些问题。",
+        "bbox": [
+            28,
+            618,
+            913,
+            756
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "text",
+        "text": "1.1 数据中心环境",
+        "text_level": 1,
+        "bbox": [
+            30,
+            782,
+            317,
+            811
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "text",
+        "text": "我们将介绍一种复杂的软件环境中所涉及的一些术语和概念。你的环境可能更加简单，但思想几乎是完全适用的。这里的术语来自数据中心，但涉及的思想同样适用于数据库、桌面软件、车辆、游戏和其他具有时间约束的环境。",
+        "bbox": [
+            28,
+            832,
+            911,
+            901
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "text",
+        "text": "“事务”（又称“查询”或“请求”）是计算机系统的一条输入消息，必须作为工作单元进",
+        "bbox": [
+            70,
+            904,
+            913,
+            926
+        ],
+        "page_idx": 32
+    },
+    {
+        "type": "text",
+        "text": "行处理。处理事务的每台计算机称为一台“服务器”。事务的“时延”（或称“响应时间”）是指从发送消息到收到消息所经历的时间。输入负载指的是每秒发送的事务数；当这个数量超出每秒所能处理的事务数时，响应时间就会受到影响，有时候影响十分显著。服务指的是处理特定类型事务的一个程序的集合。大型数据中心同时为几十个不同的服务处理事务，每个服务具有不同的输入负载和时延目标。",
+        "bbox": [
+            82,
+            87,
+            964,
+            204
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "text",
+        "text": "事务的时延不是固定不变的，它是在每秒发送几千个事务时计算出的一个概率分布。尾部时延指的是这个概率分布中最慢的那些事务的时延。在总结尾部时延时，一种简单的方法是描述第99百分位时延，即最慢的那 $1\\%$ 事务会超过的时间。例如，如果输入负载是每秒发送5000个事务，则第99百分位时延是其中50个事务超过的时间。",
+        "bbox": [
+            84,
+            207,
+            964,
+            299
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "text",
+        "text": "当提到一个或一组程序的“动态”时，我们指的是随时间推移开展的活动：哪些代码在什么时候执行，它们等待什么，它们占用什么内存空间，以及不同的程序如何彼此影响。作为程序员，我们会在脑海中设想程序的简单动态。但在现实中，程序的行为有时候可能与我们的设想有很大的区别，执行速度比我们预期的可能慢得多。如果我们能够观察真实的动态，就能够调整脑海中的设想，并且通常能够通过进行一些简单的修改，就提高代码的性能。",
+        "bbox": [
+            84,
+            302,
+            964,
+            443
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "text",
+        "text": "我们感兴趣的是复杂软件中面向用户的交互。对通常很快但有时候比较慢的事务（慢到最终用户会感受到延迟）我们尤为感兴趣。在数据中心，每个服务的硬件预算通常由每个服务器每秒所能够处理的事务数决定。这个数量通常是根据经验确定的，具体做法是，增加输入负载，直到超过某个尾部时延约束，此时可以稍微降低目标负载。",
+        "bbox": [
+            84,
+            445,
+            964,
+            540
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "text",
+        "text": "如果我们能够理解并减少用时过长的事务的数量，则可以让相同的硬件在尾部时延目标内处理更多的负载，并且不会产生额外的开销。这能够节省大量资金。运气好的时候，一名经验丰富并且有些幸运的调优工程师有时候仅仅对软件做一些简单的修改，省下来的钱就足够支付他10年的工资。公司和客户都很喜欢这种人。",
+        "bbox": [
+            84,
+            540,
+            964,
+            635
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "text",
+        "text": "具有时间约束的事务软件在本质上与批处理软件或离线软件不同。对于事务软件来说，响应时间是关键指标，而批处理软件的关键指标通常是高效的硬件利用率。对于事务来说，重要的不是平均响应时间，而是最慢响应时间，即尾部时延。",
+        "bbox": [
+            84,
+            637,
+            954,
+            708
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "text",
+        "text": "在数据中心，人们通常更希望实现较长的平均时延、较短的尾部时延，而不是较短的平均时延、较长的尾部时延。举个例子，大部分通勤者的感觉是一样的：尽管多几分钟但需要的时间总是大概相同的路线（路由），要优于尽管稍微快一点但有时候存在无法预测的小时级延误的路线。",
+        "bbox": [
+            92,
+            723,
+            954,
+            818
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "text",
+        "text": "对于批处理软件，让CPU的平均使用率达到 $98\\%$ 就很好了；但对于事务软件，CPU的平均使用率达到 $98\\%$ 则是一种灾难，即使 $50\\%$ 也有些多，因为当达到这个使用率时，一旦输入负载在几秒的时间里激增到平均值的3倍，响应时间就会增加许多。笔者在2004年加入Google时，数据中心的CPU平均使用率是 $9\\%$ 。这个使用率太低了。将使用率加倍到 $18\\%$ ",
+        "bbox": [
+            84,
+            832,
+            964,
+            927
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "page_number",
+        "text": "4 ",
+        "bbox": [
+            82,
+            53,
+            101,
+            69
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            113,
+            53,
+            232,
+            69
+        ],
+        "page_idx": 33
+    },
+    {
+        "type": "text",
+        "text": "但不增加尾部时延，可以使所有这些数据中心的效率加倍。将使用率再次加倍到 $36\\%$ 会很好，但再次加倍到 $72\\%$ 则很可能破坏许多事务的时间约束。",
+        "bbox": [
+            32,
+            99,
+            911,
+            144
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "在分析复杂的、面向事务的软件的性能时，本书将假定涉及的程序能够工作，并且大体上它们的运行速度也足够快。我们不会讨论如何设计或调试这类软件，也不会尝试理解或改进它们的平均性能。我们还假定在没有时间约束的离线测试/调试环境中，因为已经识别出并修复了那些始终很慢的事务，所以只剩下偶尔很慢的事务。我们将关注导致事务偶尔很慢的机制，如何观察这些机制，以及如何解释观察到的结果。",
+        "bbox": [
+            32,
+            147,
+            913,
+            263
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "当你使用手机发送信息、阅读帖子、在网上搜索、查看地图、观看视频、使用应用甚至拨打电话时，在某个地方，一定有一个数据中心会响应你的请求。如果这些应用或服务的响应特别慢，但其他应用或服务更快，则表示你很可能改用其他应用或服务，或至少不会那么频繁地使用慢的应用或服务。在具有时间约束的生态系统中，每个人都有动机（常常是经济上的动机）来减少烦人的延迟，但很少有人具备减少这种延迟的技能。",
+        "bbox": [
+            32,
+            266,
+            913,
+            383
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "本书的目标是教会你这种技能。",
+        "bbox": [
+            78,
+            386,
+            377,
+            407
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "1.2 数据中心的硬件",
+        "text_level": 1,
+        "bbox": [
+            37,
+            432,
+            352,
+            460
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "大型数据中心在一栋建筑内有10000台左右的服务器，每个服务器都具有台式机的大小，但没有机箱。相反，把大约50块服务器主板安装在一个机架上，而整个巨大的房间里会有200个这样的机架。一个典型的服务器有 $1\\sim 4$ 个CPU芯片插槽（各有 $4\\sim 50$ 个CPU核心）、大量内存、几块磁盘或固态磁盘（Solid-State Drive，SSD），以及连接到数据中心范围的交换结构的一个网络连接。建立这种交换结构，是为了使任何服务器都能够与其他任何服务器进行通信，并且至少有一部分服务器还能够与互联网进行通信，进而能够与你的手机进行通信。这栋建筑的外部有庞大的发电机，当停电时，它们能够连续几天甚至几周维持整个建筑（包括空调在内）的运作。建筑内部有一些电池，在发电机的启动过程中，它们能够维持服务器和网络交换机运行几十秒。",
+        "bbox": [
+            32,
+            481,
+            913,
+            694
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "每台服务器上都运行着多个程序。让一些服务器只用于处理电子邮件，而让另一些服务器只用于处理地图瓦片，剩下的服务器则只用于处理即时消息，这种安排从商业的角度来看并不合理。相反，每台服务器都可以运行多个程序，每个程序则可能有多个线程。例如，一个电子邮件程序可能有100个工作线程，并且要处理来自几千个用户的电子邮件请求（其中大部分用户在输入或阅读邮件消息），同时许多活动线程在等待磁盘访问或其他软件层。工作线程收到入站请求，执行必要的操作，提供响应，然后处理来自另一个用户的待处理请求。在一天中最繁忙的时段，几乎所有工作线程都很忙，但在一天中最不忙的时段，至少有一半工作线程是空闲的。在几乎所有的时间尺度（微秒、毫秒、秒和分钟）上，输入工作都存在盛衰周期，甚至存在一个以7天为间隔的周期，在周六和周日活动较少。",
+        "bbox": [
+            32,
+            696,
+            913,
+            934
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "header",
+        "text": "第1章 我的程序太慢了",
+        "bbox": [
+            694,
+            64,
+            878,
+            79
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "page_number",
+        "text": "5 ",
+        "bbox": [
+            896,
+            65,
+            911,
+            79
+        ],
+        "page_idx": 34
+    },
+    {
+        "type": "text",
+        "text": "为了控制响应时间，必须有备用的硬件资源可用于面向用户的事务，因为现实世界中发生的事情可能导致用户负载时不时激增。但是，当存在空闲的处理器时，运行一些不面向用户的批处理程序是更经济的选择。除了面向用户的前台程序和批处理后台程序，每台服务器总会运行一些监控程序，以跟踪服务器的繁忙程度，收到了多少错误，还剩下多少磁盘空间，等等。这些监控程序处理机器的健康问题，重启/重新配置单独的机器，以及启动/停止/重启各种软件程序。仅仅一台服务器上的环境就已经很复杂，而且这个复杂度还要乘以一个很大的房间内的10000台服务器。",
+        "bbox": [
+            84,
+            96,
+            964,
+            261
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "1.3 数据中心的软件",
+        "text_level": 1,
+        "bbox": [
+            86,
+            285,
+            400,
+            313
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "数据中心的软件与自包含的程序和基准程序有很大的区别。前者由一层层的子系统组成，许多子系统并行运行，每个子系统处理来自多个服务或单个服务的多个实例的请求，并且每个子系统试图以足够快的速度响应每个请求，以满足自己的时延目标。很多时候，服务一个用户请求的多层可能运行在不同的服务器上。为了提高性能，许多层会包含软件缓存，并在其中保存最近的数据或者计算出来的结果。找到并重用软件缓存的数据称为一次“命中”，没有找到缓存的数据称为一次“未命中”。你将会看到，软件缓存的动态可能会以你意想不到的方式影响事务的时延。",
+        "bbox": [
+            84,
+            334,
+            964,
+            500
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "当用户请求电子邮件消息的文本时，请求会首先路由到包含用户的主邮件仓库的数据中心，然后由负载均衡服务器将请求转发给数百个电子邮件前端服务器中不那么忙的一台。前端层管理请求，并最终构造出HTML或应用的API格式的结果。接下来，向一个后端层请求电子邮件消息，该后端层调用一个数据库层，该数据库层调用一个数据库缓存层，如果在缓存中没有命中记录，就调用一个复制层（以访问或更新另一个数据中心的二级电子邮件仓库），最终调用到磁盘服务器层，该层从多块冗余磁盘中的一块读取电子邮件消息，如图1-1所示。结果将沿着调用树向上返回，并且在返回过程中可能会被修改。",
+        "bbox": [
+            84,
+            503,
+            964,
+            668
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "一些形式的网络消息传输或远程过程调用（Remote Procedure Call，RPC）把所有这些活动合并了起来。从一层到另一层的RPC可能是同步的（此时调用方会等待响应），也可能是异步的（此时调用方将继续执行），此外很可能还会发出其他RPC，所有这些RPC都将在多台不同的服务器上并行执行。正是因为可以像这样并行地执行一项工作的不同部分，所以数据中心的软件才能够为一个请求执行大量的工作，同时仍然在不到一秒的时间内完成工作。一个面向用户的事务很容易就会使用 $200\\sim 2000$ 台不同的服务器。",
+        "bbox": [
+            84,
+            669,
+            964,
+            811
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "text",
+        "text": "图1-2显示了一个很小的示例RPC树，它采用了的风格①。服务器A可能同步调用服务器B，当服务器B返回后，再调用服务器C。服务器C可能并行调用服务器D和服务器E，然后等待这两台服务器返回。",
+        "bbox": [
+            84,
+            814,
+            964,
+            883
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "header",
+        "text": "6 第一部分 测量",
+        "bbox": [
+            84,
+            62,
+            232,
+            76
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "page_footnote",
+        "text": "① 参见 Benjamin H. Sigelman 等人的报告 “Dapper, a Large-Scale Distributed Systems Tracing Infrastructure”。",
+        "bbox": [
+            84,
+            917,
+            964,
+            935
+        ],
+        "page_idx": 35
+    },
+    {
+        "type": "image",
+        "img_path": "images/6135d52542cb4fc25f63a4107b635eb5fd2ee1fd94862739a723f9f2f4064af6.jpg",
+        "image_caption": [
+            "图1-1 软件中的层"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            125,
+            170,
+            288,
+            323
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "image",
+        "img_path": "images/a51cc7d6aca8c0d388e87d8fe243228a3bab5e80dc225b618a5fbcbdf30a1148.jpg",
+        "image_caption": [
+            "图1-2 涉及5个服务器（服务器 $\\mathrm{A}\\sim \\mathrm{E}$ ）的RPC树"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            480,
+            104,
+            814,
+            325
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "每个用户请求和每个RPC子请求都有一个响应时间目标。如果电子邮件前端层的用户请求的响应时间目标是 $200\\mathrm{ms}$ ，则可能要求电子邮件后端层的响应时间目标是 $160\\mathrm{ms}$ ，数据库层的响应时间目标更短，以此类推，一直到磁盘服务器层，响应时间目标是 $50\\mathrm{ms}$ 。每当某个子请求响应过慢时，各层的调用方都有可能响应过慢。对于一组并行执行的调用，术语“执行偏移”描述了调用完成时间的变化。",
+        "bbox": [
+            30,
+            369,
+            911,
+            487
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "如果并行执行许多RPC，则其中最慢的RPC通常决定了总体响应时间。因此，如果我们并行执行100个RPC，则第99百分位的慢时间决定总体响应时间。执行偏移使得理解和控制长响应时间变得很重要。",
+        "bbox": [
+            30,
+            489,
+            911,
+            558
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "1.4 长尾时延",
+        "text_level": 1,
+        "bbox": [
+            32,
+            582,
+            247,
+            610
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "时延是两个事件之间经过的时间。当讨论时延时，一定要指定讨论的是哪两个事件。例如，“一个RPC的时延”既可能指的是用户态程序（客户-服务器中的客户端）在发出请求和收到响应之间经过的时间，也可能指的是被调用的用户态程序（客户-服务器中的服务器）在收到请求和发回响应之间经过的时间。有时候，对于相同的RPC，时延的这两种不同的定义（分别针对客户和服务器）可能相差 $30\\mathrm{ms}$ 甚至更多，但相差的时间用在了哪台计算机或网络硬件的什么地方，则难以确定。",
+        "bbox": [
+            30,
+            633,
+            911,
+            774
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "在大部分情况下，除非讨论时间差异，例如上面提到的 $30\\mathrm{ms}$ 的差异，否则我们将关注服务器端的RPC时延。",
+        "bbox": [
+            30,
+            777,
+            911,
+            822
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "发送给一台服务器的多个RPC请求具有不同的时延，但对于相似的请求，它们通常聚集在相似的值附近。一般来说，可以使用时延值的直方图来总结这种现象：在 $x$ 轴上显示时延桶，在 $y$ 轴上显示具有相应时延的RPC的计数值。",
+        "bbox": [
+            30,
+            823,
+            911,
+            894
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "对于数据中心的事务，这些时延直方图有一个或多个峰值，对应正常情况；但常常也存",
+        "bbox": [
+            72,
+            895,
+            911,
+            918
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "header",
+        "text": "第1章 我的程序太慢了",
+        "bbox": [
+            690,
+            58,
+            876,
+            73
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "page_number",
+        "text": "7 ",
+        "bbox": [
+            888,
+            58,
+            907,
+            72
+        ],
+        "page_idx": 36
+    },
+    {
+        "type": "text",
+        "text": "在一个长尾，对应异常情况中发生的特别慢的响应。图1-3所示的磁盘服务器直方图有3个峰值，分别对应在3种不同的正常情况下得到的大约 $1\\mathrm{ms}$ 、 $3\\mathrm{ms}$ 和 $20\\mathrm{ms}$ 。此外，还有一个一直延伸到超过 $1500\\mathrm{ms}$ 的长尾。期望的响应时间是 $50\\mathrm{ms}$ 或更短。本书将介绍如何理解和缩短长尾。前面刚刚能看到的峰值 $250\\mathrm{ms}$ 、 $500\\mathrm{ms}$ 和 $750\\mathrm{ms}$ 等意味着存在难以理解的性能问题，本书第二部分将解决这些问题。",
+        "bbox": [
+            82,
+            86,
+            962,
+            202
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "image",
+        "img_path": "images/0f1de6d8467d31ba359c8b23e8351d03a9208d07d9994d3b6238245ccb57871d.jpg",
+        "image_caption": [
+            "图1-3 磁盘服务器直方图，图的右侧有一个长尾"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            96,
+            216,
+            942,
+            480
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "text",
+        "text": "只使用少量数字来描述时延直方图会很有帮助。例如，如果直方图有500个桶，那么使用少量数字而不是500个数字来描述这个直方图会更方便。那么，应该使用什么数字呢？",
+        "bbox": [
+            84,
+            526,
+            962,
+            571
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "text",
+        "text": "中值（或类似的平均值）时延特别不适合用来描述偏移的或具有多个峰值的分布，因为这个值很少能够接近许多实际值。我们感兴趣的是长尾的形状和大小，但中值无法告诉我们这些信息。在图1-3中，中值时延是 $26\\mathrm{ms}$ ，我们无法从这个值了解峰值或长尾。最大时延也不合适，因为在某一天可能会有一个特别慢的RPC（与从内存或磁盘进行硬件错误恢复有关），但其他所有RPC要比这个RPC快几十倍或几百倍。",
+        "bbox": [
+            82,
+            574,
+            962,
+            692
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "text",
+        "text": "请把注意力转向百分位数。如果时延直方图有50000个测量值，则其中最短的500个值是最快的 $1\\%$ ，最长的500个值是最慢的 $1\\%$ 。最快的 $99\\%$ 与最慢的 $1\\%$ 的数值分界点是第99百分位数，换言之，在排序后的测量值中， $99\\%$ 的值比这个值更小或与它相等（这样的值有许多，它们都出现在排序后的第49001个值和第49500个值之间；可以使用这些值中的任何一个，但我们通常使用排序后的第49500个值）。在描述长尾分布时，一种快速且有用的方式是给出第99百分位数，也可以给出第95百分位数。在图1-3所示的直方图中，第99百分位数是 $696\\mathrm{ms}$ ，这与 $50\\mathrm{ms}$ 相比太大了。这意味着存在严重的性能问题。",
+        "bbox": [
+            84,
+            694,
+            962,
+            858
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "text",
+        "text": "第9章将介绍是什么导致这个长尾，如何修复问题，以及最终的第99百分位数是多少（大约是 $150\\mathrm{ms}$ ）。",
+        "bbox": [
+            84,
+            861,
+            962,
+            907
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "page_number",
+        "text": "8 ",
+        "bbox": [
+            80,
+            53,
+            96,
+            67
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            109,
+            53,
+            230,
+            67
+        ],
+        "page_idx": 37
+    },
+    {
+        "type": "text",
+        "text": "1.5 思维框架",
+        "text_level": 1,
+        "bbox": [
+            35,
+            113,
+            251,
+            142
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "text",
+        "text": "在思考长尾时延及相关的性能问题时，我们将采用程序员的思维，首先估测某个工作应该用多长时间，然后观察实际用了多长时间，最后思考两者之间的差异。图1-4显示了这种思维框架。",
+        "bbox": [
+            35,
+            165,
+            915,
+            233
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "image",
+        "img_path": "images/1b298581448e71893accb960fb0caac306d63f5f1ea6e4f165a620042f1044f5.jpg",
+        "image_caption": [
+            "图1-4 检查复杂软件的性能的思维框架"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            82,
+            245,
+            865,
+            355
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "text",
+        "text": "图1-4所示的框架包括被测试的软件和硬件系统，系统的一些输入负载，我们对于系统在处理给定的输入负载时的性能期望，我们利用软件性能监测工具观察到的实际的软件动态和性能，我们对于发生了什么事情所做的分析，以及我们为提高性能所做的修复或修改。",
+        "bbox": [
+            35,
+            401,
+            915,
+            472
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "text",
+        "text": "1.6 数量级估测 ",
+        "text_level": 1,
+        "bbox": [
+            37,
+            495,
+            286,
+            524
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "text",
+        "text": "在分析软件的性能时，“它应该多慢”这个问题需要估测软件的各个部分应该需要多长时间。尽管这些估测可能非常粗糙，但它们仍然能够提供有用的见解。在设计和编写严谨的程序时，有性能意识的程序员总会在脑海中进行数量级估测。",
+        "bbox": [
+            35,
+            546,
+            913,
+            615
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "text",
+        "text": "“数量级”这个术语指的是数字大小的近似测量值。十进制数量级给出的估测值是最接近的10的幂（1、10、100等），而二进制数量级给出的估测值是最接近的2的幂（1、2、4、8等）。有时候，我们还会看到十进制半阶——1、 $\\sqrt{10}$ 、 $\\sqrt{100}$ 、 $\\sqrt{1000}$ 等。在本书中，除非另行限定，否则我们将使用十进制数量级。我们使用 $O(n)$ 这种表示法来表示“ $n$ 的数量级”，并且始终指定单位。 $O(10)\\mathrm{ns}$ 、 $O(10)\\mathrm{ms}$ 和 $O(10)$ 字节是有很大区别的。",
+        "bbox": [
+            35,
+            619,
+            915,
+            737
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "text",
+        "text": "表1-1列出了每一位优秀的程序员都应该熟悉的一些估测值。这些数字来自JeffDean在2009年所做的一次演讲。Google研究员很少，JeffDean就是其中一位。与那时相比，这些数字并没有太大的变化。笔者添加了一列，用于显示数量级。",
+        "bbox": [
+            35,
+            739,
+            915,
+            806
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "text",
+        "text": "如果对程序的各个部分期望使用的时间进行数量级估测，那么在获得这些时间的真实测量结果后，就很容易识别出与期望值存在很大偏差的那些时间。这是一次难得的学习机会。有时候，你的估测值是错误的，但这能够让你认识到计算机或程序的运行方式的一些细微之处。而有时候，虽然你的估测值基本正确，但程序执行的操作与你的设想有很大的区别，你需要修复这种异常快或慢的行为。随着你不断练习，越来越擅长估测，你所发现的越来越多",
+        "bbox": [
+            35,
+            809,
+            915,
+            927
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "header",
+        "text": "第1章 我的程序太慢了",
+        "bbox": [
+            694,
+            56,
+            880,
+            73
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "page_number",
+        "text": "9 ",
+        "bbox": [
+            896,
+            59,
+            913,
+            72
+        ],
+        "page_idx": 38
+    },
+    {
+        "type": "text",
+        "text": "的差异就是真正的性能缺陷。",
+        "bbox": [
+            80,
+            87,
+            354,
+            107
+        ],
+        "page_idx": 39
+    },
+    {
+        "type": "table",
+        "img_path": "images/91bdbc77aac815331c8929e7c67d8481ea496b823f49d289083ec7cc97d9c155.jpg",
+        "table_caption": [
+            "表 1-1 每一位优秀的程序员都应该知道的数字"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>操作</td><td>时间/ns</td><td>\\( O\\left( n\\right) / \\) ns</td></tr><tr><td>L1 缓存引用</td><td>0.5</td><td>O(1)</td></tr><tr><td>错误的预测分支</td><td>5</td><td>O(10)</td></tr><tr><td>L2 缓存引用</td><td>7</td><td>O(10)</td></tr><tr><td>互斥量锁/解锁</td><td>25</td><td>O(10)</td></tr><tr><td>主内存引用</td><td>100</td><td>O(100)</td></tr><tr><td>使用 Zippy 压缩 1 KB 数据</td><td>3000</td><td>\\( {10}^{3}O\\left( 1\\right) \\)</td></tr><tr><td>在 \\( 1\\mathrm{{Gbit}}/\\mathrm{s} \\) 网络上发送 \\( 2\\mathrm{{KB}} \\) 数据</td><td>20000</td><td>\\( {10}^{3}O\\left( {10}\\right) \\)</td></tr><tr><td>从内存顺序读取 \\( 1\\mathrm{{MB}} \\) 数据</td><td>250 000</td><td>\\( {10}^{3}O\\left( {100}\\right) \\)</td></tr><tr><td>在同一数据中心往返</td><td>500 000</td><td>\\( {10}^{6}O\\left( 1\\right) \\)</td></tr><tr><td>磁盘寻道</td><td>10 000 000</td><td>\\( {10}^{6}O\\left( {10}\\right) \\)</td></tr><tr><td>从磁盘顺序读取 \\( 1\\mathrm{{MB}} \\) 数据</td><td>20 000 000</td><td>\\( {10}^{6}O\\left( {10}\\right) \\)</td></tr><tr><td>从加州发送数据包到荷兰,再从荷兰发送回加州</td><td>150 000 000</td><td>\\( {10}^{6}O\\left( {100}\\right) \\)</td></tr></table>",
+        "bbox": [
+            78,
+            141,
+            958,
+            445
+        ],
+        "page_idx": 39
+    },
+    {
+        "type": "text",
+        "text": "表1-1中的估测值能够指导你识别性能缺陷的潜在来源。如果某个程序片段用的时间比预期多了 $100\\mathrm{ms}$ ，那么问题不太可能与错误的预测分支有关，因为错误地预测分支的效果只有 $100\\mathrm{ms}$ 的千万分之一。这种问题更有可能与磁盘或网络有关，或者（后面将会讲到）与持有锁的时间较长或等待用时较长的RPC子请求有关。",
+        "bbox": [
+            80,
+            451,
+            960,
+            543
+        ],
+        "page_idx": 39
+    },
+    {
+        "type": "text",
+        "text": "我们将设计并创建观察工具和数据显示。在使用它们时，你要养成对期望看到的行为进行数量级估测的习惯。一旦熟悉了这种预测-观察-比较循环，你就能够很快注意到奇怪的地方。",
+        "bbox": [
+            80,
+            546,
+            960,
+            592
+        ],
+        "page_idx": 39
+    },
+    {
+        "type": "text",
+        "text": "1.7 为什么事务很慢",
+        "text_level": 1,
+        "bbox": [
+            84,
+            612,
+            397,
+            642
+        ],
+        "page_idx": 39
+    },
+    {
+        "type": "text",
+        "text": "回忆一下，我们特别感兴趣的是那些通常很快但有时候需要很长时间的事务，长到最终用户能够感受到延迟。具体来说，慢事务是违反了预定的响应时间目标的那些事务。是什么导致这种延迟？换言之，是什么导致变化的时延，特别是长尾时延？",
+        "bbox": [
+            80,
+            663,
+            960,
+            732
+        ],
+        "page_idx": 39
+    },
+    {
+        "type": "text",
+        "text": "这里的线索是，某个事务或事务类型通常很快。当事务变慢的时候，意味着消耗的时间是正常的事务执行时间加上一些未知的延迟。只要我们能够识别延迟的来源，通常就可以对代码进行简单的修改，消除大部分延迟，从而缩短长尾时延。",
+        "bbox": [
+            80,
+            734,
+            960,
+            804
+        ],
+        "page_idx": 39
+    },
+    {
+        "type": "text",
+        "text": "在包含很多层的软件中，造成某一层延迟的最常见原因是这一层在等待下一层的响应。最低的慢层之所以慢，既可能有它自身的原因，也可能不合理的输入负载导致它疲于应付。在确定响应时间目标时，一定要同时确定输入负载目标，或者更准确地说，要同时确定输入负载约束。",
+        "bbox": [
+            80,
+            807,
+            960,
+            875
+        ],
+        "page_idx": 39
+    },
+    {
+        "type": "text",
+        "text": "如果某一层在等待下一层，那么修改这一层的代码并不会带来帮助。我们需要找出最低并且确实很慢的那一层，然后加以改进。为此，我们需要设计一些方式，在观察每一层的用时，把",
+        "bbox": [
+            80,
+            878,
+            960,
+            924
+        ],
+        "page_idx": 39
+    },
+    {
+        "type": "page_number",
+        "text": "10 ",
+        "bbox": [
+            80,
+            53,
+            109,
+            69
+        ],
+        "page_idx": 39
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            121,
+            53,
+            241,
+            69
+        ],
+        "page_idx": 39
+    },
+    {
+        "type": "text",
+        "text": "测量结果转换为显示结果，以便能够清晰地看出瓶颈在什么地方。一种简单的方式是在每一层或每一个RPC接口，对比显示实际输入负载与目标输入负载，以及实际响应时间与目标响应时间。",
+        "bbox": [
+            26,
+            96,
+            905,
+            142
+        ],
+        "page_idx": 40
+    },
+    {
+        "type": "text",
+        "text": "假设第 $N$ 层的输入负载是可以接受的，并且第 $N$ 层没有严重等待下方的第 $N + 1$ 层，但第 $N$ 层的响应时间太长，并且调用第 $N$ 层的RPC运行在一台服务器上，这台服务器的时延通常是正常的，偶尔比较长。此时，我们需要更详细地观察这台服务器。慢的RPC要么在执行一些通常不怎么执行的作业，要么在执行正常的作业，但执行得很慢，并且相比正常情况下更慢。",
+        "bbox": [
+            26,
+            145,
+            905,
+            237
+        ],
+        "page_idx": 40
+    },
+    {
+        "type": "text",
+        "text": "是否执行额外的作业取决于代码的分支结构以及代码保存的状态。程序为什么执行额外的作业？原因可能有许多，但它们通常有一个相同的属性：即使一个程序在服务器上完全独立运行，并且没有其他程序同时运行，这个程序也会执行这些额外的作业。在离线测试环境中运行代码，为它们提供实时流量请求的副本（即录制数据），但同时运行额外的工具来找出存在问题的分支模式，相对来说很容易找到这种性能缺陷。在测试机器上运行代码时，虽然可以使用标准的性能工具，但它们会将处理速度变成原来的1/2、1/20甚至更小的值。Brendan Greg撰写的Systems Performance (Second Edition)一书讨论了许多适合在这种环境中使用的观察工具。",
+        "bbox": [
+            26,
+            240,
+            905,
+            406
+        ],
+        "page_idx": 40
+    },
+    {
+        "type": "text",
+        "text": "一种更有趣的情况（也正是本书要讨论的主题）是，RPC只是在执行正常的作业，但是速度比平常慢。换句话说，有些事务会干扰RPC在一台服务器上执行正常的作业。我们将这些事务称为“受阻事务”。通常，在离线测试中不会出现这种延迟；只有当运行实时的、面向用户的负载时，并且通常是在一天中最繁忙的时刻，才会出现这种延迟。我们想要找出干扰的来源，并消除或者至少最小化这种干扰。但是，在实时环境中，将处理速度变成原来的1/2至仅仅 $10\\%$ 的观察工具太慢了，它们不适合使用。如果要在实时数据中心（抑或车辆、大型多玩家游戏）中部署观察技术或工具，则它们的开销应该低于 $1\\%$ 。在软件行业，这样的工具极少。本书第三部分将介绍一个这样的工具。",
+        "bbox": [
+            26,
+            407,
+            905,
+            596
+        ],
+        "page_idx": 40
+    },
+    {
+        "type": "text",
+        "text": "回忆一下，在数据中心，每台服务器上运行着多个程序，而每个程序可能有多个线程。一台服务器上的干扰一定来自这台服务器上的某个东西（包括入站和出站的网络流量）。这种环境中的干扰几乎总是来自对共享资源的争用。",
+        "bbox": [
+            26,
+            598,
+            905,
+            668
+        ],
+        "page_idx": 40
+    },
+    {
+        "type": "text",
+        "text": "1.8 5种基本资源",
+        "text_level": 1,
+        "bbox": [
+            28,
+            691,
+            303,
+            720
+        ],
+        "page_idx": 40
+    },
+    {
+        "type": "text",
+        "text": "在一台服务器上运行的彼此无关的程序之间，只能共享如下4种计算机硬件资源：",
+        "bbox": [
+            70,
+            742,
+            847,
+            763
+        ],
+        "page_idx": 40
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "CPU; ",
+            "内存；",
+            "磁盘/SSD; ",
+            "网络。"
+        ],
+        "bbox": [
+            70,
+            769,
+            210,
+            857
+        ],
+        "page_idx": 40
+    },
+    {
+        "type": "text",
+        "text": "如果一个程序有多个共同协作的线程，则意味着还存在第5种基本资源——软件临界区。",
+        "bbox": [
+            72,
+            861,
+            901,
+            883
+        ],
+        "page_idx": 40
+    },
+    {
+        "type": "text",
+        "text": "软件临界区是访问共享数据的一段代码，如果一个以上的线程同时执行这段代码，就会导致不正确的结果。这种代码区域可以用软件锁来保护，如此一来，在任何时候，只有一个",
+        "bbox": [
+            28,
+            886,
+            905,
+            930
+        ],
+        "page_idx": 40
+    },
+    {
+        "type": "header",
+        "text": "第1章 我的程序太慢了",
+        "bbox": [
+            674,
+            62,
+            861,
+            78
+        ],
+        "page_idx": 40
+    },
+    {
+        "type": "page_number",
+        "text": "11 ",
+        "bbox": [
+            874,
+            64,
+            901,
+            76
+        ],
+        "page_idx": 40
+    },
+    {
+        "type": "text",
+        "text": "线程能够执行它们，其他任何线程将被强制等待。",
+        "bbox": [
+            80,
+            93,
+            550,
+            113
+        ],
+        "page_idx": 41
+    },
+    {
+        "type": "text",
+        "text": "为了能够识别干扰，你需要理解什么才是正常的执行。作为一个起点，你应该学习如何认真测量上述5种基本资源。第一部分的剩余内容将讨论4种硬件资源，对软件锁的讨论将推迟到第27章，因为到了那个时候，我们已经开发出一个合适的观察工具。如果慢的RPC试图使用这5种资源中的任何一种，而其他某个程序或线程正在使用这种资源，则我们的RPC就必须等待。这是最基本的干扰或阻碍机制。",
+        "bbox": [
+            80,
+            116,
+            962,
+            233
+        ],
+        "page_idx": 41
+    },
+    {
+        "type": "text",
+        "text": "1.9 小结",
+        "text_level": 1,
+        "bbox": [
+            82,
+            258,
+            228,
+            285
+        ],
+        "page_idx": 41
+    },
+    {
+        "type": "text",
+        "text": "本书主要介绍如何理解数据中心、数据库、桌面、游戏和专用控制器软件事务的动态，特别是那些偶尔需要比平时多得多的时间的事务。优秀的程序员通常能够估测自己编写的代码所需时间的数量级，从而能够注意并修复始终很慢的代码。本书假定已经修复了始终很慢的代码。我们感兴趣的是那些更难理解的、只是偶尔很慢的代码。",
+        "bbox": [
+            80,
+            308,
+            960,
+            400
+        ],
+        "page_idx": 41
+    },
+    {
+        "type": "text",
+        "text": "在一台每秒运行数千个事务的数据中心服务器上，一些事务偶尔运行很慢，但如果再次运行，它们又会变得很快。表示事务用时的直方图将显示慢事务的长尾，它们会严重影响用户看到的总体响应时间，并严重降低给定服务器所能够完成的工作量。这些慢事务承受了某种形式的干扰，但在使用大量层的数据中心软件中，通常很难判断到底是哪一层导致特定的事务慢，因此也就难以知道在什么地方可以找出干扰。",
+        "bbox": [
+            80,
+            405,
+            962,
+            520
+        ],
+        "page_idx": 41
+    },
+    {
+        "type": "text",
+        "text": "使用数量级估测（参见表1-1中列出的那些值）有助于识别性能缺陷的可能来源或机制，但通常无法精确找到慢代码。为此，我们需要为分层的软件以及运行许多不相关但可能彼此干扰的程序的服务器设计合适的观察工具。",
+        "bbox": [
+            80,
+            523,
+            960,
+            592
+        ],
+        "page_idx": 41
+    },
+    {
+        "type": "text",
+        "text": "总的来说，一台服务器上的事务要么正常执行，要么缓慢执行，要么在等待这台服务器上的其他操作。后面这两种情况是干扰导致的。我们将探讨导致后面这两种情况的机制，以及如何原地观察它们。",
+        "bbox": [
+            80,
+            596,
+            960,
+            665
+        ],
+        "page_idx": 41
+    },
+    {
+        "type": "text",
+        "text": "要解决偶尔慢的事务性能问题，我们只需要首先确定哪层代码慢，然后找出代码受到的干扰，最后修复问题即可。本书剩余部分将讨论如何完成这3个步骤。遗憾的是，前两个步骤很难完成。",
+        "bbox": [
+            80,
+            668,
+            960,
+            735
+        ],
+        "page_idx": 41
+    },
+    {
+        "type": "text",
+        "text": "本章的要点如下。",
+        "bbox": [
+            123,
+            740,
+            288,
+            760
+        ],
+        "page_idx": 41
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- 我们关注如何理解偶尔慢的RPC事务。",
+            "- 对于并行执行的100个RPC，第99百分位的慢时间决定了总体响应时间。",
+            "- 数据中心软件充满了执行偏移——由非常慢的响应构成的长尾。",
+            "- 较慢的受阻事务意味着有东西在干扰RPC。",
+            "- 干扰来自共享的5种基本资源。",
+            "- 很难在原地观察干扰，因此我们将构建一些观察工具来帮助你观察干扰。",
+            "- 一定要对期望的时间进行数量级估测，以便能够更加容易地识别异常的时间。"
+        ],
+        "bbox": [
+            119,
+            764,
+            894,
+            927
+        ],
+        "page_idx": 41
+    },
+    {
+        "type": "page_number",
+        "text": "12 ",
+        "bbox": [
+            78,
+            59,
+            109,
+            75
+        ],
+        "page_idx": 41
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            121,
+            59,
+            241,
+            75
+        ],
+        "page_idx": 41
+    },
+    {
+        "type": "text",
+        "text": "CHAPTER ",
+        "text_level": 1,
+        "bbox": [
+            136,
+            167,
+            395,
+            200
+        ],
+        "page_idx": 42
+    },
+    {
+        "type": "text",
+        "text": "2 ",
+        "text_level": 1,
+        "bbox": [
+            602,
+            116,
+            723,
+            246
+        ],
+        "page_idx": 42
+    },
+    {
+        "type": "text",
+        "text": "第2章 测量CPU时间",
+        "text_level": 1,
+        "bbox": [
+            187,
+            369,
+            756,
+            411
+        ],
+        "page_idx": 42
+    },
+    {
+        "type": "text",
+        "text": "在本章以及接下来的几章中，你将学习如何测量4种基本的硬件资源的性能。如附录A所示，我们的测试环境使用x86处理器，运行Linux系统，并使用gcc编译器。这里的测量思想当然也适用于其他处理器和软件环境，但数字会有一些变化。",
+        "bbox": [
+            32,
+            452,
+            911,
+            519
+        ],
+        "page_idx": 42
+    },
+    {
+        "type": "text",
+        "text": "我们不是简单地鼓励你记住表1-1中的数字，而是希望你在自己的计算机上主动测量其中的大部分值。在这个过程中，你将学习设计测量的基础知识，以及现代计算机的一些微妙细节。在完成对这几章的学习后，你将打下一个坚实的基础，能够估测代码的不同部分应该使用多长时间。这几章还能够让具有不同背景的读者填补他们在计算机和软件方面的一些空白。",
+        "bbox": [
+            32,
+            523,
+            913,
+            639
+        ],
+        "page_idx": 42
+    },
+    {
+        "type": "text",
+        "text": "首先要测量的是CPU时间，即真实计算机指令需要的时间。令人惊讶的是，即使只简单地测量一条add指令需要多长时间，也涉及很多细节。在这种上下文中，“多长时间”是什么意思？",
+        "bbox": [
+            32,
+            642,
+            913,
+            711
+        ],
+        "page_idx": 42
+    },
+    {
+        "type": "text",
+        "text": "现代CPU在每个CPU时钟周期都能够发出一条或多条指令，但一条指令可能需要多个CPU时钟周期才能完成。虽然能够在每个周期发出特定类型的指令，但这种指令需要3个周期才能得到后续指令可以使用的结果，你想让“多长时间”指1个周期还是3个周期呢？一些指令可能需要几十个周期，它们会导致需要使用它们的结果的后续指令发生延迟。这些延迟可能就是我们想要找出的性能问题。因此，我们想让“多长时间”指的是一条指令的时延——从发出一条指令到后续指令能够使用这条指令的结果所经过的CPU时钟周期。",
+        "bbox": [
+            32,
+            714,
+            913,
+            855
+        ],
+        "page_idx": 42
+    },
+    {
+        "type": "text",
+        "text": "如果你不太熟悉取指令、流线化、缓存和（第3章将要介绍的）虚拟内存，则现在是时候读读计算机架构方面的书了，比如Hennessy和Patterson撰写的Computer Architecture: A Quantitative Approach (Six Edition)。",
+        "bbox": [
+            32,
+            858,
+            913,
+            927
+        ],
+        "page_idx": 42
+    },
+    {
+        "type": "text",
+        "text": "2.1 发展历史",
+        "text_level": 1,
+        "bbox": [
+            80,
+            112,
+            296,
+            139
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "text",
+        "text": "在计算机的黄金时代，20世纪50年代，CPU时钟周期和磁心内存（详见第3章）的周期时间是相同的，简单指令需要两个周期。周期1从内存中获取并解码指令字，周期2则在执行指令时访问（读或写）内存中的一个数据字，如图2-1（a）所示。在当时十分流行的IBM709上，一个字有36位。",
+        "bbox": [
+            80,
+            162,
+            962,
+            254
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "text",
+        "text": "为了提高执行速度，后来的机器（如IBM7094II）一次性从内存中获取一对奇偶指令，在执行第一条指令的同时，将第二条指令保存在一个临时的指令寄存器中。之后，CPU直接执行第二条指令，并且不需要再次取指令。这样一来，两条简单的指令就会顺序执行，一次执行一条指令，但总共需要3个而不是4个周期，如图2-1（b）所示。",
+        "bbox": [
+            80,
+            258,
+            962,
+            351
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "text",
+        "text": "还有一种加速技术使用两个或更多个独立的磁心内存单元，如果指令 $N$ 与指令 $N + 1$ 访问不同的内存单元，则使指令 $N$ 的执行与获取指令 $N + 1$ 的操作重叠。",
+        "bbox": [
+            80,
+            354,
+            960,
+            399
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "text",
+        "text": "随着晶体管的出现，CPU的运行速度变得更快了，但磁心内存的访问时间没有变。为了提高处理速度，人们解除了CPU和内存时钟之间的耦合，CPU运行得更快，每个内存引用需要多个CPU周期。与此同时，人们还在CPU中添加了更多的寄存器，以使一些指令能够执行寄存器到寄存器的操作，而不需要等待内存中的数据访问，如图2-1（c）所示，这里在最后一个CPU周期中执行了寄存器写操作。那些执行复杂处理的指令（如multiply）可能在经过多个执行周期后才写出结果，如图2-1（d）所示。",
+        "bbox": [
+            80,
+            400,
+            962,
+            542
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "table",
+        "img_path": "images/7125e30e6e771265937d69cbfcdeb7e7b2da0032bf6f274c0146270bb4b35531.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>取指令并解码</td><td>执行</td></tr></table>",
+        "bbox": [
+            257,
+            557,
+            783,
+            580
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "table",
+        "img_path": "images/371abdb1fa1bd40b53cfcf7e9e18c4c27d203d16e9552c4a17658c3d3087d991.jpg",
+        "table_caption": [
+            "（a）在两个CPU周期中执行简单的取指令/执行操作"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>取指令并解码</td><td>执行</td></tr><tr><td></td><td></td></tr></table>",
+        "bbox": [
+            131,
+            615,
+            913,
+            657
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "table",
+        "img_path": "images/4f1920e042cdc7915ad897f11bcf48b0751f87f8b16d4b30fe07ce882a8325bf.jpg",
+        "table_caption": [
+            "（b）取一对指令并执行其中的每一条指令"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>取指令</td><td>解码</td><td>执行</td><td>写结果</td></tr></table>",
+        "bbox": [
+            259,
+            692,
+            783,
+            714
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "table",
+        "img_path": "images/eedd71057ba7275e454cb9f53f5eda8814c839b6ba5ca8e9aefe0d1df178bcad.jpg",
+        "table_caption": [
+            "（c）在6个更快的CPU周期中执行取指令/解码/执行/写结果的操作",
+            "（d）在写结果之前需要经过多个执行周期"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>取指令</td><td>解码</td><td>执行</td><td>执行</td><td>执行</td><td>写结果</td></tr></table>",
+        "bbox": [
+            171,
+            749,
+            870,
+            771
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "text",
+        "text": "图2-1 指令操作",
+        "bbox": [
+            447,
+            804,
+            593,
+            821
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "text",
+        "text": "IBM Stretch（IBM 7030）是最早采用上述许多思想的机器，于1956—1960年设计出来，并在1961年第一次推向市场。这是加速技术的一场精彩展示：第一次有机器使用了指令流水线（pipelining）、多个执行单元、超出条件分支的预测执行、多个（超过3个）数据寄存器以及多个存储体（memory bank）。它还可以在每个64位字中保存两条指令。IBM 7030明确提出",
+        "bbox": [
+            80,
+            832,
+            962,
+            927
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "page_number",
+        "text": "14 ",
+        "bbox": [
+            82,
+            56,
+            109,
+            72
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            123,
+            56,
+            243,
+            70
+        ],
+        "page_idx": 43
+    },
+    {
+        "type": "text",
+        "text": "目标要将处理速度提高到IBM704的100倍，因而需要将CPU周期与更长的内存访问周期解耦，并要求并行进行多个内存访问。60多年过后，计算机行业仍然走在这条路上。IBM7030没有承诺的那样快，并且制造成本太高，所以只交付了9台。",
+        "bbox": [
+            26,
+            92,
+            907,
+            162
+        ],
+        "page_idx": 44
+    },
+    {
+        "type": "text",
+        "text": "不久后，CDC6600在1964年问世。CDC6600更加简单，速度更快。CPU周期为 $100\\mathrm{ns}$ 内存访问周期为 $1000\\mathrm{ns}$ ，后者是前者的10倍。多个流水线执行单元并行运行，允许指令不按顺序完成，最多可以把4条指令放到60位的一个字中。CDC6600不仅有8个数据寄存器和8个地址寄存器，还有一个循环缓冲区，可以完全在CPU内保存一个包含31条指令的小循环，从而在第一次迭代后完全避免取指令。CDC6600相比IBM7030的速度更快，这让IBM十分痛苦，并因此推动了System360/91的设计。IBM与CDC之间后来发生了一场反垄断诉讼。",
+        "bbox": [
+            26,
+            164,
+            907,
+            328
+        ],
+        "page_idx": 44
+    },
+    {
+        "type": "text",
+        "text": "1962年的ManchesterAtlas是第一台提供分页虚拟内存的商用机器，它允许使用一小块16千字（每个字48位）大小的物理主内存，就像这是一块96千字大小但更慢一些的内存。根据需要，在主内存和磁鼓之间移动512字的页。1965年的GE645是另一台采用分页虚拟内存的早期机器，它上面运行的是MIT开发的Multics操作系统。在丢失MIT这个大单之后，IBM给出的回应是，IBM于1966年开发的IBM360/67提供了虚拟内存硬件和微代码。IBM后续在1970年设计的System/370没有一开始提供虚拟内存，但到1972年又添加了进去（或者更准确地说，打开了）。",
+        "bbox": [
+            26,
+            331,
+            909,
+            496
+        ],
+        "page_idx": 44
+    },
+    {
+        "type": "text",
+        "text": "在每次访问内存时，通过使用页表缓存（Translation Lookaside Buffer，TLB）来处理虚拟内存到物理内存的映射，虽然开始时会在CPU周期时间上稍微拖慢一点儿，但相比当时使用手动的指令与数据覆盖I/O技术在主内存和后备磁盘或磁鼓之间移动字节，这种技术使得处理大数据的大程序运行得更快了。地址映射还引入了按页的内存保护，允许在一台机器上运行多个程序，但各个程序之间的内存访问彼此不受影响，并且所有用户态的访问都不会影响内核态的内存页。保护位还可以将单个页面标记为不可写或不可执行，从而增强了程序的安全性。",
+        "bbox": [
+            26,
+            500,
+            909,
+            639
+        ],
+        "page_idx": 44
+    },
+    {
+        "type": "text",
+        "text": "从1961年开始，在IBM7030快要完成的时候，一个IBM小团队开始进行ACS-1的设计，以探索更快的机器。虽然这台机器从未投入市场，但它的许多创新后来得到了采用。ACS-1的主要目标之一是，通过在每个时钟周期发出多条指令，打破发指令频率的限制。图2-2显示了两条指令A和B，从第一个周期开始，并行获取并进行执行。如今，这种设计称为“超标量”（superscalar）设计。图2-2还显示了指令C和D在一个周期后开始获取，此时前两条指令还未结束，这是一种流水线设计。ACS-1采用了这两种技术。",
+        "bbox": [
+            26,
+            642,
+            909,
+            783
+        ],
+        "page_idx": 44
+    },
+    {
+        "type": "image",
+        "img_path": "images/7e20b0943c52a6b1fbb8d8226c2ea1bc512a46f74bb9e6867c077f0898b801c9.jpg",
+        "image_caption": [
+            "图2-2 超标量和流水线指令的执行"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            138,
+            789,
+            800,
+            901
+        ],
+        "page_idx": 44
+    },
+    {
+        "type": "header",
+        "text": "第2章 测量CPU时间",
+        "bbox": [
+            682,
+            56,
+            865,
+            73
+        ],
+        "page_idx": 44
+    },
+    {
+        "type": "page_number",
+        "text": "15 ",
+        "bbox": [
+            878,
+            58,
+            905,
+            72
+        ],
+        "page_idx": 44
+    },
+    {
+        "type": "text",
+        "text": "最终的ACS-1能够同时运行最多7条指令。1968年，IBM转变了方向，他们让ACS-1与System/360兼容，这就是ACS-360，但IBM在这个项目上投入的资源越来越少，最终在一年后取消了这个项目。但是，超标量设计的思想留存了下来，并最终在22年后的1990年，通过IBM RISC System/6000被付诸商用。几乎在同一时间，其他所有主流微处理器芯片都转向了超标量设计，包括1991年的MIPS R4000、1992年的Digital Equipment Corporation DEC Alpha 21064和1993年的Pentium。",
+        "bbox": [
+            78,
+            87,
+            960,
+            228
+        ],
+        "page_idx": 45
+    },
+    {
+        "type": "text",
+        "text": "为了进一步将CPU与主内存的速度解耦，1968年的IBM360/85 [Liptay 1968]引入了缓存，其中使用了 $80\\mathrm{ns}$ 的缓存和 $1040\\mathrm{ns}$ 的磁心主内存，两者的访问速度之比为 $13:1$ 。在如今的处理器芯片中，这个比例接近 $200:1$ 。据估计，IBM360/85的CPU运行速度是具有 $80\\mathrm{ns}$ 主内存的机器的 $80\\%$ ，所以相比从运行速度是CPU的1/13的主内存中访问所有东西，添加少量的缓存内存能够极大地提升速度。（在图2-2中，对于单周期取指令操作假定存在一个指令缓存，对于单周期写操作则假定存在寄存器结果或数据缓存。）IBM360/85有单级缓存，并有主内存进行支持。",
+        "bbox": [
+            78,
+            231,
+            960,
+            397
+        ],
+        "page_idx": 45
+    },
+    {
+        "type": "text",
+        "text": "所有这些加速技术在后来几十年间的微处理器芯片设计中也得到了采用。如今的微处理器芯片具有多级片上缓存：通常每个CPU核心都有一对小而快的一级（L1）缓存，其中一个是用于指令的L1指令缓存，另一个是用于数据的L1数据缓存；一个大小中等、速度中等、混合了指令和数据的二级（L2）缓存，由一个或多个核心共享；一个更大、更慢的三级（L3）缓存或末级缓存（Last-Level Cache，LLC），由所有核心共享。",
+        "bbox": [
+            78,
+            399,
+            960,
+            517
+        ],
+        "page_idx": 45
+    },
+    {
+        "type": "text",
+        "text": "到了20世纪90年代末，由于单个CPU核心的性能开始趋于停滞，2001年的IBM Power4在一块芯片上引入了多个（至少两个）CPU核心。其中每个核心都有自己的L1-I和L1-D缓存，但共享更低层的缓存。每块芯片包含多个CPU核心，并且在使用支持多个程序以及允许在一个程序中包含多个软件线程的操作系统时，会以相对较小的开销在整体上提供更高的处理能力。",
+        "bbox": [
+            78,
+            517,
+            960,
+            637
+        ],
+        "page_idx": 45
+    },
+    {
+        "type": "text",
+        "text": "到了21世纪早期，出现了同时多线程（Simultaneous MultiThreading，SMT；也称为“超线程”，这是Intel对SMT的专有名称）。2002年投入市场的Intel Xeon和Pentium 4处理器均采用了超线程技术。在更早的时候，ACS-360和Alpha 21464也采用了SMT，但它们没有上市。SMT允许每个物理CPU核心有多个（通常是两个、4个或8个）程序计数器（Program Counter，PC）以及相关的数据/地址寄存器，但只有一组执行单元和缓存。通过稍稍增大芯片区域，SMT使得在一些指令阻塞（通常是因为等待内存访问）时，还有额外的指令可以执行。相比只使用一个程序计数器的核心，使用两个程序计数器（CPU线程）的核心执行的总计算数通常要多 $30\\% \\sim 50\\%$ 。这让一个物理核心看起来就像两个逻辑核心，每个逻辑核心的平均速度大约是物理核心的平均速度的7/10。",
+        "bbox": [
+            78,
+            637,
+            960,
+            852
+        ],
+        "page_idx": 45
+    },
+    {
+        "type": "page_number",
+        "text": "16 ",
+        "bbox": [
+            78,
+            55,
+            105,
+            69
+        ],
+        "page_idx": 45
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            119,
+            55,
+            239,
+            70
+        ],
+        "page_idx": 45
+    },
+    {
+        "type": "text",
+        "text": "2.2 现状",
+        "text_level": 1,
+        "bbox": [
+            32,
+            116,
+            185,
+            144
+        ],
+        "page_idx": 46
+    },
+    {
+        "type": "text",
+        "text": "大部分现代处理器芯片使用了如下这些加速技术：",
+        "bbox": [
+            78,
+            167,
+            550,
+            188
+        ],
+        "page_idx": 46
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- 将CPU和内存解耦；",
+            "- 多个存储体；",
+            "- 多个数据寄存器；",
+            "每个字多条指令；",
+            "指令流水线；",
+            "- 多个执行单元；",
+            "预测执行；",
+            "- 多指令发射；",
+            "- 乱序执行；",
+            "- 缓存内存；",
+            "分页虚拟内存；",
+            "- 同时多线程。"
+        ],
+        "bbox": [
+            74,
+            191,
+            315,
+            473
+        ],
+        "page_idx": 46
+    },
+    {
+        "type": "image",
+        "img_path": "images/3e5ea30213112f58f099d2da58806b058af90eb9445a6d338097d840e46200f2.jpg",
+        "image_caption": [
+            "图2-3显示了一个现代快速微处理器的总体执行流程，左侧是取指令前端，中间是多个指令发射槽（在这里提交取出的指令来执行），右侧是执行后端。",
+            "图2-3 一个现代快速微处理器的总体执行流程"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            123,
+            536,
+            824,
+            734
+        ],
+        "page_idx": 46
+    },
+    {
+        "type": "text",
+        "text": "可以看到，指令的执行环境十分复杂，要测量执行时间，就必须进行认真思考。软件如果不小心破坏了其中一些加速机制的软件，就可能运行得异常缓慢，甚至性能令人吃惊。",
+        "bbox": [
+            35,
+            780,
+            913,
+            826
+        ],
+        "page_idx": 46
+    },
+    {
+        "type": "text",
+        "text": "对计算机真正有兴趣的人应该对底层的硬件至少有一定的认识，否则他们写出来的程序就会相当奇怪。",
+        "bbox": [
+            45,
+            843,
+            903,
+            886
+        ],
+        "page_idx": 46
+    },
+    {
+        "type": "text",
+        "text": "—Donald Knuth",
+        "bbox": [
+            731,
+            895,
+            901,
+            912
+        ],
+        "page_idx": 46
+    },
+    {
+        "type": "header",
+        "text": "第2章 测量CPU时间",
+        "bbox": [
+            688,
+            59,
+            872,
+            76
+        ],
+        "page_idx": 46
+    },
+    {
+        "type": "page_number",
+        "text": "17 ",
+        "bbox": [
+            886,
+            61,
+            913,
+            76
+        ],
+        "page_idx": 46
+    },
+    {
+        "type": "text",
+        "text": "2.3 测量add指令的时延 ",
+        "text_level": 1,
+        "bbox": [
+            82,
+            107,
+            468,
+            136
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "text",
+        "text": "在这里，定义很重要。通常把“一条指令的时延”定义为，从其第一个“执行”周期到使用其结果的下一条指令的第一个“执行”周期所经过的CPU周期数。在图2-2中，如果指令B是一条add指令，并且指令C使用了指令B的结果但不需要等待，那么指令C的第一个“执行”周期的开始时间比指令B的第一个“执行”周期晚一个周期，所以指令B的执行时延是一个周期。在这里，指令C的执行周期与指令B的写周期发生了重叠。快速硬件实现通过在指令B的最后一个执行周期的末尾把结果发送给指令B的写寄存器结果的硬件，同时将结果直接转发给指令C的执行硬件，实现了这种时序。较慢的硬件要求指令B的寄存器写操作先完成，然后指令C才能开始读取该寄存器中的数据，所以慢了一两个周期。注意，指令的时延通常不包括获取和解码的时间，也不包括写结果的时间（如果在转发结果时没有丢失周期的话）。",
+        "bbox": [
+            82,
+            159,
+            964,
+            371
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "text",
+        "text": "但是，分支指令的时延（简称分支时延）是从取该指令到取下一条指令的CPU周期数。如果取指令、解码指令和条件分支决策阶段需要多个周期，则它们都有可能成为分支时延的一部分。如果硬件没有准确预测分支指令的下一条指令，则在如今的处理器上分支指令的时延可能是 $3\\sim 30$ 个周期，这是非常大的时延，所以好的分支预测对于实现高性能非常重要。",
+        "bbox": [
+            84,
+            374,
+            964,
+            466
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "text",
+        "text": "要测量一条add指令的时延，一种简单的方法如下。",
+        "bbox": [
+            125,
+            470,
+            618,
+            491
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "text",
+        "text": "读取时间",
+        "bbox": [
+            125,
+            500,
+            193,
+            516
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "text",
+        "text": "执行一条add指令",
+        "bbox": [
+            144,
+            520,
+            280,
+            536
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "text",
+        "text": "读取时间",
+        "bbox": [
+            127,
+            539,
+            193,
+            554
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "text",
+        "text": "相减",
+        "bbox": [
+            127,
+            557,
+            164,
+            572
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "text",
+        "text": "但是，在现代执行环境中，这种方法的效果很差。下面我们详细分析每个步骤。",
+        "bbox": [
+            125,
+            583,
+            884,
+            603
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "text",
+        "text": "“读取时间”的含义是什么呢？我们希望精确统计CPU周期数，这样一来，对于执行时间为一个CPU周期的add指令，我们计算出的差值是1。一些计算机有一个周期计数器，每个周期增一，就是用于这种目的。其他机器的周期计数器可能每30个周期递增30（举一个例子）。还有一些机器提供了 $10\\mathrm{MHz}$ 、 $32\\mathrm{MHz}$ 或 $100\\mathrm{MHz}$ 的计数器，它们根本不统计周期数，而是统计经过的时间。",
+        "bbox": [
+            84,
+            608,
+            964,
+            723
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "text",
+        "text": "1976年的Cray-1具有理想的周期计数器：每个CPU周期增一，而且可被用户态代码在一个周期内读取。1992年的DEC Alpha 21064芯片采用了相同的设计。一年后，Pentium P5芯片通过读时间戳计数器（RealD TimeStamp Counter，RDTSC）指令添加了一个周期计数器，不久后，整个行业都添加了这种计数器。读周期计数器、执行一些作业、读周期计数器、将两个计数值相减，成为测量代码经过的时间的标准方式。",
+        "bbox": [
+            84,
+            726,
+            964,
+            844
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "text",
+        "text": "如果不考虑常数因子，统计周期和统计经过的时间是相同的。要将周期转换为时间，你需要将每个周期乘以每个周期的时长（如 $1\\mathrm{ps}^{(1)}$ ）。但是，只有当周期率（时钟频率）保持不",
+        "bbox": [
+            84,
+            847,
+            964,
+            892
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "page_number",
+        "text": "18 ",
+        "bbox": [
+            82,
+            58,
+            109,
+            72
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            123,
+            58,
+            243,
+            72
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "page_footnote",
+        "text": "$①$ 1ps=10-12s。",
+        "bbox": [
+            82,
+            910,
+            212,
+            932
+        ],
+        "page_idx": 47
+    },
+    {
+        "type": "text",
+        "text": "变时，才能这么计算。",
+        "bbox": [
+            35,
+            95,
+            245,
+            115
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "text",
+        "text": "CPU时钟频率在一段时期内保持恒定，但是2002年出现了动态减慢CPU时钟的节能技术，用户发现他们计算出的执行时间可能与实际时间有很大的区别，具体取决于节能模式是否发挥作用。这最终导致定义所谓的“恒定速率”时间戳。例如，在额定频率为 $2.4\\mathrm{GHz}$ 的芯片上，这种时间戳可能每10ns（即 $100\\mathrm{MHz}$ ）递增24，而不是递增1。即使该芯片的实际运行频率为 $800\\mathrm{MHz}$ ，或者超频到 $2.7\\mathrm{GHz}$ ，递増速率也是不变的，仍然每秒递增24亿次。这给出了一致的时间测量值，但不再统计实际的CPU周期数。精度降低了不止一个数量级，从在 $2.4\\mathrm{GHz}$ 上变化计数改为在 $100\\mathrm{MHz}$ 上变化计数。",
+        "bbox": [
+            32,
+            119,
+            917,
+            283
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "text",
+        "text": "在使用这样的时间基准时，我们需要在RDTSC指令之间执行需要数万个周期才能完成的任务，才能得到有意义的结果，而且我们只应测量CPU足够繁忙的时间段，来避开节能状态。在执行一条RDTSC指令时，因为无法预测接下来的 $10\\mathrm{ns}$ 递增发生在什么时候，所以在每次读取时，存在固有的 $10\\mathrm{ns}$ 模糊性。为了使失真率低于 $1\\%$ ，两次读取之间的工作量至少需要 $1000\\mathrm{ns}$ ，也就是 $2.4\\mathrm{GHz}$ 运行频率下的大约2400个周期。因此，我们不测量一条add指令，而是测量连续执行的几千条add指令，如下所示。",
+        "bbox": [
+            32,
+            286,
+            917,
+            427
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "text",
+        "text": "读取时间",
+        "bbox": [
+            76,
+            437,
+            146,
+            450
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "text",
+        "text": "执行N条add指令",
+        "bbox": [
+            96,
+            455,
+            232,
+            470
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "text",
+        "text": "读取时间",
+        "bbox": [
+            76,
+            473,
+            144,
+            487
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "text",
+        "text": "两个时间相减并除以N",
+        "bbox": [
+            76,
+            493,
+            239,
+            507
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "text",
+        "text": "尽管能够提供合理的、每条add指令的平均时间，但是这个平均时间可能与我们想要测量的单条add指令的时延有很大的差别，为什么呢？",
+        "bbox": [
+            35,
+            516,
+            915,
+            561
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "text",
+        "text": "2.4 直线代码失败",
+        "text_level": 1,
+        "bbox": [
+            35,
+            582,
+            319,
+            611
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "text",
+        "text": "在一个C程序中，我们可能执行了5000次加法运算，但没有使用循环，而直接写了5000行代码。",
+        "bbox": [
+            35,
+            634,
+            915,
+            677
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "code",
+        "sub_type": "algorithm",
+        "code_caption": [],
+        "code_body": "sum $+ = 1$ sum $+ = 1$ sum $+ = 1$ sum $+ = 1$ ",
+        "bbox": [
+            76,
+            691,
+            164,
+            779
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "text",
+        "text": "上述代码序列很可能根本不测量add指令，而测量对于1000条以上的指令，从指令缓存或内存中取指令的速率，或者测量在一级数据缓存中加载和存储sum变量所需的时间。",
+        "bbox": [
+            35,
+            786,
+            915,
+            832
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "text",
+        "text": "2.5 简单循环、循环开销失败、优化编译器失败 ",
+        "text_level": 1,
+        "bbox": [
+            35,
+            855,
+            754,
+            886
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "text",
+        "text": "相比顺序指令，我们更可能写一个循环。",
+        "bbox": [
+            78,
+            907,
+            465,
+            929
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "header",
+        "text": "第2章 测量CPU时间",
+        "bbox": [
+            688,
+            61,
+            872,
+            76
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "page_number",
+        "text": "19 ",
+        "bbox": [
+            886,
+            62,
+            913,
+            76
+        ],
+        "page_idx": 48
+    },
+    {
+        "type": "code",
+        "sub_type": "algorithm",
+        "code_caption": [],
+        "code_body": "start $=$ RDTSC();   \nfor (int $\\mathrm{n} = 0$ n $<  5000$ ++n）{ sum $+ = 1$ ·   \n}   \ndelta $=$ RDTSC() - start; ",
+        "bbox": [
+            121,
+            93,
+            430,
+            184
+        ],
+        "page_idx": 49
+    },
+    {
+        "type": "text",
+        "text": "然后除以5000。但是在循环内部，除add指令之外，还有许多其他指令：循环计数器 $n$ 的递增、比较和条件分支指令。",
+        "bbox": [
+            76,
+            195,
+            962,
+            239
+        ],
+        "page_idx": 49
+    },
+    {
+        "type": "text",
+        "text": "现在，估测一下一条add指令所需执行时间的数量级（1个、10个、100个周期，甚至更多个周期）并写下来。",
+        "bbox": [
+            76,
+            242,
+            960,
+            285
+        ],
+        "page_idx": 49
+    },
+    {
+        "type": "text",
+        "text": "代码片段2-1显示了一个测量程序mystery0，但这个程序存在缺陷。",
+        "bbox": [
+            119,
+            291,
+            769,
+            311
+        ],
+        "page_idx": 49
+    },
+    {
+        "type": "text",
+        "text": "代码片段2-1 mystery0",
+        "text_level": 1,
+        "bbox": [
+            125,
+            330,
+            354,
+            351
+        ],
+        "page_idx": 49
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "// Flawed sample mystery program to measure how long an add takes. // dick sites 2016.06.25  \n#include <stdio.h>  \n#include <stdio.h>  \n#include <time.h>  \n#include <x86intrin.h>  \nstatic const int kIterations = 1000 * 1000000;  \nint main (int argc, const char** argv) { uint64_t startcy, stopcy; uint64_t sum = 0;  \nstartcy = __rdtsc(); // starting cycle count for (int i = 0; i < kIterations; ++i) { // loop kIterations times sum += 1; // the add we want to measure } stopcy = __rdtsc(); // ending cycle count  \nint64_t elapsed = stopcy - startcy; double elapsed = elapsed; fprintf(stderr, \"%d iterations, %lu cycles, %4.2f cycles/iteration\\n\", kIterations, elapsed, elapsed / kIterations); return 0;  \n} ",
+        "guess_lang": "c",
+        "bbox": [
+            123,
+            360,
+            814,
+            863
+        ],
+        "page_idx": 49
+    },
+    {
+        "type": "text",
+        "text": "这个程序使用gcc的内置例程_rdtsc()来读取周期计数器。",
+        "bbox": [
+            121,
+            878,
+            672,
+            898
+        ],
+        "page_idx": 49
+    },
+    {
+        "type": "text",
+        "text": "可通过执行下面的命令编译和运行这个程序。",
+        "bbox": [
+            123,
+            903,
+            552,
+            921
+        ],
+        "page_idx": 49
+    },
+    {
+        "type": "page_number",
+        "text": "20 ",
+        "bbox": [
+            78,
+            58,
+            109,
+            73
+        ],
+        "page_idx": 49
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            121,
+            58,
+            243,
+            73
+        ],
+        "page_idx": 49
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "gcc -00 mystery0.cc -o mystery0 ./mystery0 ",
+        "guess_lang": "batch",
+        "bbox": [
+            74,
+            96,
+            373,
+            128
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "text",
+        "text": "不妨看看得到的结果是什么。以示例服务器（参见附录A）Intel i3为例，结果如下。",
+        "bbox": [
+            30,
+            142,
+            832,
+            161
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "text",
+        "text": "1000000000 iterations, 6757688397 cycles, 6.76 cycles/iteration ",
+        "bbox": [
+            74,
+            176,
+            678,
+            191
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "text",
+        "text": "6.76个周期包括了循环开销代码（参见表2-1）所需的时间。通过要求编译器优化循环，我们可以试着缩短这种时间。",
+        "bbox": [
+            30,
+            202,
+            909,
+            245
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "table",
+        "img_path": "images/2660bed61ce27e988894378da94be086eb34960bf7dbde1c96fe302d29417dbf.jpg",
+        "table_caption": [
+            "表 2-1 对 add 指令的执行时间进行不完美的测量"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>编 译</td><td>迭代数</td><td>周期数</td><td>周期数/迭代数</td></tr><tr><td>gcc -O0 mystery0.cc -o mystery0</td><td>1 000 000 000</td><td>6 757 688 397</td><td>6.76</td></tr><tr><td>gcc -O2 mystery0.cc -o mystery0_opt</td><td>1 000 000 000</td><td>120</td><td>0.00</td></tr></table>",
+        "bbox": [
+            30,
+            283,
+            913,
+            355
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "text",
+        "text": "接下来，使用下面的命令编译和运行优化后的 mystery0。",
+        "bbox": [
+            74,
+            365,
+            614,
+            384
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "gcc -02 mystery0.cc -o mystery0_opt ./mystery0_opt ",
+        "guess_lang": "batch",
+        "bbox": [
+            74,
+            400,
+            414,
+            434
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "text",
+        "text": "我们的示例服务器给出的结果如下。",
+        "bbox": [
+            30,
+            444,
+            375,
+            463
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "1000000000 iterations, 120 cycles, 0.00 cycles/iteration ",
+        "guess_lang": "txt",
+        "bbox": [
+            74,
+            478,
+            614,
+            493
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "text",
+        "text": "这里发生了什么？周期数从大约67亿变成了120！",
+        "bbox": [
+            74,
+            504,
+            556,
+            524
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "text",
+        "text": "代码片段2-2显示了gcc在编译时尚未优化的代码。",
+        "bbox": [
+            74,
+            529,
+            564,
+            549
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [
+            "代码片段2-2 编译时尚未优化的代码"
+        ],
+        "code_body": "rdtsc read timestamp counter\nsalq $32, %rdx shift left quadword (64 bits)\norg %rdx, %rax; or quadword\nmovq %rax, -32(%rbp) move quadword rax to startcy in memory\nmovl $0, -44(%rbp) move longword 0 to i in memory (32 bits)\n.L4:\ncmp1 $999999999, -44(%rbp) compare i to constant\njg .L3 conditional branch greater-than\naddq $1, -40(%rbp) sum += 1; sum is in memory at -40(%rbp)\nadd1 $1, -44(%rbp) ++i; i is in memory at -44(%rbp)\njmp .L4 jump to top of loop\n.L3:\nrdtsc read timestamp counter\nsalq $32, %rdx shift left quadword\norg %rdx, %rax or quadword ",
+        "guess_lang": "asm",
+        "bbox": [
+            72,
+            598,
+            756,
+            920
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "header",
+        "text": "第2章 测量CPU时间",
+        "bbox": [
+            688,
+            59,
+            870,
+            75
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "page_number",
+        "text": "21 ",
+        "bbox": [
+            882,
+            59,
+            911,
+            75
+        ],
+        "page_idx": 50
+    },
+    {
+        "type": "text",
+        "text": "_rdtsc()内置例程被编译成了3条指令——rdtsc、salq和orq，这是有历史原因的。rdtsc最初（1993年）是一条32位指令，但它现在用于从两个32位获取一个64位结果。“.L4:”标签突出显示了未优化的内层循环，它有5条指令，其中3条通过3个读操作（cmpl、addq、addl）访问内存，还有两条写指令（addq、addl）。因此事实上，我们要测量的主要是内存访问，具体来说，也就是对L1数据缓存进行的访问。实际执行的add指令是64位的addq指令。",
+        "bbox": [
+            76,
+            93,
+            964,
+            210
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "text",
+        "text": "代码片段2-3显示了gcc编译后并经过优化的代码。",
+        "bbox": [
+            121,
+            213,
+            645,
+            233
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "text",
+        "text": "代码片段2-3 编译后并经过优化的代码",
+        "text_level": 1,
+        "bbox": [
+            125,
+            251,
+            501,
+            271
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "rdtsc\nmovq %rax, %rcx\nsalq $32, %rdx\norq %rdx, %rcx\nrdtsc\npxor %xmm0, %xmm0\nmovq stdout(%rip), %rdi\nsalq $32, %rdx\nmovl $1, %esi\norg %rdx, %rax",
+        "guess_lang": "asm",
+        "bbox": [
+            123,
+            284,
+            346,
+            494
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "text",
+        "text": "循环去了哪里呢？这里只有两个展开的_rdtsc()，加上一些move和xor指令，用于为后面的fprintf()调用做准备。",
+        "bbox": [
+            78,
+            511,
+            962,
+            554
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "text",
+        "text": "gcc 的优化器进行了常量折叠，将 10 亿次递增一转化为在编译时预先计算出的常量结果 1000000000，实际上使用了如下指令。",
+        "bbox": [
+            80,
+            559,
+            962,
+            603
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "sum = 1000000000; ",
+        "guess_lang": "txt",
+        "bbox": [
+            123,
+            615,
+            290,
+            629
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "text",
+        "text": "120个周期只不过是两条rdtsc指令之间的测量时间。请记住，示例服务器使用的是频率约 $3.9\\mathrm{GHz}$ 的处理器芯片，所以rdtsc指令的结果都是39或相近数字的倍数。",
+        "bbox": [
+            78,
+            637,
+            962,
+            683
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "text",
+        "text": "2.6 死变量失败 ",
+        "text_level": 1,
+        "bbox": [
+            80,
+            708,
+            331,
+            735
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "text",
+        "text": "为了迷惑优化器，我们可以使用一个编译器不知道的常量。对于这个目的，这种小计策有时候很方便。",
+        "bbox": [
+            78,
+            758,
+            962,
+            803
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "time_t t = time(NULL); // The compiler doesn't know t  \nint incr = t & 255; // Unknown increment 0..255 ",
+        "guess_lang": "txt",
+        "bbox": [
+            123,
+            814,
+            635,
+            847
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "text",
+        "text": "遗憾的是，对于我们这种特殊情况，gcc编译器还会把循环优化掉，循环实际上变成以下代码。",
+        "bbox": [
+            80,
+            855,
+            962,
+            901
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "sum = 1000000000 * incr; ",
+        "guess_lang": "txt",
+        "bbox": [
+            125,
+            912,
+            358,
+            926
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "page_number",
+        "text": "22 ",
+        "bbox": [
+            82,
+            58,
+            109,
+            73
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            123,
+            58,
+            243,
+            73
+        ],
+        "page_idx": 51
+    },
+    {
+        "type": "text",
+        "text": "即使我们把求和计算转换为不容易预测的计算，gcc编译器也仍然会优化掉循环。为什么？",
+        "bbox": [
+            78,
+            93,
+            907,
+            113
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "text",
+        "text": "标准的编译器优化会删除死代码——计算结果没有在程序的其他位置使用的代码。因为后面没有使用sum，所以编译器会优化掉对计算sum有贡献的所有东西，循环因而变成了空循环。另一种优化会删除没有效果的代码，于是整个循环将被删除。",
+        "bbox": [
+            35,
+            116,
+            915,
+            185
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "text",
+        "text": "如果我们确实想让编译器保留循环，则可以在后面使用sum，从而将求和计算保留下来。例如，我们可以输出sum，或者假装输出sum，也就是仅在time() $= 0$ 的时候输出sum。只有在1970年1月1日午夜，表达式time() $= = 0$ 才为true，但编译器不知道这一点。",
+        "bbox": [
+            35,
+            188,
+            915,
+            257
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "code",
+        "sub_type": "algorithm",
+        "code_caption": [],
+        "code_body": "bool nevertrue $=$ (time(NULL) $\\equiv = 0$ ）; if（nevertrue）{ printf(，x，y，z); //Makesxyandzlive }",
+        "bbox": [
+            78,
+            269,
+            579,
+            340
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "text",
+        "text": "这里的要点是，我们构建出来的测量程序测量的不是期望的值（内存访问时间、编译器的智能度或者什么都不测量），而是其他东西，这是很可能发生的情况。等到第22章介绍Whetstone基准程序时，你将再次看到这一点。",
+        "bbox": [
+            35,
+            351,
+            915,
+            421
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "text",
+        "text": "当使用汇编语言直接编写代码时，你对要测量的代码将有更多的控制，但我们想测量的是使用高级编程语言（如C或 $\\mathrm{C + + }$ ）编写的代码。",
+        "bbox": [
+            35,
+            424,
+            915,
+            467
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "text",
+        "text": "2.7 更好的循环 ",
+        "text_level": 1,
+        "bbox": [
+            35,
+            492,
+            288,
+            519
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "text",
+        "text": "通过将sum或递增变量声明为volatile值，可强制编译器执行完整的循环。volatile指的是变量的值可能在任何时候，由于其他代码的共享访问而发生改变。在这种情况下，编译器不进行常量分析，而总是在其（很可能是共享的）内存位置读/写值。这虽然不能解决循环开销的测量问题，但可以帮助我们把循环保留下来。",
+        "bbox": [
+            35,
+            542,
+            915,
+            636
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "text",
+        "text": "为了降低循环开销造成的偏差，一些适度的循环展开会有帮助，如代码片段2-4所示。展开4次后，循环开销的影响将降低至原来的 $25\\%$ ",
+        "bbox": [
+            35,
+            639,
+            903,
+            682
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [
+            "代码片段2-4 展开4次的循环"
+        ],
+        "code_body": "for (int i = 0; i < kIterations; i += 4) {  \n    sum += 1;  \n    sum += 1;  \n    sum += 1;  \n    sum += 1;  \n} ",
+        "guess_lang": "lisp",
+        "bbox": [
+            78,
+            731,
+            484,
+            840
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "text",
+        "text": "为了有效地去除循环开销，一种有用的技术是计算两个不同循环的时间，一个在循环内执行 $N1$ 次add指令，另一个在循环内执行 $N2$ 次add指令。将这两个时间相减，就可以得到执行 $(N2 - N1)$ 次add指令所需时间的近似值，循环开销的影响被消除。如果要采用这种做法，则应",
+        "bbox": [
+            35,
+            855,
+            917,
+            926
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "header",
+        "text": "第2章 测量CPU时间",
+        "bbox": [
+            688,
+            58,
+            872,
+            73
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "page_number",
+        "text": "23 ",
+        "bbox": [
+            884,
+            58,
+            915,
+            73
+        ],
+        "page_idx": 52
+    },
+    {
+        "type": "text",
+        "text": "该让 $N1$ 和 $N2$ 比2大，因此编译器很可能会为 $N = 0$ 、1或2生成不同的、更快的循环代码。在当前的示例中，展开4次和8次可能是不错的选择。展开10次和20次可能更好一点，除非这两个数字导致循环不再能够被放到一个CPU循环缓冲区中，进而导致过长的取指令时间。",
+        "bbox": [
+            78,
+            90,
+            958,
+            159
+        ],
+        "page_idx": 53
+    },
+    {
+        "type": "text",
+        "text": "完成测量后，如果对于整数相加得到的数字是每次迭代1.06个周期，那么你应该记住，真实指令的用时是整数个周期，而不会使用非整数个CPU周期。因此，像1.06这样的结果代表的是许多个迭代时间的平均值，但这些迭代时间都是整数。其中一些迭代时间很可能是几千个周期，而不是几个周期。长用时可能来自运行程序的CPU核心上的计时器或其他中断，也可能来自运行在相同物理核心上的一个不相关程序的超线程的干扰，还可能来自操作系统的调度程序。调度程序会对你的程序进行时间分片，时不时运行其他某个程序。通过在一台空闲的机器上运行程序，并使循环的运行时间低于计时器中断间隔（通常是 $1\\sim 10\\mathrm{ms}$ ），便可以降低这些影响。",
+        "bbox": [
+            78,
+            162,
+            958,
+            348
+        ],
+        "page_idx": 53
+    },
+    {
+        "type": "text",
+        "text": "如果运行时间是计时器中断间隔的1/4，那么当运行程序的时候，测量循环大概4次中有3次不会遇到计时器中断。最好多运行几次，然后选用你观察到的最快的值。",
+        "bbox": [
+            78,
+            353,
+            956,
+            397
+        ],
+        "page_idx": 53
+    },
+    {
+        "type": "text",
+        "text": "另一种方式是，运行计时器中断间隔的大约10倍时间，这意味着在运行程序期间，你很可能看到9次、10次或11次计时器中断。但是，如果你的循环用时很长，计时器中断处理时间很短，那么中断造成的总体失真会很小。",
+        "bbox": [
+            78,
+            400,
+            956,
+            468
+        ],
+        "page_idx": 53
+    },
+    {
+        "type": "text",
+        "text": "2.8 依赖变量",
+        "text_level": 1,
+        "bbox": [
+            78,
+            494,
+            292,
+            522
+        ],
+        "page_idx": 53
+    },
+    {
+        "type": "text",
+        "text": "完成了吗？还没有。回忆一下，一开始，我们感兴趣的是测量一条add指令的时延，也就是从发出该指令到其结果可被下一条指令使用的时间。思考代码片段2-5与代码片段2-4的区别。",
+        "bbox": [
+            78,
+            546,
+            956,
+            592
+        ],
+        "page_idx": 53
+    },
+    {
+        "type": "text",
+        "text": "代码片段2-5 展开4次并移除一些结果依赖的mystery0循环 ",
+        "text_level": 1,
+        "bbox": [
+            121,
+            606,
+            696,
+            626
+        ],
+        "page_idx": 53
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "for (int i = 0; i < kIterations; i += 4) {  \n    sum += 1;  \n    sum2 += 1;  \n    sum += 1;  \n    sum2 += 1;  \n} ",
+        "guess_lang": "txt",
+        "bbox": [
+            119,
+            635,
+            523,
+            746
+        ],
+        "page_idx": 53
+    },
+    {
+        "type": "text",
+        "text": "这里使用了两个独立的求和变量。在一个超标量CPU上，这意味着可以在一个周期中同时发出前两条add指令，然后在一个或多个周期后，发出下一对指令。10亿个这样的指令对可能需要500000000个周期，得到的平均加法（发指令）时间是0.5个周期。注意，在多指令发射机器上，平均时间为0.5个周期，但这并不意味着单条add指令用时半个周期，而意味着一些add指令需要一个周期，由于指令重叠，其他指令实际上需要零个额外的周期。无论如何，我们测试的是指令发射时间而不是执行时延。如果测量的是除法或乘法指令，那么由于它们也可能以相同的速率发射，即使它们的执行时延有可能很长。",
+        "bbox": [
+            78,
+            761,
+            958,
+            926
+        ],
+        "page_idx": 53
+    },
+    {
+        "type": "page_number",
+        "text": "24 ",
+        "bbox": [
+            76,
+            56,
+            107,
+            72
+        ],
+        "page_idx": 53
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            119,
+            56,
+            239,
+            72
+        ],
+        "page_idx": 53
+    },
+    {
+        "type": "text",
+        "text": "2.9 实际执行时延 ",
+        "text_level": 1,
+        "bbox": [
+            28,
+            118,
+            315,
+            145
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "text",
+        "text": "要测量执行时延而不是发射率，我们需要确保被测量的每条指令依赖前一条指令的结果。我们一开始没有仔细思考就这么做了，但明确这么做非常重要。",
+        "bbox": [
+            28,
+            168,
+            909,
+            211
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "text",
+        "text": "一个激进优化的编译器有可能为了结合运算符（如整数相加或相乘）而重新排列运算。考虑代码片段2-6中的循环。",
+        "bbox": [
+            28,
+            216,
+            903,
+            260
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "text",
+        "text": "代码片段2-6 展开的乘积循环 ",
+        "text_level": 1,
+        "bbox": [
+            78,
+            280,
+            371,
+            299
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "volatile uint64_t incr0 = ...;  \nuint64_t prod = 1;  \nfor (int i = 0; i < kIterations; i += 4) {  \n    prod *= incr0;  \n    prod *= incr1;  \n    prod *= incr2;  \n    prod *= incr3;  \n} ",
+        "guess_lang": "c",
+        "bbox": [
+            74,
+            309,
+            482,
+            458
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "text",
+        "text": "你可能期望内层循环执行4次依赖的乘法，每次乘法使用前一次乘法的结果。",
+        "bbox": [
+            74,
+            473,
+            814,
+            493
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "prod = (((prod * incr0) * incr1) * incr2) * incr3; ",
+        "guess_lang": "c",
+        "bbox": [
+            74,
+            507,
+            558,
+            524
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "text",
+        "text": "但事实上，在64位的x86机器上执行的gcc-O2默认情况下会把上面的运算重新安排为",
+        "bbox": [
+            30,
+            533,
+            874,
+            555
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "temp = ((incr0 * incr1) * incr2) * incr3;  \nprod = prod * temp; ",
+        "guess_lang": "c",
+        "bbox": [
+            74,
+            567,
+            470,
+            602
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "text",
+        "text": "区别在于，temp 是一个循环常量，只有最后的 prod = prod * temp 才依赖前一个计算。由于支持多指令发射和指令流水线，因此示例服务器的 CPU 硬件事实上能够同时执行循环的至少 4 次迭代，乘法运算会有重叠。只要实际的整数乘法时延小于或等于 4 个周期，执行 4 次乘法运算的一次迭代的有效执行时间就有可能是 4 个周期，从而给出一种带有误导性的表象：乘法运算很快，只需要一个周期。",
+        "bbox": [
+            28,
+            613,
+            913,
+            728
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "text",
+        "text": "2.10 更多细微差别",
+        "text_level": 1,
+        "bbox": [
+            30,
+            754,
+            334,
+            782
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "text",
+        "text": "为了避免计算被重写，你可能需要使用不容易理解的gcc命令行标志-fno-tree-reassoc。在示例服务器上使用此标志后，我们得到了更加精确的计时——每次乘法运算用时3个周期，但在笔者看来，这仍然太快了。",
+        "bbox": [
+            28,
+            803,
+            909,
+            872
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "text",
+        "text": "最后，考虑参与测量的实际数值。一方面，一些数值可能是用特别快或特别慢的方式实现的，因而不能代表“正常的”计算。例如，加0，乘以0、1或-1，除以1或-1，它们都能",
+        "bbox": [
+            28,
+            875,
+            915,
+            921
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "header",
+        "text": "第2章 测量CPU时间",
+        "bbox": [
+            688,
+            61,
+            870,
+            76
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "page_number",
+        "text": "25 ",
+        "bbox": [
+            882,
+            61,
+            911,
+            76
+        ],
+        "page_idx": 54
+    },
+    {
+        "type": "text",
+        "text": "够以特别快的方式实现。另一方面，一些循环可能得到上溢或下溢的浮点结果，它们仍会被使用，但不会被硬件直接处理，而是被处理时间长10倍的微代码路径处理。",
+        "bbox": [
+            70,
+            90,
+            952,
+            133
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "text",
+        "text": "下面是笔者在示例服务器上执行的指令测量的结果。",
+        "bbox": [
+            115,
+            138,
+            610,
+            158
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "gcc -02 -fno-tree-reassoc mystery1_all.cc -o mystery1_all_opt  \naddq 1000000000 iterations, 1136134399 cycles, 1.14 cycles/iteration  \nmulq 1000000000 iterations, 3012984427 cycles, 3.01 cycles/iteration  \ndivq 1000000000 iterations, 31808957519 cycles, 31.81 cycles/iteration  \nfadd 1000000000 iterations, 4025330656 cycles, 4.03 cycles/iteration  \nfmul 1000000000 iterations, 4022046375 cycles, 4.02 cycles/iteration  \nfdiv 1000000000 iterations, 14576505981 cycles, 14.58 cycles/iteration ",
+        "guess_lang": "txt",
+        "bbox": [
+            113,
+            170,
+            804,
+            301
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "text",
+        "text": "2.11 小结",
+        "text_level": 1,
+        "bbox": [
+            70,
+            333,
+            237,
+            360
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "text",
+        "text": "我们一开始想测量一条简单的add指令的执行时间。但在此之前，我们需要探讨时间基准、循环开销、编译器优化以及如下非常重要的问题：测量我们认为自己在测量的东西，而不是完全不同的东西。我们了解了循环展开、死代码和依赖计算，并认真定义了我们想测量的指令时延的起点/终点。在此过程中，我们了解了复杂的现代处理器加速技术。",
+        "bbox": [
+            70,
+            382,
+            952,
+            474
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "text",
+        "text": "一些软件性能问题只存在于想象中，它们是错误的测量导致的。其他一些则是真实存在的性能问题，但被错误的测量隐藏了起来。因此在本书中，我们一再强调，一定要在脑海中对期望的性能进行估测，然后对观察结果与预期结果进行对比。",
+        "bbox": [
+            70,
+            479,
+            952,
+            546
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "text",
+        "text": "测量单条指令的性能并不能直接帮助我们调查慢了几十或几百毫秒的事务，但是这里提到的测量设计问题在后面的更加复杂的软件环境中会反复出现。",
+        "bbox": [
+            70,
+            549,
+            952,
+            594
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "text",
+        "text": "本章的要点如下。",
+        "bbox": [
+            115,
+            599,
+            282,
+            617
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- 认真选择自己的时间基准并理解其局限性。",
+            "- 估测自己有可能看到的结果。",
+            "- 对测量结果与估测值进行对比。",
+            "从差异中总能学到东西。 ",
+            "- 无意间违反了某种芯片加速机制的软件可能运行得异常慢。"
+        ],
+        "bbox": [
+            113,
+            623,
+            713,
+            738
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "text",
+        "text": "习题",
+        "text_level": 1,
+        "bbox": [
+            74,
+            764,
+            144,
+            791
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "text",
+        "text": "在这些习题中，“解释”的意思是“写一两个句子，说明你认为发生了什么，而不是长篇大论”。因为如果让人评判25篇论文，每篇论文包含10个长篇大论的答案，那么他们是不会完整阅读答案的。",
+        "bbox": [
+            70,
+            815,
+            952,
+            883
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "text",
+        "text": "在这些习题中，如果要求给出数值答案，则不需要保持太高的精度，如1.062735591；",
+        "bbox": [
+            115,
+            887,
+            940,
+            909
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "page_number",
+        "text": "26 ",
+        "bbox": [
+            72,
+            56,
+            101,
+            70
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            115,
+            56,
+            235,
+            70
+        ],
+        "page_idx": 55
+    },
+    {
+        "type": "text",
+        "text": "相反，精确到百分位或千分位即可，如1.06或1.063。当要求给出数量级估测时，请把小于3.16（即 $\\sqrt{10}$ ）的值向下舍入到1，而将大于3.16的值向上舍入到10。如果你有强烈的意愿，也可以使用半阶数量级，将中程数舍入为3。",
+        "bbox": [
+            41,
+            92,
+            919,
+            162
+        ],
+        "page_idx": 56
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "2.1写下你估测的add指令的周期时延——0.1、1、10、100。即使估测的是你还不了解的东西，你很快也会意识到，可以把可能的值限制到3个或4个合理的值。选择其中的一个，然后回过头查看表1-1。",
+            "2.2 使用未优化的-O0和优化的-O2编译并运行mystery1，解释两者的差异。",
+            "2.3 取消 mystery1中对最后一个fprintf调用的注释，然后再次使用-O0和-O2运行程序。解释你看到的任何变化（或为什么没有变化）。",
+            "2.4 在mystery1中，将变量incr的类型声明为volatile，然后再次使用-O0和-O2运行程序。解释你看到的任何变化（或为什么没有变化）。",
+            "2.5 将mystery1复制到自己的文件中，参照本章介绍的内容进行修改，对64位整数加法的时延给出合理的测量结果（用周期来计算）。",
+            "2.6 在mystery1中尝试不同的循环迭代次数——1，10，100，…，1000000000。解释为什么一些值没有得到有意义的结果。",
+            "2.7 对于64位整数乘法和除法以及双精度浮点数加法、乘法和除法的时延，写下你的数量级估测（用周期来计算）。你实际上知道结果。例如，乘法很可能在每个周期中使用被乘数的至少一位，所以其用时不可能超过64个周期再加上一点启动时间。类似地，除法很可能在每个周期中得出商的一位。这两种运算都可能在每个周期中处理2位、3位或4位。",
+            "2.8 在mystery1中添加代码，测量64位整数乘法和除法以及双精度浮点数加法、乘法和除法的时延。将得到的结果写下来。根据你从习题2.6中了解到的结果，你可能想将循环迭代次数减少 $90\\%$ 左右。对于双精度浮点数计算，让你的数值远离会导致上溢/下溢的极端值，但不要使用1.0或0.0。",
+            "2.9（选做题）主动让上面的双精度浮点数乘法和除法循环漂移到数值的上溢和下溢范围（对于IEEE双精度浮点数，即大于 $10^{306}$ 或小于 $1 / 10^{306}$ ），每10000次迭代就输出观察到的时延。如果周期时延突然改变，请解释发生了什么。"
+        ],
+        "bbox": [
+            84,
+            165,
+            921,
+            736
+        ],
+        "page_idx": 56
+    },
+    {
+        "type": "header",
+        "text": "第2章 测量CPU时间",
+        "bbox": [
+            694,
+            56,
+            876,
+            73
+        ],
+        "page_idx": 56
+    },
+    {
+        "type": "page_number",
+        "text": "27 ",
+        "bbox": [
+            888,
+            58,
+            919,
+            72
+        ],
+        "page_idx": 56
+    },
+    {
+        "type": "image",
+        "img_path": "images/6c561ced1b4adb7ebf569f9c1540f4aa8f65aa8b78fd1d90fc16826bcd2e3684.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            144,
+            43,
+            859,
+            296
+        ],
+        "page_idx": 57
+    },
+    {
+        "type": "text",
+        "text": "第3章 测量内存层次",
+        "text_level": 1,
+        "bbox": [
+            243,
+            362,
+            775,
+            403
+        ],
+        "page_idx": 57
+    },
+    {
+        "type": "text",
+        "text": "第2章探讨了如何测量CPU时间，CPU是4种基本硬件资源中的第一种。",
+        "bbox": [
+            109,
+            445,
+            818,
+            465
+        ],
+        "page_idx": 57
+    },
+    {
+        "type": "text",
+        "text": "针对第二种要测量其性能的基本硬件资源——内存，测量内存层次。对于内存层次中的每一层，真实的计算机读/写操作需要多久？简单测量单次数据加载的时延，要比测量算术指令更加微妙。本章的目标是测量现代机器中典型的4层内存子系统的大小和缓存组织。",
+        "bbox": [
+            65,
+            470,
+            950,
+            537
+        ],
+        "page_idx": 57
+    },
+    {
+        "type": "text",
+        "text": "3.1 内存计时",
+        "text_level": 1,
+        "bbox": [
+            65,
+            563,
+            286,
+            592
+        ],
+        "page_idx": 57
+    },
+    {
+        "type": "text",
+        "text": "这是本书第一部分最复杂的主题。我们将探究几个设计层，其中的每一层都有自己的概念和约束。因为主内存比CPU慢得多，所以现代处理器实现了许多加速机制。有时候，软件的内存访问模式会违反加速机制，或者让加速机制做大量不必要的工作，从而导致性能下降。到本章结束时，你将对如今复杂的计算机内存系统有更好的认识。",
+        "bbox": [
+            65,
+            614,
+            948,
+            706
+        ],
+        "page_idx": 57
+    },
+    {
+        "type": "text",
+        "text": "许多不同的设计层彼此交互，产生内存访问模式并以不同的延迟时间交付数据。这些层包括：",
+        "bbox": [
+            109,
+            709,
+            948,
+            731
+        ],
+        "page_idx": 57
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "C程序员；",
+            "编译器；",
+            "- 汇编语言；",
+            "CPU指令；",
+            "虚拟内存；",
+            "- 多级缓存；",
+            "- 主内存DRAM。"
+        ],
+        "bbox": [
+            109,
+            734,
+            301,
+            897
+        ],
+        "page_idx": 57
+    },
+    {
+        "type": "text",
+        "text": "两个示例服务器上的处理器（参见附录A）具有一块Intel i3芯片和一块AMD Ryzen芯",
+        "bbox": [
+            109,
+            901,
+            950,
+            921
+        ],
+        "page_idx": 57
+    },
+    {
+        "type": "text",
+        "text": "片，每块芯片上有3级缓存，芯片外的两个双列直插式存储模块（Dual Inline Memory Module，DIMM）上有8GB的动态随机存取存储器（Dynamic Random Access Memory，DRAM）。每块Intel i3芯片有两个物理核心，通过超线程，可以呈现出有4个物理核心的假象。每块AMD Ryzen芯片则有4个物理核心。这两种芯片的每个物理核心都有一个专用的L1指令缓存和一个专用的L1数据缓存，再加上一个专用的L2组合缓存。每个处理器还有一个L3缓存，由所有核心共享。",
+        "bbox": [
+            20,
+            93,
+            905,
+            233
+        ],
+        "page_idx": 58
+    },
+    {
+        "type": "text",
+        "text": "数据中心服务器上的处理器具有更复杂的芯片，芯片上有更多的缓存，而且每台服务器可能有多块处理器芯片。桌面或嵌入式处理器可能有更小、更简单的缓存。但是，也可以对其他处理器执行这里的测量。在这个过程中，你将了解关于内存层次的更多知识，而这些知识有助于你理解软件的性能。",
+        "bbox": [
+            20,
+            236,
+            905,
+            329
+        ],
+        "page_idx": 58
+    },
+    {
+        "type": "text",
+        "text": "3.2 关于内存",
+        "text_level": 1,
+        "bbox": [
+            22,
+            352,
+            241,
+            381
+        ],
+        "page_idx": 58
+    },
+    {
+        "type": "text",
+        "text": "在20世纪50年代——计算的黄金时代，执行简单的指令需要两个周期：一个用于取指令；另一个用于执行指令，这通常包括访问内存一次来获取数据。当CPU时钟周期时间和磁",
+        "bbox": [
+            22,
+            404,
+            905,
+            450
+        ],
+        "page_idx": 58
+    },
+    {
+        "type": "text",
+        "text": "心内存访问时间相同时，这是合理的。",
+        "bbox": [
+            22,
+            453,
+            387,
+            473
+        ],
+        "page_idx": 58
+    },
+    {
+        "type": "text",
+        "text": "当时，主内存使用的是铁氧体磁心（半径只有 $0.4\\mathrm{mm}$ 的小型铁氧化物圆环），其孔间有线穿过（如图3-1所示），内存的每个位对应一个磁心。让正电流尖峰通过磁心可顺时针磁化它，让负电流尖峰通过磁心可逆时针磁化它。在没有电源时，磁化会一直保留下来，从而提供了记忆单个位的一种方式：一个磁向代表0，另一个磁向代表1。",
+        "bbox": [
+            20,
+            476,
+            548,
+            616
+        ],
+        "page_idx": 58
+    },
+    {
+        "type": "text",
+        "text": "内存是按字而不是按字节排列的（字节寻址在1964年出现）。根据具体的计算机，一个字可能有36位、48位或其他位数。磁心内存在物理上排列为一个包含线和磁心的密集的平面，代表每个内存字的一位：所有内存字的所有 $<0>$ 位磁心放在一个平面上，所有 $<1>$ 位磁心放在另一个平面上，以此类推。之后，将这样的一些平",
+        "bbox": [
+            20,
+            619,
+            548,
+            760
+        ],
+        "page_idx": 58
+    },
+    {
+        "type": "image",
+        "img_path": "images/b1f41587d478af2eee21dd5fa1d99f828f5d82261eb7e83be91fe95322479c66.jpg",
+        "image_caption": [
+            "图3-1 铁氧体磁心内存（图片源自Wikipedia）"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            569,
+            461,
+            894,
+            702
+        ],
+        "page_idx": 58
+    },
+    {
+        "type": "text",
+        "text": "面堆叠在一起，便可构成完整的内存。例如，IBM 7090 有 32 千字的内存，每个内存字 36 位。36 个平面各包含 32768 个磁心 [不存在奇偶校验和纠错码（Error Correction Code, ECC）]。",
+        "bbox": [
+            20,
+            763,
+            901,
+            808
+        ],
+        "page_idx": 58
+    },
+    {
+        "type": "text",
+        "text": "通过在每个平面上向一条水平线和一条垂直线发送信号，驱动一个字中的所有磁心为0，然后通过对角的读出线查看得到的波形，观察被寻址的磁心是否切换了磁性状态。如果切换了，则磁心之前是1；否则，一直是0。因此，读取具有破坏性。在读取后，始终需要还原被读的位，即写入刚被清零的磁心。磁心内存用于读和还原的周期时间从 $1\\mu \\mathrm{s}$ 到 $10~\\mu \\mathrm{s}$ 不等。",
+        "bbox": [
+            18,
+            811,
+            905,
+            926
+        ],
+        "page_idx": 58
+    },
+    {
+        "type": "header",
+        "text": "第3章 测量内存层次",
+        "bbox": [
+            688,
+            59,
+            861,
+            75
+        ],
+        "page_idx": 58
+    },
+    {
+        "type": "page_number",
+        "text": "29 ",
+        "bbox": [
+            874,
+            61,
+            901,
+            73
+        ],
+        "page_idx": 58
+    },
+    {
+        "type": "text",
+        "text": "1964年，仙童半导体公司的John Schmidt发明了使用晶体管的静态随机访问存储器（Static Random Access Memory，SRAM）[Schmidt 1965]。SRAM为每个位使用6个晶体管，虽然传输速度很快，但成本较高。由于不具有磁性状态，SRAM中的数据在掉电后就会消失。",
+        "bbox": [
+            80,
+            87,
+            960,
+            156
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "text",
+        "text": "1968年的IBM360/85中初次使用的高速缓存就是SRAM，在当时的IBM文献中，它称为单体存储器（monolithic memory）[Liptay 1968]。",
+        "bbox": [
+            80,
+            159,
+            960,
+            205
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "text",
+        "text": "SRAM 问世两年后，IBM 的 Robert Dennard 在 1966 年发明了动态随机存取存储器 (Dynamic Random Access Memory, DRAM)。DRAM 为每位使用一个晶体管，所以相比 SRAM 密度更大（也因而更便宜），但访问速度更慢。",
+        "bbox": [
+            80,
+            207,
+            960,
+            276
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "text",
+        "text": "1970年9月，IBM System 370/145问世，这是第一个转为使用固态DRAM作为主内存的商用机器，它使用了IBM内部生产的芯片。一个月后，Intel发布了第一款商用的动态随机",
+        "bbox": [
+            80,
+            279,
+            960,
+            322
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "text",
+        "text": "存取存储器芯片Intel1103DRAM（如图3-2所示），它是由WilliamRegitz和JoelKarp发明的。到了1972年，Intel1103DRAM成为当时世界上最畅销的半导体存储芯片，并导致磁心内存的消亡（SRAM太贵，所以没能取代20世纪70年代的磁心内存）。",
+        "bbox": [
+            80,
+            325,
+            616,
+            443
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "text",
+        "text": "与磁心内存一样，DRAM的读操作也具有破坏性。每一次的读操作都会使每位使用的单个晶体管放电，然后把读取的位写回这些晶体管。与SRAM不同，即使在供电的情况下，DRAM中的位也会在几毫秒后泄漏。因",
+        "bbox": [
+            80,
+            445,
+            616,
+            537
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "image",
+        "img_path": "images/8ac13a607e767f8c6513f44cab8cd1013a632dc20f744c9c661db450d5d6ebc5.jpg",
+        "image_caption": [
+            "图3-2Intel1103DRAM"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            632,
+            333,
+            956,
+            496
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "text",
+        "text": "此，DRAM需要每隔 $2\\mathrm{ms}$ 左右就刷新所有位置，即读取后重新写入。",
+        "bbox": [
+            80,
+            542,
+            742,
+            562
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "text",
+        "text": "这些内存技术的性能与程序的访问模式交互，提供了不同的执行性能。本章介绍如何测量处理器的内存层次中的各个部分，第4章将介绍如何修改访问模式，以利用这种层次来加速执行，或者更常见的情况是，避免严重拖慢执行的模式。",
+        "bbox": [
+            80,
+            565,
+            960,
+            635
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "text",
+        "text": "3.3 缓存组织",
+        "text_level": 1,
+        "bbox": [
+            80,
+            658,
+            296,
+            688
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "text",
+        "text": "如今的数据中心CPU的内存层次包含好几级缓存和一个非常大的主内存，包含两个CPU核心的、典型的多级缓存组织如图3-3所示。多核心处理器芯片中的每个物理CPU核心都有自己的一级（L1）指令缓存和数据缓存，它们都是由极快的SRAM单元构成的。这些缓存通常可以在每个CPU周期中访问一个新的内存字，甚至两个内存字，CPU周期在0.3ns左右，相比IBM360/85中80ns的缓存快大约250倍。而同时期的主内存的CPU周期只快了大约20倍。",
+        "bbox": [
+            80,
+            709,
+            960,
+            826
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "text",
+        "text": "L1指令缓存和数据缓存通常从更大但更慢的L2组合缓存中取数据。有时候，每个CPU核心都有一个L2缓存，如图3-3所示；而有时候，多个CPU核心共享一个L2缓存。L2缓存从更大但更慢的L3缓存中取数据，L3缓存在同一块芯片上，由所有核心共享。一些处理器甚至可能还有一个L4缓存。",
+        "bbox": [
+            80,
+            829,
+            960,
+            921
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "page_number",
+        "text": "30 ",
+        "bbox": [
+            78,
+            53,
+            109,
+            69
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            121,
+            53,
+            241,
+            69
+        ],
+        "page_idx": 59
+    },
+    {
+        "type": "text",
+        "text": "如果一个大的缓存级别能够同时满足速度足够快、存储空间足够大、共享程度足够高这3个条件，那就最好了。但遗憾的是，这并做不到，因为半导体存储器的访问时间总是随着存储空间变大而变长。现代缓存设计在提供高性能的存储器和低成本之间取得了一种工程平衡，但要求内存访问模式包含对相同位置的相当数量的重复访问。随着时间的流逝，这种平衡的细节会改变，但整体思想不会变。",
+        "bbox": [
+            26,
+            95,
+            501,
+            283
+        ],
+        "page_idx": 60
+    },
+    {
+        "type": "text",
+        "text": "L1缓存能够在每个CPU周期中发起一次或两次新的低时延访问，而主内存系统的每个存储体通常只能在每 $50\\sim 100$ 个CPU周期才能开始新的访问，所以数据和指令在缓存层次中的位置对于CPU的整体性能有着巨大的影响。一些模式非常好，而另一些模式则很差。",
+        "bbox": [
+            26,
+            286,
+            501,
+            426
+        ],
+        "page_idx": 60
+    },
+    {
+        "type": "image",
+        "img_path": "images/8ba9d63c50af1350f03c9b208ae4bedfceb41de28e1191ac6c089853640f41a4.jpg",
+        "image_caption": [
+            "图3-3 包含两个CPU核心的、典型的多级缓存组织"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            515,
+            92,
+            905,
+            397
+        ],
+        "page_idx": 60
+    },
+    {
+        "type": "text",
+        "text": "如图3-4（a）～（c）所示，缓存被组织成行",
+        "bbox": [
+            72,
+            430,
+            501,
+            450
+        ],
+        "page_idx": 60
+    },
+    {
+        "type": "text",
+        "text": "（或块），每行由几字节组成，一行的所有字节会同时移入或移出缓存，每行关联着一个标签，这个标签指定了所有数据的主内存地址。当我们在缓存中寻找数据时，缓存硬件将对涉及的内存地址与一个或多个标签进行比较。如果发现匹配的标签（称为缓存“命中”），就快速访问对应的数据。如果没有发现匹配的标签（称为缓存“未命中”），就必须从内存层次的更低级别更慢地访问数据。",
+        "bbox": [
+            26,
+            453,
+            911,
+            569
+        ],
+        "page_idx": 60
+    },
+    {
+        "type": "image",
+        "img_path": "images/d208173e9641a461efb3b5612cb807bc3ee2d336188653d3c1ecc79d586c7409.jpg",
+        "image_caption": [
+            "（c）包含8组的缓存其中的每一组都是4路的，但没有显示标签",
+            "图3-4 缓存的组织"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            210,
+            581,
+            698,
+            880
+        ],
+        "page_idx": 60
+    },
+    {
+        "type": "header",
+        "text": "第3章 测量内存层次",
+        "bbox": [
+            694,
+            61,
+            868,
+            76
+        ],
+        "page_idx": 60
+    },
+    {
+        "type": "page_number",
+        "text": "31 ",
+        "bbox": [
+            880,
+            61,
+            907,
+            76
+        ],
+        "page_idx": 60
+    },
+    {
+        "type": "text",
+        "text": "在每个缓存行中，数据要想有用，最少需要有两个字，一个字在大多数情况下是一个指针的大小；这意味着对于64位地址的芯片，缓存行最少需要有两个8字节的指针（总共16字节）才能保持实用。更小的行把太多硬件用到标签上，造成数据可用的硬件不足。在虚拟内存系统中，最大的有用行只有一个内存页的大小，在目前的大部分芯片上，也就是4KB。因此，合理的缓存行数据大小包括16字节、32字节、64字节、128字节、256字节、512字节、1024字节、2048字节和4096字节。",
+        "bbox": [
+            82,
+            92,
+            964,
+            231
+        ],
+        "page_idx": 61
+    },
+    {
+        "type": "text",
+        "text": "业界较常见的选择是64字节和128字节，但也有使用32字节和256字节的情况。IBM360/85中的第一个缓存有16个1KB的缓存区域，所以只有16个标签，但通过从主内存传输64字节的子块/子行来分块进行填充。",
+        "bbox": [
+            84,
+            235,
+            964,
+            302
+        ],
+        "page_idx": 61
+    },
+    {
+        "type": "text",
+        "text": "在全相联缓存中，给定内存地址的数据可以存储到缓存的任何行中。为了找到具体是哪一行，需要对内存地址与缓存中的所有标签进行比较。对于包含64字节数据大小行的32KB缓存，这意味着同时比较全部的512个标签。如果某个标签匹配，就快速访问对应行的数据。如果没有匹配的标签，就从更慢的内存中访问数据，并且通常还需要执行填充——替换一些缓存行，以便后续对相同或邻近数据的访问能够命中缓存（如果有多个标签匹配，则说明存在严重的硬件问题）。",
+        "bbox": [
+            84,
+            307,
+            964,
+            445
+        ],
+        "page_idx": 61
+    },
+    {
+        "type": "text",
+        "text": "与之相比，直接映射缓存使得某一给定主内存地址的数据存储到唯一的特定缓存行里，这个缓存行通常由低内存地址位选择，以便能够尽可能地在缓存中呈现连续的内存地址。每当两个经常访问的数据项映射到相同的缓存行时，直接映射缓存的性能就很差：每访问一项，就会从缓存中移除另一项，所以交替访问会导致缓存 $100\\%$ 未命中。",
+        "bbox": [
+            84,
+            450,
+            964,
+            542
+        ],
+        "page_idx": 61
+    },
+    {
+        "type": "text",
+        "text": "组相联缓存[Conti 1969]是一种中间设计。对于一个 $N$ 路的组相联缓存，给定主内存地址的数据存储在包含 $N$ 个缓存行的一组中。在每组中，对内存地址与所有的 $N$ 个标签进行比较。 $N$ 的典型取值范围是2到16。在一个4路的组相联缓存中，每组包含4个缓存行，如图3-4的中间部分所示。缓存通常有 $2^{k}$ 组，可以用低内存地址位来直接选择组，也可以用内存地址的某种简单哈希来选择组。图3-4的底部显示了一个小的4路组相联缓存，它总共有8组。为简单起见，我们没有显示32个标签。首先使用3个地址位来选择组，然后对组中的4个标签与要访问的内存地址进行比较。注意，顺序内存访问会落入某组内的某个缓存行，然后向下而不是向侧边移动，在图3-4中也就是向下一组的一行移动，例如，首先访问组0中的一行，然后访问组1中的一行，等等。这种设计将顺序访问分布到了所有组中。常见的组相联缓存有64组或更多组。",
+        "bbox": [
+            84,
+            545,
+            964,
+            781
+        ],
+        "page_idx": 61
+    },
+    {
+        "type": "text",
+        "text": "3.4 数据对齐",
+        "text_level": 1,
+        "bbox": [
+            84,
+            807,
+            298,
+            834
+        ],
+        "page_idx": 61
+    },
+    {
+        "type": "text",
+        "text": "在接下来的讨论中，术语“对齐”很重要。4字节项的对齐引用的字节地址是4的倍数，8字节项的对齐引用的字节地址是8的倍数，以此类推。实际的缓存和内存地址是使用对齐量来寻址的。未对齐引用是通过访问两个对齐的位置，然后进行一些字节的移位和合并，并",
+        "bbox": [
+            84,
+            857,
+            964,
+            927
+        ],
+        "page_idx": 61
+    },
+    {
+        "type": "page_number",
+        "text": "32 ",
+        "bbox": [
+            82,
+            58,
+            111,
+            72
+        ],
+        "page_idx": 61
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            125,
+            56,
+            245,
+            72
+        ],
+        "page_idx": 61
+    },
+    {
+        "type": "text",
+        "text": "选择被引用的字节来实现的。在硬件实现中，未对齐引用通常比对齐访问慢几个周期。如果用未对齐访问陷阱例程来实现，则未对齐引用通常需要100个以上的周期。",
+        "bbox": [
+            37,
+            93,
+            917,
+            139
+        ],
+        "page_idx": 62
+    },
+    {
+        "type": "text",
+        "text": "3.5 页表缓存组织",
+        "text_level": 1,
+        "bbox": [
+            37,
+            162,
+            321,
+            191
+        ],
+        "page_idx": 62
+    },
+    {
+        "type": "text",
+        "text": "除了用于指令和数据的缓存之外，现代处理器还提供了虚拟内存映射，并使用页表缓存（Translation Lookaside Buffer，TLB）来保存频繁使用的从虚拟内存到物理内存的映射。在一些情况下，TLB由一个小的L1TLB（每个CPU核心一个）和一个更大、更慢的L2TLB（每个核心一个或由多个核心共享）构成。所有这种机制提高了速度，但也为CPU性能增加了复杂度和易变性。",
+        "bbox": [
+            37,
+            213,
+            919,
+            329
+        ],
+        "page_idx": 62
+    },
+    {
+        "type": "text",
+        "text": "TLB和缓存设计彼此交互。大部分缓存采用物理寻址，这意味着组的选择和标签值来自从虚拟地址翻译得到的物理地址。有时候也会使用另外一种设计——虚拟寻址缓存，也就是从未映射的虚拟地址选择组并获取标签值。如果两个不同的虚拟地址映射到相同的物理地址，这种设计就存在问题，因为不同的虚拟地址会映射到不同的缓存行。如果数据是只读的（如指令流），那么这种重复映射不是问题；但如果通过一个虚拟地址写数据，然后通过另一个不同的虚拟地址读数据，则会出现问题。",
+        "bbox": [
+            37,
+            332,
+            917,
+            473
+        ],
+        "page_idx": 62
+    },
+    {
+        "type": "text",
+        "text": "当采用物理寻址的缓存大于一个内存页时，就必须先完成从虚拟内存到物理内存的映射，然后才能开始比较缓存标签，并且必须在完成对标签的比较后，CPU才能访问缓存的数据。这些步骤通常会为L1缓存访问使用最快的硬件，所以可能消耗大量的电量和芯片。为了提升速度，我们经常使用未映射的低虚拟内存位来选择合适的缓存组（简称组），然后完成从虚拟内存到物理内存的映射。因此，未映射的低地址位的数量决定了一个快速L1缓存的最大大小——人们没有充分认识到的小内存页的成本。",
+        "bbox": [
+            37,
+            476,
+            917,
+            618
+        ],
+        "page_idx": 62
+    },
+    {
+        "type": "text",
+        "text": "只有当组的数量足够小的时候，基于未映射的地址位选择缓存组才是可行的。例如，在4KB大小的内存页中，最低的12个地址位是未映射的。当使用64字节的缓存行时，因为最低的6位用于选择行中的1字节，所以未映射的6位最多只能用于选择一个缓存组，从而最多只能选择64组。如果L1缓存是直接映射的，则最多只能有64组，每个组包含一行，总共4KB。如果使用4路的组相联缓存，则最多也只能有64组，每组包含4行，总共16KB。一般来说，只有当最大的L1组相联缓存的大小小于或等于内存页的大小与相联度之积的时候，使地址映射和标签访问的时间重叠才是可行的。",
+        "bbox": [
+            37,
+            619,
+            919,
+            783
+        ],
+        "page_idx": 62
+    },
+    {
+        "type": "text",
+        "text": "这种耦合性意味着小的内存页（如4KB大小的内存页）需要小的L1缓存。最终，整个行业需要转向更大的内存页，以具有更多的未映射的位，从而也就有机会使用更大的L1缓存。对于具有256GB主内存的数据中心机器，如果使用4KB大小的内存页，则意味着存在6400万个内存页，这是一个极大的数字。使用更大一些的内存页和更小的总页面数会更好。",
+        "bbox": [
+            37,
+            786,
+            917,
+            904
+        ],
+        "page_idx": 62
+    },
+    {
+        "type": "header",
+        "text": "第3章 测量内存层次",
+        "bbox": [
+            703,
+            59,
+            876,
+            75
+        ],
+        "page_idx": 62
+    },
+    {
+        "type": "page_number",
+        "text": "33 ",
+        "bbox": [
+            886,
+            61,
+            915,
+            73
+        ],
+        "page_idx": 62
+    },
+    {
+        "type": "text",
+        "text": "3.6 测量内存的步骤 ",
+        "text_level": 1,
+        "bbox": [
+            78,
+            112,
+            393,
+            139
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "text",
+        "text": "通过查看（常常晦涩难懂的）制造商提供的资料，如芯片数据手册，我们可以了解到给定处理器的缓存实际上是怎么组织的，但是我们更想通过在多种机器上运行的程序，了解这种组织方式。",
+        "bbox": [
+            78,
+            162,
+            958,
+            231
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "text",
+        "text": "在本章中，我们试图测量内存层次中每一层的性能，并在这个过程中了解单个或多个指令线程在竞争共享的内存资源时的动态。我们的目标是让你了解内存性能特征的技术，从而更好地理解和评估程序的性能，以及更好地理解当访问模式破坏了缓存层次通常提供的加速机制时会发生什么。",
+        "bbox": [
+            78,
+            233,
+            958,
+            325
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "text",
+        "text": "我们将采用3个步骤进行测量，前两个步骤是在我们提供的mystery2程序中完成的。",
+        "bbox": [
+            119,
+            328,
+            927,
+            350
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "（1）测量缓存行的大小。",
+            "（2）测量每个缓存级别的总大小。",
+            "（3）测量每个级别的缓存相联度。"
+        ],
+        "bbox": [
+            119,
+            354,
+            439,
+            420
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "text",
+        "text": "与测量指令时延一样，要测量内存，一种直观的方式如下。",
+        "bbox": [
+            119,
+            423,
+            680,
+            445
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "（1）读取时间。",
+            "（2）按某种模式访问内存。",
+            "（3）读取时间。",
+            "（4）做减法。"
+        ],
+        "bbox": [
+            119,
+            450,
+            373,
+            539
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "text",
+        "text": "但是，在现代执行环境中，这种方式不容易实现。我们将更详细地探讨每个步骤。",
+        "bbox": [
+            119,
+            543,
+            901,
+            565
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "text",
+        "text": "为了更加具体，下面讨论的细节基于一个示例服务器（参见附录A），它使用了一个具有代表性的处理器——Intel i3。其他处理器也有类似的内存层次，但速度、大小和缓存组织可能有所不同。",
+        "bbox": [
+            78,
+            568,
+            958,
+            614
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "text",
+        "text": "3.7 测量缓存行的大小",
+        "text_level": 1,
+        "bbox": [
+            78,
+            637,
+            426,
+            666
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "text",
+        "text": "如何让程序找出缓存行的大小呢？这里有好几种设计选择，也有好几条死路。一种选择是让缓存一开始不包含我们要访问的任何数据，然后从位置 $X$ 加载一个对齐的字，再加载 $X + c$ 位置的字， $c$ 是可能的缓存行大小。",
+        "bbox": [
+            78,
+            689,
+            958,
+            757
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "text",
+        "text": "如果 $X$ 在缓存行的边界对齐，而 $c$ 小于缓存行的大小，则加载 $X + c$ 位置的字将在缓存中命中，因为当加载 $X$ 位置的字时，加载的缓存行中已经包含了它。图3-5显示了12次顺序访问以及它们在图3-4所示的8组缓存中的位置。在图3-5（a）中， $c$ 是缓存行的1/4，所以前4次访问在相同的行中，后4次访问在接下来的行中，以此类推。因此，12次访问覆盖3个缓存行，只发生3次未命中。在图3-5（b）中， $c$ 是缓存行的1/2，所以每对访问在同一行中，12次访问中总共发生6次缓存未命中。在图3-5（c）和图3-5（d）中，12次访问都不会命中。",
+        "bbox": [
+            78,
+            761,
+            958,
+            901
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "text",
+        "text": "如果 $X$ 在缓存行的边界对齐，而 $c$ 大于或等于缓存行的大小，那么加载 $X + c$ 位置的字不会",
+        "bbox": [
+            119,
+            904,
+            958,
+            924
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "page_number",
+        "text": "34 ",
+        "bbox": [
+            76,
+            56,
+            107,
+            70
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            119,
+            55,
+            239,
+            70
+        ],
+        "page_idx": 63
+    },
+    {
+        "type": "text",
+        "text": "在缓存中命中。假设缓存未命中比缓存命中慢1/10，则我们可以使用一个循环，以不同的跨度执行几百次加载，并对这个循环计时，区分 $c$ 的值中哪些快、哪些慢。最慢的 $c$ 值就是缓存行的大小。",
+        "bbox": [
+            43,
+            93,
+            927,
+            139
+        ],
+        "page_idx": 64
+    },
+    {
+        "type": "image",
+        "img_path": "images/a67addd643f1823c23415c50870838c1e3205d7d464910e72bb104de568c1e77.jpg",
+        "image_caption": [
+            "（a）访问之间相隔1/4的缓存行，所以落入3组的3行内"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            72,
+            154,
+            445,
+            305
+        ],
+        "page_idx": 64
+    },
+    {
+        "type": "image",
+        "img_path": "images/0091bf1255319f61be5de3922dddba84204eb56197d7bb93d5b3df051e37d618.jpg",
+        "image_caption": [
+            "（b）访问之间相隔 $1 / 2$ 的缓存行，所以落入3组的6行内"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            527,
+            154,
+            894,
+            305
+        ],
+        "page_idx": 64
+    },
+    {
+        "type": "image",
+        "img_path": "images/ac2f08f1070f66d20fcd4b00dccafb10be73a8598f664aad11c737c4e2db4e48.jpg",
+        "image_caption": [
+            "（c）访问之间相隔一的缓存行，所以落入8组的12行内，有些组会使用多行"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            74,
+            361,
+            443,
+            510
+        ],
+        "page_idx": 64
+    },
+    {
+        "type": "image",
+        "img_path": "images/6412c79a9149ebf41187d0c6716c2c8df43a6d68204fad55e712bdff1fbc5adb.jpg",
+        "image_caption": [
+            "（d）访问之间相隔二的缓存行，所以落入4组的12行内。在4路的组相联缓存中，每组会使用3行",
+            "图3-5 12次顺序访问"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            529,
+            361,
+            894,
+            510
+        ],
+        "page_idx": 64
+    },
+    {
+        "type": "text",
+        "text": "你期望看到什么呢？写下或绘制出你期望看到的结果是一种重要的专业设计方法。只有这样，你才能在发现有显著区别的结果时快速做出反应。假设缓存行的大小是128字节。在访问间隔16字节（跨度为16）的项的数组时，前8项全部能够放到一个缓存行中，接下来的8项能够放到另一个缓存行中，以此类推。如果我们获取200个连续的项，则期望看到",
+        "bbox": [
+            43,
+            596,
+            931,
+            688
+        ],
+        "page_idx": 64
+    },
+    {
+        "type": "text",
+        "text": "$200 / 8 = 25$ 次缓存未命中。如果我们访问跨度为32的项，则期望看到 $200 / 4 = 50$ 次缓存未命中。对于跨度为128或更大的项，我们期望每次看到200次缓存未命中。如果绘制每次访问（加载）的时间图，则我们期望看到的结果如图3-6所示，每次加载的平均时间一开始是真实未命中时间的1/8，然后是1/4，接下来是1/2，之后便是真实的未命中概率—— $100\\%$ 未命中。",
+        "bbox": [
+            43,
+            691,
+            517,
+            877
+        ],
+        "page_idx": 64
+    },
+    {
+        "type": "image",
+        "img_path": "images/891504e63a7447dc1253d15117ac9787cac3691196543162cc72395c782fbd08.jpg",
+        "image_caption": [
+            "图3-6 期望访问时间与跨度的对比图"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            573,
+            703,
+            882,
+            803
+        ],
+        "page_idx": 64
+    },
+    {
+        "type": "header",
+        "text": "第3章 测量内存层次",
+        "bbox": [
+            711,
+            59,
+            882,
+            75
+        ],
+        "page_idx": 64
+    },
+    {
+        "type": "page_number",
+        "text": "35 ",
+        "bbox": [
+            894,
+            59,
+            925,
+            73
+        ],
+        "page_idx": 64
+    },
+    {
+        "type": "text",
+        "text": "3.8 问题：预取第 $N + 1$ 行",
+        "text_level": 1,
+        "bbox": [
+            70,
+            113,
+            461,
+            141
+        ],
+        "page_idx": 65
+    },
+    {
+        "type": "text",
+        "text": "这种使用地址 $X$ ， $X + c$ ， $X + 2c$ ，…的顺序跨度设计听起来很好，但其实过于简单。现代缓存在访问第 $N$ 行的时候，常常会预取第 $N + 1$ 行，这将消除我们的访问模式中除了第一次缓存未命中之外的其他未命中。另外，现代CPU采用乱序执行，每个CPU周期启动多条指令，并且可能有 $5 \\sim 50$ 个未完成的加载在并行等待内存响应。其效果是可以让多次缓存未命中的用时与一次缓存未命中的用时相同，从而将未命中时间缩短 $90\\%$ 以上。",
+        "bbox": [
+            70,
+            164,
+            952,
+            279
+        ],
+        "page_idx": 65
+    },
+    {
+        "type": "text",
+        "text": "mystery2程序在例程NaiveTiming()中实现了这种顺序跨度访问，可以看到，它给出了一致的但带有误导性的结果——访问非常快。内层循环访问16字节的项，它们的间隔由pairstride变量指定。调用方修改跨度，并通过加载40MB的无关数据，在两次调用之间清除缓存。笔者选择使用40MB，因为这样可以比期望的最大缓存（32MB）更大。对于提供更大缓存的未来芯片，你有可能需要增大这个数字。这里没有试图应对预取或并行未命中的情况，详见代码片段3-1。",
+        "bbox": [
+            70,
+            284,
+            952,
+            423
+        ],
+        "page_idx": 65
+    },
+    {
+        "type": "text",
+        "text": "代码片段3-1 朴素的加载循环",
+        "text_level": 1,
+        "bbox": [
+            117,
+            442,
+            404,
+            462
+        ],
+        "page_idx": 65
+    },
+    {
+        "type": "code",
+        "sub_type": "code",
+        "code_caption": [],
+        "code_body": "// We will read and write these 16-byte pairs, allocated at different strides\nstruct Pair {\n    Pair* next;\n    int64 data;\n};\nint64 NaiveTiming uint8* ptr, int bytesize, int bytestride) {\n    const Pair* pairptr = reinterpret_cast<Pair>(ptr);\n    int pairwise = bytestride / sizeof(Pair);\n    int64 sum = 0;\n    // Try to force the data we will access out of the caches\n    TrashTheCaches(ptr, bytesize);\n    // Load 256 items spaced by stride\n    // May have multiple loads outstanding; may have prefetching\n    // Unroll 4 times to attempt to reduce loop overhead in timing\n    uint64 startcy = _rdtsc();\n    for (int i = 0; i < 256; i++) {\n        sum += pairptr[0 * pairwise].data;\n        sum += pairptr[1 * pairwise].data;\n        sum += pairptr[2 * pairwise].data;\n        sum += pairptr[3 * pairwise].data;\n        pairptr += 4 * pairwise;\n    }\n}; ",
+        "guess_lang": "txt",
+        "bbox": [
+            113,
+            471,
+            851,
+            921
+        ],
+        "page_idx": 65
+    },
+    {
+        "type": "page_number",
+        "text": "36 ",
+        "bbox": [
+            70,
+            58,
+            98,
+            72
+        ],
+        "page_idx": 65
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            111,
+            56,
+            232,
+            72
+        ],
+        "page_idx": 65
+    },
+    {
+        "type": "code",
+        "sub_type": "algorithm",
+        "code_caption": [],
+        "code_body": "uint64 stopcy $=$ _rdtsc();   \nint64 elapsed $=$ stopcy - startcy; // Cycles   \n// Make sum live so compiler doesn't delete the loop   \nif (nevertrue) { fprintf(stdout, \"sum = %ld\\n\", sum);   \n}   \nreturn (elapsed >> 8); // Cycles per one load ",
+        "bbox": [
+            84,
+            96,
+            676,
+            262
+        ],
+        "page_idx": 66
+    },
+    {
+        "type": "text",
+        "text": "3.9 依赖加载 ",
+        "text_level": 1,
+        "bbox": [
+            45,
+            303,
+            259,
+            329
+        ],
+        "page_idx": 66
+    },
+    {
+        "type": "text",
+        "text": "另一种设计选择是在内存中构建一个链表，其中的每项是可能的缓存行大小，并且在缓存行的边界对齐。每项包含指向下一个顺序项的指针，如图3-7（a）所示。如果ptr指向第一项，则 $\\mathrm{ptr} = \\mathrm{ptr}\\rightarrow$ next的循环将执行一系列加载，但每次加载的地址取决于前一次加载取出的值，所以必须严格按顺序执行，虽然乱序执行、每个CPU周期执行多条指令以及并行加载可以加快指令的执行速度，但是依赖加载方式无法使用这些加载机制。这种选择还允许我们查看对于内存子系统的每个级别，从加载到使用的时延是多少。",
+        "bbox": [
+            43,
+            354,
+            925,
+            495
+        ],
+        "page_idx": 66
+    },
+    {
+        "type": "text",
+        "text": "mystery2 程序在例程 LinearTiming()中实现了这种选择，可以看到，它给出了更好但仍然具有误导性的结果。这种选择存在的另一个问题是链表并没有屏蔽缓存预取。",
+        "bbox": [
+            45,
+            500,
+            923,
+            542
+        ],
+        "page_idx": 66
+    },
+    {
+        "type": "text",
+        "text": "为了屏蔽缓存预取，在构建链表时，我们可以将项在地址空间中打乱，如图3-7（b）所示。",
+        "bbox": [
+            88,
+            546,
+            921,
+            567
+        ],
+        "page_idx": 66
+    },
+    {
+        "type": "image",
+        "img_path": "images/4f543d0000f768b5e411101d243257019777814babb515f46962b724a21d1640.jpg",
+        "image_caption": [
+            "图3-7 项的链表"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            208,
+            579,
+            750,
+            815
+        ],
+        "page_idx": 66
+    },
+    {
+        "type": "text",
+        "text": "这虽然起到了帮助作用，但效果依然不够。当最左边的打乱项事实上就是缓存行的大小时，获取它仍然可能导致硬件预取从左数的第二项。尽管这一项不会被立即访问，但它会在以后被访问。因此，当我们希望这种选择得到一次未命中时，它实际上却产生了一次命中。",
+        "bbox": [
+            45,
+            855,
+            925,
+            924
+        ],
+        "page_idx": 66
+    },
+    {
+        "type": "header",
+        "text": "第3章 测量内存层次",
+        "bbox": [
+            709,
+            59,
+            878,
+            76
+        ],
+        "page_idx": 66
+    },
+    {
+        "type": "page_number",
+        "text": "37 ",
+        "bbox": [
+            894,
+            61,
+            921,
+            75
+        ],
+        "page_idx": 66
+    },
+    {
+        "type": "text",
+        "text": "3.10 非随机的DRAM",
+        "text_level": 1,
+        "bbox": [
+            72,
+            113,
+            412,
+            139
+        ],
+        "page_idx": 67
+    },
+    {
+        "type": "text",
+        "text": "还有一个复杂因素需要考虑。通过对几百次内存加载计时，统计缓存未命中次数，我们期望两倍的缓存未命中次数需要大约两倍的时间。但如果查看主存储器的DRAM设计，你就会感到惊讶。访问时间不是随机的（尽管名称中存在“随机”这个词）。实际的DRAM芯片首先访问芯片里位数组很大的一行，然后访问该行中的字节列。在执行行访问之前，有一个所谓的“预充电周期”，旨在将内部数据线设置为电源电压的一半左右，这样一来，只读取存储单元的少量电荷就足以让数据线快速离开死区。芯片内的读出放大器快速驱动这些小的读更改，使它们达到完整的电平0或者1。预充电、行访问和列访问的周期大约都需要 $15\\mathrm{ns}$ 。",
+        "bbox": [
+            72,
+            162,
+            954,
+            351
+        ],
+        "page_idx": 67
+    },
+    {
+        "type": "text",
+        "text": "行通常是1024字节的，DIMM通常并行循环8块DRAM芯片，驱动连接到CPU芯片的8字节宽内存总线一次得到8字节。在这种情况下，8块DRAM芯片的有效行大小是 $8\\times 1024 = 8192$ 字节。在访问多个连续的缓存行时，通过两条内存总线连接到两个DIMM的CPU，会交替地在DIMM中存储连续的缓存行，以实现两倍的带宽。在这里，有效的行大小是 $2\\times 8\\mathrm{KB} = 16\\mathrm{KB}$ 。我们的示例服务器就采用了这种组织方式。",
+        "bbox": [
+            72,
+            354,
+            952,
+            471
+        ],
+        "page_idx": 67
+    },
+    {
+        "type": "text",
+        "text": "如果连续两次访问DRAM在不同的行中，则每次访问发生的步骤如下。",
+        "bbox": [
+            117,
+            474,
+            797,
+            494
+        ],
+        "page_idx": 67
+    },
+    {
+        "type": "text",
+        "text": "预充电 $\\rightarrow$ 行访问 $\\rightarrow$ 列访问",
+        "bbox": [
+            117,
+            497,
+            358,
+            517
+        ],
+        "page_idx": 67
+    },
+    {
+        "type": "text",
+        "text": "但是，如果第二次访问的行与第一次访问的相同，那么CPU和DRAM硬件实现了一种快捷方式。第二次访问只会执行列访问，这比执行整个序列大约快3倍。如果我们正在试图测量两倍的总时间差异，那么内存访问时间的3倍变化会造成很大的失真。因此，我们可能还需要消除DRAM的快捷访问方式对时间的影响。",
+        "bbox": [
+            72,
+            522,
+            952,
+            614
+        ],
+        "page_idx": 67
+    },
+    {
+        "type": "text",
+        "text": "在构建链表时，我们需要翻转每隔一个的列表项的16KB地址位，并显式地将连续的项放到不同的DRAM行中。在mystery2程序中，例程MakeLongList()中的extrabit变量就用于此目的。",
+        "bbox": [
+            72,
+            617,
+            952,
+            686
+        ],
+        "page_idx": 67
+    },
+    {
+        "type": "text",
+        "text": "mystery2程序在例程ScrambledTiming()中实现了所有这些处理，可以看到，它给出了更好的结果，并且看起来终于与我们前面的绘制结果接近了。在本章末尾的习题中，你还需要考虑更多的一些细节。",
+        "bbox": [
+            72,
+            689,
+            952,
+            758
+        ],
+        "page_idx": 67
+    },
+    {
+        "type": "text",
+        "text": "不同跨度和不同测量技术的每次加载周期数如图3-8所示，可与图3-6进行对比。在图3-8中，我们看到了一组结果。你的结果可能与之略有区别。打乱的每次加载周期数显示了期望的结果，即每两倍的跨度变化，周期数也会大概地加倍。但到了128字节的跨度后，周期数在200个左右并趋于平稳。实际的行大小是64字节。但是，即使我们采用打乱后测量的方式，也不能完全抑制缓存预取和相同行的DRAM访问优化。一直预取到512字节的跨度，导致线性测量被扭曲，同时朴素的测量完全没有测量加载延迟。4096字节跨度位置的额外周期很可能反映了 $100\\%$ 的TLB未命中。",
+        "bbox": [
+            72,
+            761,
+            954,
+            926
+        ],
+        "page_idx": 67
+    },
+    {
+        "type": "page_number",
+        "text": "38 ",
+        "bbox": [
+            72,
+            56,
+            98,
+            72
+        ],
+        "page_idx": 67
+    },
+    {
+        "type": "header",
+        "text": "第一部分 测量",
+        "bbox": [
+            113,
+            56,
+            235,
+            72
+        ],
+        "page_idx": 67
+    },
+    {
+        "type": "image",
+        "img_path": "images/34f9df4139b4c36c10524cb8f787e658e990891134ab4d2fca9da6491e37beb4.jpg",
+        "image_caption": [
+            "图3-8 不同跨度和不同测量技术的每次加载周期数"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            129,
+            88,
+            830,
+            383
+        ],
+        "page_idx": 68
+    },
+    {
+        "type": "text",
+        "text": "从虚拟内存到物理内存的地址映射意味着我们头脑中对缓存布局的想象都太过简单化了。只有对于地址的最低12位，缓存看到的物理地址才与我们的想象相符，物理地址的所有更高位都是不可预测的，这会为大部分测量增加噪声，使得计算计时上的变化不那么清晰。",
+        "bbox": [
+            39,
+            429,
+            921,
+            500
+        ],
+        "page_idx": 68
+    },
+    {
+        "type": "text",
+        "text": "3.11 测量每个缓存级别的总大小 ",
+        "text_level": 1,
+        "bbox": [
+            41,
+            521,
+            540,
+            550
+        ],
+        "page_idx": 68
+    },
+    {
+        "type": "text",
+        "text": "在知道了缓存行的大小后，我们下一步想知道缓存层次的每一级有多大。L1缓存的总大小指导着数据结构的设计，让工作集能放进L1缓存中，相比工作集不放进L1缓存中的设计更快。相同的考虑也适用于L2和L3缓存。",
+        "bbox": [
+            39,
+            573,
+            921,
+            642
+        ],
+        "page_idx": 68
+    },
+    {
+        "type": "text",
+        "text": "为了测量每个缓存级别的总大小，我们的策略是将 $N$ 字节读入缓存，然后重新读取，查看时间。如果 $N$ 字节能够全部放在缓存中，则重新读取会很快；反之，部分或全部重新读取就不能命中，从而需要使用下一级缓存中的数据进行填充，这里假定（事实上亦如此）每个下一级缓存都比上一级缓存大。在3.10节中，我们要么命中L1缓存，要么进入慢 $O(100)$ 倍的主内存；但在本节中，我们的测量将比较L1缓存命中与L2缓存命中，或者比较L2缓存命中与L3缓存命中，等等，每一级的访问速度只有前一级的访问速度的 $1 / O(5)$ 。",
+        "bbox": [
+            39,
+            645,
+            921,
+            786
+        ],
+        "page_idx": 68
+    },
+    {
+        "type": "text",
+        "text": "真实机器和操作系统中的计时通常是无法准确重现的。外部干扰、网络流量、人工输入和后台程序（如浏览器或显示软件）都会在多次运行相同的程序时造成时间上的微小变化。因此，计时数据始终带有一点噪声。相邻内存级别在时间上存在相对小的差异，这让我们更难评估计时。",
+        "bbox": [
+            39,
+            788,
+            921,
+            880
+        ],
+        "page_idx": 68
+    },
+    {
+        "type": "text",
+        "text": "我们期望看到什么呢？对于 $N \\leqslant \\mathrm{L}1$ 缓存总大小，我们期望重新读取很快，每次加载只需要几个周期，即 L1 缓存的访问时间。对于 L1 缓存总大小 $< N \\leqslant \\mathrm{L}2$ 缓存总大小，我们期望在",
+        "bbox": [
+            39,
+            883,
+            921,
+            929
+        ],
+        "page_idx": 68
+    },
+    {
+        "type": "header",
+        "text": "第3章 测量内存层次",
+        "bbox": [
+            703,
+            59,
+            876,
+            76
+        ],
+        "page_idx": 68
+    },
+    {
+        "type": "page_number",
+        "text": "39 ",
+        "bbox": [
+            888,
+            61,
+            917,
+            75
+        ],
+        "page_idx": 68
+    },
+    {
+        "type": "text",
+        "text": "大部分时间看到较慢的L2缓存访问时间，以此类推。结果看起来可能如图3-9所示，其中，L1缓存命中底部的行，L2缓存命中中间的行，L3缓存命中顶部的行。此外，没有显示主内存，但它应该顶部的行之上。",
+        "bbox": [
+            72,
+            90,
+            950,
+            159
+        ],
+        "page_idx": 69
+    },
+    {
+        "type": "image",
+        "img_path": "images/8fa2546864bb8982be05837c94e8dc5efe7110cf80e3e2359e16b88811236dd1.jpg",
+        "image_caption": [
+            "图3-9 期望的访问时间与访问的字节数"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            323,
+            170,
+            692,
+            302
+        ],
+        "page_idx": 69
+    },
+    {
+        "type": "text",
+        "text": "因为这种测量中存在一些噪声，所以有必要多次进行实验。mystery2程序中的例程FindCacheSizes()在进行每次计时测量时，都会使用简单的线性跨度测量4遍。第一遍通过从主内存加载数据来初始化缓存，所以始终很慢，在这里应该忽略。之后的三遍应该都是类似的，用于显示我们期望看到的时间差。程序的运行结果给出了缓存行的计数而不是千字节。将其乘以假设的或之前测量的每行64字节，可以得到图3-10，其中显示了一组测量结果。",
+        "bbox":

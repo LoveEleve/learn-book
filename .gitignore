@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+._*
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+logs/
+
+# OS
+Thumbs.db
