@@ -184,7 +184,7 @@ C 没有的东西，比 C 有的东西更重要：
 **深度问题**：
 - 为什么栈向下生长、堆向上生长？（历史原因：PDP-11 设计；后续保留以兼容）
 - bss 段为什么存在？（节省可执行文件体积 — 未初始化全局变量只需记录大小，不需存储初值）
-- 栈大小有限制吗？（Linux 默认 8MB，`ulimit -s` 可调；超出 = Stack Overflow）
+- 栈大小有限制吗？（Linux 默认 8MB（Ubuntu）/ 10MB（CentOS）/ 可能 1MB（容器），`ulimit -s` 可调；超出 = Stack Overflow。**生产容器环境尤其要注意栈大小配置**）
 - 堆大小有限制吗？（受物理内存 + 地址空间限制；32 位进程用户态只有 3GB）
 
 #### 1.2.2 指针的本质
@@ -1070,7 +1070,7 @@ void spin_unlock(atomic_flag *lf) {
 
 无锁（lock-free）数据结构用原子操作代替锁，适合高并发场景：
 
-**MPSC 队列**（多生产者单消费者）：
+**MPSC 队列**（多生产者单消费者，Vyukov 算法）：
 
 ```c
 typedef struct node {
@@ -1081,23 +1081,42 @@ typedef struct node {
 atomic_uintptr_t head;   // 指向 node_t
 node_t *tail;
 
+// 初始化：必须有哨兵节点（sentinel），否则首次 enqueue 时 prev=NULL 解引用崩溃
+void queue_init(void) {
+    node_t *sentinel = malloc(sizeof(node_t));
+    sentinel->data = NULL;
+    sentinel->next = NULL;
+    atomic_store(&head, (uintptr_t)sentinel);
+    tail = sentinel;
+}
+
 void enqueue(void *data) {
     node_t *n = malloc(sizeof(node_t));
     n->data = data;
     n->next = NULL;
     node_t *prev = (node_t *)atomic_exchange(&head, (uintptr_t)n);
     prev->next = n;   // 关键：先 exchange，再设置 prev->next
+                      // 此处是 non-atomic write — dequeue 端可能读到 t->next == NULL
+                      // 但下一轮 dequeue 重试时已可见
 }
 
 void *dequeue(void) {
     node_t *t = tail;
-    if (t->next == NULL) return NULL;   // 队列空
-    tail = t->next;
-    void *data = tail->data;
-    free(t);
+    node_t *next = t->next;
+    if (next == NULL) return NULL;   // 队列空（哨兵的 next 还没被设置）
+    // 注意：生产者刚 exchange 但还没执行 prev->next = n 时，
+    // 这里可能读到 next == NULL — 需要重试或返回 EAGAIN
+    tail = next;
+    void *data = next->data;
+    free(t);   // 释放旧哨兵
     return data;
 }
 ```
+
+**关键陷阱**：
+- **必须初始化哨兵节点** — 否则首次 `enqueue` 的 `prev = atomic_exchange(&head, n)` 返回 NULL，`prev->next = n` 解引用 NULL
+- **dequeue 端可能短暂读到 `t->next == NULL`** — 因为 `enqueue` 在 `exchange` 与 `prev->next = n` 之间有窗口；dequeue 应返回 EAGAIN 或自旋等待
+- **ABA 问题** — `tail` 可能被回收又被重新分配相同地址（用 hazard pointer / epoch-based reclamation 解决）
 
 **深度目标**：理解 ABA 问题（线程 1 读到值 A，被调度走；线程 2 把 A 改成 B 又改回 A；线程 1 恢复后 `atomic_compare_exchange` 误以为值没变 — 经典无锁 bug），理解 hazard pointer（危险指针 — 延迟回收正在被读的内存）/ epoch-based reclamation（基于时代的回收 — 类似 RCU 的延迟回收机制）等内存回收方案。
 
@@ -1327,6 +1346,12 @@ Level 0:  1 ► 2 ► 3 ► 4 ► 5 ► 6 ► 7 ► 8 ► 9
 - 实现比红黑树简单
 - 范围查询友好（直接遍历最底层）
 - Redis 用它实现 ZSET
+
+**并发跳表**（生产级，Java ConcurrentSkipListMap 思路）：
+- 单线程版用 CAS + 标记删除（mark bit）
+- 插入：先 CAS 设置 next 指针，再设置上层
+- 删除：先标记 next 的低位（logically removed），再物理断开
+- 复杂度高于单线程版，需参考论文 "Fraser and Harris 2007: Concurrent Programming Without Locks"
 
 #### 7.2.6 树
 
@@ -2000,8 +2025,15 @@ addr2line -e ./myapp -f -C 0x401234
 | 8 工程化 | Ch6-8, 21, 22, 23 | 全书 | — | — | — | — |
 | 9 调试 | Ch22 | — | — | Ch10 | 全书 | — |
 | 10 源码 | 全书作辅助 | — | — | — | — | — |
+| 11 生产化 | — | — | — | — | — | — |
 
-**注**：极致C 第9章（C++中的抽象和OOP）属于 C++ 范畴，本文档暂不映射，留待 `cpp/` 目录梳理。
+**注 1**：极致C 第9章（C++中的抽象和OOP）属于 C++ 范畴，本文档暂不映射，留待 `cpp/` 目录梳理。
+
+**注 2**：Layer 11（生产化工程实践）6 本书覆盖不足，需补充外部资料：
+- 《Linux 系统编程》（Robert Love）
+- 《UNIX 网络编程 卷1》（W. Richard Stevens）
+- 《性能之巅》（Brendan Gregg，eBPF / 火焰图）
+- 《BPF Performance Tools》（Brendan Gregg）
 
 **6 本书的对照式定位**（差异与互补，不是标签）：
 - **极致C** vs **Fluent C**：极致C Ch6-9 讲 OOP 语法层面（struct + 函数指针怎么写），Fluent C 给出工程实践（什么场景用哪种模式、有什么后果）— 极致C 是语法手册，Fluent C 是实战指南
@@ -2014,13 +2046,15 @@ addr2line -e ./myapp -f -C 0x401234
 
 ## 14. 实战目标
 
-学完本路线后，应能达成以下 5 个目标：
+学完本路线后，应能达成以下 7 个目标：
 
 1. **读懂 Redis / Nginx 核心模块源码**（数据结构 / 事件循环 / 网络层）
-2. **写一个并发 HTTP 服务器**（epoll + 非阻塞 I/O + 线程池，能处理 1 万并发）
-3. **写一个简单的 KV 存储**（基于 LSM Tree 或 B+ 树，支持持久化）
+2. **写一个并发 HTTP 服务器**（epoll + 非阻塞 I/O + 线程池，能处理 1 万并发 + keepalive + chunked + 超时管理 + 慢连接检测）
+3. **写一个简单的 KV 存储**（基于 LSM Tree 或 B+ 树，支持持久化 + WAL）
 4. **能调试内存泄漏与并发 bug**（用 ASan / TSan / GDB 定位）
 5. **能定位性能瓶颈**（用 perf + FlameGraph 找出热点）
+6. **能把 C 服务上到生产环境**（结构化日志 + 指标 + 优雅关闭 + 热升级 + 安全加固 + CI/CD）
+7. **能用 C 写共享库被其他语言调用**（Python cffi / Java JNI / Go cgo）
 
 ---
 
