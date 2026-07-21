@@ -492,10 +492,114 @@ Seata AT（Auto Transaction）模式是对 2PC 的工程优化，核心改进是
 
 **关键差异**：AT 模式在阶段一就**提交本地事务并释放锁**——不像传统 2PC 那样保持锁定。这是通过 undo_log 实现的：如果全局事务需要回滚，Seata 根据 undo_log 反向补偿。
 
-**阶段二（全局提交/回滚）**：
+**undo_log 的具体结构**——作为技术专家，你需要理解 undo_log 不只是一个概念，它有具体的表结构和数据格式：
 
-- **全局提交**：TC 通知所有 RM 异步清理 undo_log——非常快（无需操作业务数据）
-- **全局回滚**：TC 通知所有 RM 根据 undo_log 反向补偿——恢复数据到修改前
+```sql
+-- Seata AT 的 undo_log 表结构
+CREATE TABLE undo_log (
+    branch_id     BIGINT      NOT NULL COMMENT '分支事务ID',
+    xid           VARCHAR(128) NOT NULL COMMENT '全局事务ID',
+    context       VARCHAR(128) NOT NULL COMMENT '上下文（如序列化类型）',
+    rollback_info LONGBLOB    NOT NULL COMMENT '回滚信息（修改前后镜像）',
+    log_status    INT         NOT NULL COMMENT '状态：0-正常, 1-全局已完成',
+    log_created   DATETIME    NOT NULL COMMENT '创建时间',
+    log_modified  DATETIME    NOT NULL COMMENT '修改时间',
+    UNIQUE KEY ux_undo_log (xid, branch_id)
+);
+```
+
+**rollback_info 的 JSON 格式**（修改前后的数据镜像）：
+
+```json
+{
+  "@class": "io.seata.rm.datasource.sql.struct.TableRecords",
+  "tableName": "account",
+  "rows": [{
+    "fields": [
+      {"name": "id", "value": 1},
+      {"name": "balance", "value": 1000}  // beforeImage：修改前余额=1000
+    ]
+  }]
+},
+{
+  "@class": "io.seata.rm.datasource.sql.struct.TableRecords",
+  "tableName": "account",
+  "rows": [{
+    "fields": [
+      {"name": "id", "value": 1},
+      {"name": "balance", "value": 900}   // afterImage：修改后余额=900
+    ]
+  }]
+}
+```
+
+**回滚时**：Seata 读取 beforeImage，生成反向 SQL（`UPDATE account SET balance = 1000 WHERE id = 1 AND balance = 900`），执行反向补偿。注意 WHERE 条件包含 `balance = 900`（修改后的值）——如果其他事务已经把 balance 改成了其他值，这个 WHERE 不匹配，说明发生了脏写，Seata 会抛出异常需要人工介入。
+
+**全局锁机制——AT 模式如何实现写隔离**：
+
+AT 模式在阶段一释放了数据库锁，但 Seata 通过 **lock_table**（全局锁表）实现写隔离：
+
+```
+1. RM 执行 UPDATE account SET balance = balance - 100 WHERE id = 1
+2. RM 在本地事务提交前，向 TC 申请全局锁：lock_key = "account:1"
+3. TC 检查 lock_table：
+   - 如果 id=1 未被其他全局事务锁定 → 授予锁，记录到 lock_table
+   - 如果 id=1 已被其他全局事务锁定 → RM 等待重试
+4. RM 获得全局锁后，提交本地事务
+5. 阶段二全局提交 → TC 释放全局锁
+6. 阶段二全局回滚 → TC 释放全局锁（在 RM 执行完补偿后）
+```
+
+**全局锁 vs 数据库锁的区别**：
+- 数据库锁：由 InnoDB 管理，事务结束后释放——AT 模式在阶段一就释放了
+- 全局锁：由 TC 管理，全局事务结束后释放——保证两个全局事务不会同时修改同一行
+
+**完整交互时序**（TC/TM/RM 三方）：
+
+```
+TM                    TC                    RM-1(库存)    RM-2(余额)
+ │                     │                       │              │
+ │── begin() ─────────►│                       │              │
+ │◄── XID ────────────│                       │              │
+ │                     │                       │              │
+ │── 下单(扣库存+扣款) ──┼──► RM-1 执行          │              │
+ │                     │                       │              │
+ │                     │◄── branch register ───│              │
+ │                     │── branch id ─────────►│              │
+ │                     │                       │              │
+ │                     │            RM-1 执行 SQL + 记录 undo_log
+ │                     │            RM-1 申请全局锁
+ │                     │◄── lock request ──────│              │
+ │                     │── lock granted ──────►│              │
+ │                     │                       │              │
+ │                     │            RM-1 本地事务提交(释放 DB 锁)
+ │                     │◄── branch status ─────│              │
+ │                     │                       │              │
+ │                     │              RM-2 执行 SQL + 记录 undo_log
+ │                     │              RM-2 申请全局锁
+ │                     │◄── lock request ──────┼──────────────│
+ │                     │── lock granted ───────┼─────────────►│
+ │                     │              RM-2 本地事务提交
+ │                     │◄── branch status ─────┼──────────────│
+ │                     │                       │              │
+ │── commit(XID) ─────►│                       │              │
+ │                     │── undo_log cleanup ──►│              │
+ │                     │── undo_log cleanup ───┼─────────────►│
+ │                     │── lock release ──────►│              │
+ │                     │── lock release ───────┼─────────────►│
+ │◄── committed ───────│                       │              │
+```
+
+**Seata 四种模式对比**——作为技术专家，你需要理解 AT 不是 Seata 的唯一模式：
+
+| 维度 | AT | TCC | Saga | XA |
+|------|-----|-----|------|-----|
+| **侵入性** | 无（自动代理 SQL） | 高（需写 Try/Confirm/Cancel） | 中（需写补偿逻辑） | 无（依赖数据库 XA） |
+| **一致性** | 最终一致 | 业务级强一致 | 最终一致 | 强一致 |
+| **隔离性** | 默认读未提交（+全局锁=读已提交） | 业务层隔离 | 无 | 依赖数据库 |
+| **性能** | 高 | 中 | 高 | 低 |
+| **适用场景** | 电商、O2O | 金融核心 | 长事务（旅行预订） | 兼容已有 XA 系统 |
+| **回滚机制** | undo_log 反向补偿 | Cancel 接口 | 补偿操作 | 数据库回滚 |
 
 ### 3.7.3 AT 模式 vs 传统 2PC 对比
 
