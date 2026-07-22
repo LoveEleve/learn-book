@@ -884,6 +884,18 @@
 - 机制：DIFFERENT 模式 + GATEWAY_HANDLER_MAPPER_ATTR 属性传递 + onErrorContinue
 - 建议：读笔记，不读源码
 
+**D8. ForwardedHeadersFilter 转发头处理（P2）**
+- 核心类：`ForwardedHeadersFilter`（.../filter/headers/ForwardedHeadersFilter.java，413 fan_in）
+- 机制：自动处理 X-Forwarded-For / X-Forwarded-Host / X-Forwarded-Proto / X-Forwarded-Prefix
+- 生产要点：反向代理后 IP 获取、多层代理头叠加、信任代理 IP 配置
+- 建议：读笔记，不读源码
+
+**D9. CorsGatewayFilterApplicationListener CORS 自动配置（P2）**
+- 核心类：`CorsGatewayFilterApplicationListener`（.../filter/cors/CorsGatewayFilterApplicationListener.java）
+- 机制：监听 Spring 事件 + 自动注入 CORS GatewayFilter
+- 生产要点：全局 CORS vs 路由级 CORS、允许的方法/头/源配置
+- 建议：读笔记，不读源码
+
 ### loadbalancer-lab（来源：第 11-12 章 + spring-cloud-commons 源码 MCP 索引）
 
 > MCP 索引：`data-workspace-source-code-code-spring-cloud-commons`（8554 节点 / 29399 边）
@@ -944,6 +956,20 @@
 
 **P2 了解（面试可能问，读笔记即可）**
 - RetryLoadBalancer 重试机制 + CachingServiceInstanceListSupplier 缓存机制 — 读笔记即可
+- BlockingApiVersionServiceInstanceListSupplier API 版本选择 — 读笔记即可
+
+**D5. CircuitBreaker 抽象（P0 — 新增遗漏补充）**
+- 核心类：`CircuitBreaker`（spring-cloud-commons/.../circuitbreaker/CircuitBreaker.java，164 fan_in）、`ConfigBuilder`（.../circuitbreaker/ConfigBuilder.java，52 fan_in）
+- 机制：Spring Cloud CircuitBreaker 统一抽象 + run(Supplier, Function) 模板方法 + ConfigBuilder 配置构建器
+- 生产要点：断路器抽象与 Sentinel/Resilience4j 实现的关系、断路器配置优先级
+- 面试考点：Spring Cloud CircuitBreaker 抽象如何工作？如何切换 Sentinel/Resilience4j？
+- 源码入口：CircuitBreaker.java、ConfigBuilder.java
+
+**D6. GenericScope / BeanLifecycleWrapper — @RefreshScope 底层机制（P1 — 新增遗漏补充）**
+- 核心类：`GenericScope`（spring-cloud-context/.../GenericScope.java）、`BeanLifecycleWrapper`（107 fan_in）
+- 机制：GenericScope 继承 AbstractScope + BeanLifecycleWrapper 管理 Bean 生命周期 + 销毁重建机制
+- 生产要点：@RefreshScope Bean 的创建/销毁时机、Scope 缓存、与 ConfigurationPropertiesRebinder 差异
+- 源码入口：GenericScope.java、BeanLifecycleWrapper
 
 ### openfeign-lab（来源：第 04/22 章 + spring-cloud-openfeign 源码 MCP 索引）
 
@@ -1011,6 +1037,26 @@
 - Feign 上下文隔离（每个 @FeignClient 独立 ApplicationContext + FeignClientFactoryBean） — 读笔记
 - HttpMessageConverter 扩展机制 — 读笔记
 - feign-hc5/feign-okhttp 底层实现 — 读笔记
+- `RefreshableUrlFactoryBean` URL 动态刷新（配合 @RefreshScope） — 读笔记
+
+**D5. FeignClientsRegistrar — @FeignClient 注册机制（P0 — 新增遗漏补充）**
+- 核心类：`FeignClientsRegistrar`（spring-cloud-openfeign-core/.../FeignClientsRegistrar.java）
+- 机制：ImportBeanDefinitionRegistrar + 扫描 @EnableFeignClients + 注册 FeignClientSpecification BeanDefinition
+- 生产要点：@FeignClient 扫描路径配置、Bean 命名冲突、与 Spring 上下文生命周期关系
+- 面试考点：@FeignClient 如何被 Spring 发现并注册？ImportBeanDefinitionRegistrar 如何工作？
+- 源码入口：FeignClientsRegistrar.java
+
+**D6. FeignClientsConfiguration 默认配置（P1 — 新增遗漏补充）**
+- 核心类：`FeignClientsConfiguration`（spring-cloud-openfeign-core/.../FeignClientsConfiguration.java）
+- 机制：Spring 自动装配 + Feign Contract/Encoder/Decoder/Logger/Retryer 默认 Bean 注册
+- 生产要点：默认配置覆盖、自定义 Contract 替换、配置优先级（全局 vs 局部）
+- 源码入口：FeignClientsConfiguration.java
+
+**D7. FeignClientProperties 配置优先级（P1 — 新增遗漏补充）**
+- 核心类：`FeignClientProperties`（spring-cloud-openfeign-core/.../FeignClientProperties.java）
+- 机制：spring.cloud.openfeign.client.config 配置绑定 + 全局 default 与局部 clientName 优先级
+- 生产要点：配置覆盖顺序、公共配置提取、多 Feign Client 配置隔离
+- 源码入口：FeignClientProperties.java
 
 ### sentinel-lab（来源：第 08-09 章 + Sentinel 1.8.8 源码 MCP 索引）
 
@@ -1200,8 +1246,8 @@
 - 源码入口：TimedAspect.java、CountedAspect.java
 
 **D5. Prometheus text exposition + SLO 直方图**
-- 核心类：`PrometheusMeterRegistry`（implementations/micrometer-registry-prometheus/.../PrometheusMeterRegistry.java）
-- 机制：# TYPE/# HELP + 指标命名转换 + client-side quantile vs server-side histogram_quantile
+- 核心类：`PrometheusMeterRegistry`（implementations/micrometer-registry-prometheus/.../PrometheusMeterRegistry.java）、`ServiceLevelObjective`（implementations/micrometer-registry-health/.../ServiceLevelObjective.java）
+- 机制：# TYPE/# HELP + 指标命名转换 + SLO（Error Budget + Health Indicator）
 - 生产要点：命名转换规则、SLO 直方图配置、PromQL 查询
 - 源码入口：PrometheusMeterRegistry.java
 
@@ -1209,6 +1255,8 @@
 - Pushgateway 推送机制（PrometheusPushGatewayMeterRegistry + groupingKey） — 读笔记
 - Pull + Push 混合模式（CompositeMeterRegistry + 不同后端） — 读笔记
 - Grafana PromQL 查询优化 — 读笔记
+- `ServiceLevelObjective` SLO 接口定义 — 读笔记
+- `HealthConfig` 健康指标配置 — 读笔记
 
 ### tracing-lab（来源：第 17-18 章 + micrometer-tracing 源码 MCP 索引）
 
@@ -1276,6 +1324,21 @@
 - Byte Buddy Advice/MethodDelegation 区别 — 读笔记
 - ClassLoader 单例性（devtools 类加载陷阱） — 读笔记
 - MDC 自动注入（Slf4jBaggageEventListener） — 读笔记
+- `SpanNamer` Span 命名策略 — 读笔记
+- `SpanMetrics` Span 指标报告 — 读笔记
+
+**D5. CurrentTraceContext 当前 Trace 上下文管理（P0 — 新增遗漏补充）**
+- 核心类：`CurrentTraceContext`（micrometer-tracing/.../CurrentTraceContext.java）
+- 机制：ThreadLocal 存储当前 Trace 上下文 + 跨线程传播（wrap/execute）+ Scope 管理
+- 生产要点：异步线程 Trace 传播、@Async 场景、Reactor/Hystrix 线程池适配
+- 面试考点：TraceContext 如何跨线程传播？ThreadLocal vs Scope？
+- 源码入口：CurrentTraceContext.java
+
+**D6. ScopedSpan + SpanCustomizer Span 操作（P1 — 新增遗漏补充）**
+- 核心类：`ScopedSpan`（micrometer-tracing/.../ScopedSpan.java）、`SpanCustomizer`（micrometer-tracing/.../SpanCustomizer.java）
+- 机制：ScopedSpan 自动结束 + SpanCustomizer 自定义标签/事件
+- 生产要点：Span 作用域、标签/事件最佳实践、Span 过度自定义影响性能
+- 源码入口：ScopedSpan.java、SpanCustomizer.java
 
 ### seata-lab（stage-2 内容，stage-1 未讲）
 
