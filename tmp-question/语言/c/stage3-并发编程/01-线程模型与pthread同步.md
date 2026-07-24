@@ -177,6 +177,12 @@ int pthread_detach(pthread_t tid);
 // 退出——当前线程终止，retval 被 pthread_join 的调用者收到
 void pthread_exit(void *retval);
 
+// 取消——异步终止目标线程（危险！线程可能持有锁或分配的内存未释放）
+// 被取消的线程必须在取消点（如 read/write/pthread_cond_wait）检查取消请求
+int pthread_cancel(pthread_t tid);
+// 设置取消状态：PTHREAD_CANCEL_ENABLE（默认）/ PTHREAD_CANCEL_DISABLE
+int pthread_setcancelstate(int state, int *oldstate);
+
 // 自身——返回当前线程的 pthread_t
 pthread_t pthread_self(void);
 ```
@@ -399,7 +405,20 @@ sem_post(&sem);           // 计数 +1——唤醒一个等待者
 - mutex = 二元（锁或不锁），必须同一线程 lock/unlock
 - semaphore = N 元（0-N 个资源可用），任何一个线程可以 post，任何一个可以 wait
 
-### 4.6 同步原语速查表
+### 4.6 barrier（屏障）— 等待所有线程就位
+
+```c
+pthread_barrier_t barrier;
+pthread_barrier_init(&barrier, NULL, N_THREADS);
+
+// 每个线程完成初始化后调用——阻塞直到 N_THREADS 个线程都到达
+pthread_barrier_wait(&barrier);
+// 所有线程同时从这里继续——保证"批量同步"
+```
+
+**适用场景**：并行算法的阶段同步——阶段 1 全部完成、再一起进阶段 2。每阶段之间用 barrier 对齐。
+
+### 4.7 同步原语速查表
 
 | 原语 | 用途 | 用户态/内核 | 无竞争开销 | 竞争开销 |
 |---|---|---|---|---|
