@@ -1,0 +1,1 @@
+actually just write to memory directory
