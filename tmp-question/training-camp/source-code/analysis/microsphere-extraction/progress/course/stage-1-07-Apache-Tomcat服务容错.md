@@ -193,7 +193,7 @@ docs 覆盖了"组件层级 + 线程模型 + Spring Boot 整合 + 限流"。作�
 2. **连接器与 NIO**：HTTP/1.1、HTTP/2、AJP 连接器；NIO/NIO2/APR 模型、Boss/Worker 线程（docs KP-06 提了，补全要展开）、keep-alive 与连接复用
 3. **生命周期与启动**：Server 组件生命周期(Lifecycle 接口)、Catalina 启动流程、优雅关闭（ShutdownHook/第 10 节动态配置衔接）
 4. **性能与安全**：JVM 参数与 Tomcat 配合、Session 管理、安全(HTTPS/连接器安全/防攻击)
-5. **集群与高可用**：Tomcat 集群(会话复制/负载均衡)、与前面注册中心/负载均衡衔接（第 11/12 节）
+5. **集群与高可用**：Tomcat 集群（会话复制/多实例）是**容器层**的高可用（注意：与第 11/12 节服务间负载均衡是不同概念——Tomcat 集群是"多实例冗余+会话同步"，服务间负载均衡是"流量分发到实例"）；集群通常配负载均衡器分发流量
 6. **Spring Boot 内嵌 vs 独立 Tomcat**：内嵌(Spring Boot 默认,第 7 节 KP-07)vs 独立部署(Tomcat 单独跑)——两种部署模型的权衡
 
 ### 关键决策与权衡
@@ -204,7 +204,7 @@ docs 覆盖了"组件层级 + 线程模型 + Spring Boot 整合 + 限流"。作�
 | maxThreads 大 vs 小 | 大并发能力强但资源/GC 压力大；小易排队/拒绝——要按压测调优 |
 | 同步 vs 异步 Servlet | 同步占线程(简单)；异步释放线程(高吞吐,长轮询)——见 KP-06 |
 | 内嵌 vs 独立 Tomcat | 内嵌部署简单(Spring Boot)；独立便于统一管理/隔离 |
-| NIO vs 阻塞 IO | NIO 高并发(事件驱动)；阻塞 IO 简单但线程占用高 |
+| NIO vs 阻塞 IO | NIO 高并发(事件驱动，连接器层)；阻塞 IO 简单但线程占用高（NIO 是 Connector 层，线程池是执行层，二者配合） |
 
 ### 常见坑/反模式
 
