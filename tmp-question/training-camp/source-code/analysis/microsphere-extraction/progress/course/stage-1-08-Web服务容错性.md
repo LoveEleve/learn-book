@@ -45,9 +45,9 @@
 - **前置**：KP-01
 - **需求**：下游故障时，快速失败而非拖垮自己
 - **自主实现**：滑动窗口统计失败率 → 超阈值熔断 → 后续请求直接降级/快速失败 → 半开试探恢复
-- **参考实现**：Sentinel `DegradeRule` + `DegradeSlot` + `CircuitBreaker`（熔断降级）；Resilience4j CircuitBreaker 用 sliding window（docs 提到"核心技术 - sliding window"）
-- **对比取舍**：**核心都是 sliding window 统计 + 状态机(关/开/半开)**——思想一致
-- **待验证**：Sentinel 熔断状态机可用源码验证
+- **参考实现**：Sentinel `DegradeRule` + `DegradeSlot` + `CircuitBreaker`；Resilience4j CircuitBreaker 用 sliding window（docs 提到"核心技术 - sliding window"）
+- **对比取舍**：**核心都是滑动窗口统计 + 状态机(CLOSED/OPEN/HALF_OPEN)**——思想一致
+- **测试佐证**（已源码验证）：`code/spring/sentinel` 的 `circuitbreaker/AbstractCircuitBreaker` 含 `enum State{CLOSED,OPEN,HALF_OPEN}` + `fromClosedToOpen()`/`fromOpenToHalfOpen()`/`fromHalfOpenToOpen()`（compareAndSet 状态转换）
 
 ### KP-03 容错模式：限流（RateLimiter / flow）
 - **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
@@ -55,17 +55,25 @@
 - **需求**：控制单位时间请求量，防流量突发打垮服务
 - **自主实现**：计数器/滑动窗口/令牌桶/漏桶限流算法
 - **参考实现**：Sentinel `FlowRule` + `flow` slot（QPS 限流）；Resilience4j RateLimiter
-- **对比取舍**：Sentinel 的流控更丰富（QPS/线程数、并发控制）
-- **待验证**：Sentinel 限流算法（计数器/滑动窗口）可用源码验证
+- **对比取舍**：Sentinel 的流控更丰富（QPS/线程数、并发控制、多种 Controller）
+- **测试佐证**（已源码验证）：`code/spring/sentinel` 的 `flow/controller/` 有 DefaultController（默认计数）/ThrottlingController（排队）/WarmUpController（预热）等流控策略
 
-### KP-04 容错模式：隔离（Bulkhead）
+### KP-04 容错模式：隔离（Bulkhead / 舱壁）
 - **维度**：`[分布式问题]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[时间无关模式]` | **置信度**：Medium
 - **前置**：KP-01
 - **需求**：隔离故障，避免一个下游拖垮所有
 - **自主实现**：线程池隔离/信号量隔离（舱壁模式）
-- **参考实现**：Resilience4j Bulkhead；Sentinel 支持信号量隔离
+- **参考实现**：Sentinel 支持信号量/线程数隔离（流控维度含线程数）；Resilience4j Bulkhead（非主流，仅概念）
 - **对比取舍**：隔离粒度——线程池/信号量，防止级联故障
-- **待验证**：Sentinel 隔离具体实现
+- **待验证**：Sentinel 隔离具体实现（流控的线程数模式）
+
+### KP-04b 容错模式：重试（Retry）
+- **维度**：`[分布式问题]` | **权重**：`[支撑]` | **深度**：🟢 | **优先级**：P3 | **过时**：`[时间无关模式]` | **置信度**：Medium
+- **前置**：KP-01
+- **需求**：瞬时故障（网络抖动）时重试，提高成功率
+- **自主实现**：对可重试的失败(超时/瞬时错误)按退避策略重试
+- **参考实现**：Spring Retry / Resilience4j Retry；Sentinel 不主打重试（重试常由调用方/重试框架做）
+- **对比取舍**：重试与熔断配合——重试针对瞬时，熔断针对持续故障；重试需谨慎(避免雪崩)
 
 ### KP-05 容错整合到 Web 框架（Sentinel Servlet/WebMVC）
 - **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
@@ -92,9 +100,10 @@
 | 知识点 | 维度 | 权重 | 优先级 | 深度 | 置信度 |
 |--------|------|:---:|:---:|:---:|:---:|
 | 容错需求与模式 | 分布式 | 核心 | P1 | 🔴 | High |
-| 熔断/降级 | 分布式 | 核心 | P1 | 🔴 | High |
-| 限流 | 分布式 | 核心 | P1 | 🔴 | High |
+| 熔断/降级 | 分布式 | 核心 | P1 | 🔴 | High（已源码验证状态机） |
+| 限流 | 分布式 | 核心 | P1 | 🔴 | High（已源码验证 Controller） |
 | 隔离 | 分布式 | 支撑 | P2 | 🟡 | Medium |
+| 重试 | 分布式 | 支撑 | P3 | 🟢 | Medium |
 | Web 整合 | 工程 | 核心 | P1 | 🟡 | High |
 | 规则/资源模型 | 工程 | 核心 | P1 | 🟡 | High |
 
@@ -113,16 +122,14 @@
 **需求**：实现 Web 服务容错（熔断/限流/隔离/降级），整合到 Web 框架。
 
 **自主实现核心**：若我设计——
-1. 四种容错模式：熔断/限流/隔离/降级
-2. 熔断：滑动窗口统计 + 状态机(关/开/半开)
-3. 限流：QPS 控制
+1. 四种容错模式：熔断/限流/隔离/重试
+2. 熔断：滑动窗口统计 + 状态机(CLOSED/OPEN/HALF_OPEN)
+3. 限流：QPS 控制 + 多种 Controller 策略
 4. 整合 Web：Filter/Interceptor/AOP 接入请求链
 
-**参考实现**：**Sentinel（主流 + 有源码）**——`code/spring/sentinel` 的 flow/degrade/circuitbreaker + microsphere-alibaba-sentinel 的 spring/web 多层整合。Resilience4j 不做对照（国内非主流，且与 Sentinel 思想一致）。
+**参考实现**：**Sentinel（主流 + 有源码）**——`code/spring/sentinel` 的熔断状态机(CLOSED/OPEN/HALF_OPEN)与限流 Controller(Default/Throttling/WarmUp)已源码验证 + microsphere-alibaba-sentinel 的 spring/web 多层整合。Resilience4j 不做对照（国内非主流，且与 Sentinel 思想一致）。
 
 **对比取舍**：docs 标题是 Resilience4j，但按方法论 08 §1.3.1，参考实现选主流 Sentinel。**容错模式思想两者一致**，选型看生态。
 
 **待验证汇总**：
-- Sentinel 熔断状态机（可用源码验证）
-- Sentinel 限流算法（计数器/滑动窗口）
-- Sentinel 隔离实现
+- Sentinel 隔离具体实现（流控的线程数模式）
