@@ -64,6 +64,7 @@
 - **自主实现**：DataSource(数据源)→Connection(连接)→Statement(语句)→ResultSet(结果集)
 - **参考实现**：javax.sql.DataSource → java.sql.Connection → java.sql.Statement → java.sql.ResultSet；抽象工厂方法 + 层次性
 - **对比取舍**：JDBC 是规范，各框架(Hikari/Druid)是它的实现
+- **测试佐证**（已源码验证）：`code/spring/jdk17/src/java.sql` 模块含 java.sql.Connection/Statement/ResultSet + javax.sql.DataSource
 - **关联 microsphere**：`[待验证]`
 
 ### KP-05 JDBC 包装/装饰器模式（DataSource unwrap）
@@ -71,9 +72,9 @@
 - **前置**：装饰器、JDBC
 - **需求**：JDBC 通常被包装(装饰)，需得到底层真实对象
 - **自主实现**：用 `unwrap()` 得到底层真实对象，避免直接强转
-- **参考实现**（docs 关键）：**不要 `instanceof HikariDataSource` 直接强转**（可能被包装不成立）；正确用 `dataSource.unwrap(DataSource.class)` 得到真实对象再判断
-- **对比取舍**：**unwrap() 是 JDBC 包装模式的正确解包方式**——装饰器包装后要解包
-- **待验证**：用 code/spring 的 Hikari 或 JDK17 验证 unwrap 语义
+- **参考实现**（docs 明确给出的核心结论）：**不要 `dataSource instanceof HikariDataSource` 直接强转**（可能被包装不成立）；正确用 `dataSource.unwrap(DataSource.class)` 得到真实对象再判断；若 DataSource 在 Bean 初始化前被 Wrapper，BeanDefinition 可能定义 init/destroy 方法
+- **对比取舍**：**unwrap() 是 JDBC 包装模式的正确解包方式**——装饰器包装后要解包。docs 明确说明，置信度 High
+- **测试佐证**：docs 给出完整 unwrap 正确/错误用法对比
 
 ### KP-06 JDBC 监控指标分层（连接/语句/框架耗时）
 - **维度**：`[性能优化]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
