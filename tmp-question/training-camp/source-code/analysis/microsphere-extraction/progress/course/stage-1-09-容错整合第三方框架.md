@@ -74,9 +74,11 @@
 - **前置**：Spring Redis、装饰器
 - **需求**：Redis 命令执行时自动容错/监控
 - **自主实现**：包装 RedisConnection，在命令执行前后织入逻辑
-- **参考实现**：`RedisConnectionInterceptor`（microsphere-redis-spring）；Sentinel 有 redis 适配
-- **对比取舍**：Redis 扩展点是 `RedisConnection`（命令级），通过包装 connection 拦截命令
-- **测试佐证**：`stage-4/microsphere-redis/.../redis/spring/interceptor/RedisConnectionInterceptor.java` 存在
+- **参考实现**：
+  - microsphere-redis 定义扩展点 `RedisConnectionInterceptor`（命令级拦截）
+  - Sentinel 实现 `SentinelRedisCommandInterceptor`（继承 AbstractSentinelPlugin、实现 RedisConnectionInterceptor，用 SentinelTemplate 织入容错）
+- **对比取舍**：Redis 扩展点是 `RedisConnectionInterceptor`（命令级），Sentinel 通过实现它接入——**扩展点(接口)与容错实现(插件)分离**
+- **测试佐证**（已源码验证）：`stage-4/microsphere-redis/.../RedisConnectionInterceptor.java` + microsphere-alibaba-sentinel `SentinelRedisCommandInterceptor.java`（extends AbstractSentinelPlugin implements RedisConnectionInterceptor）
 
 ### KP-06 扩展点/拦截器机制（贯穿总结）
 - **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
@@ -105,7 +107,8 @@
 ## 四、与 microsphere 的关联（参考实现已验证）
 
 - **Sentinel×MyBatis**：microsphere-alibaba-sentinel `mybatis/executor/SentinelMyBatisExecutorFilter.java`
-- **Redis 拦截**：`stage-4/microsphere-redis` 的 `RedisConnectionInterceptor.java`
+- **Sentinel×Redis**：microsphere-alibaba-sentinel `SentinelRedisCommandInterceptor.java`（extends AbstractSentinelPlugin implements RedisConnectionInterceptor）
+- **Redis 扩展点**：`stage-4/microsphere-redis` 的 `RedisConnectionInterceptor.java`
 - **多层扩展**：microsphere-alibaba-sentinel 覆盖 mybatis/redis/druid/spring-web
 - **OpenFeign**：`code/spring/spring-cloud-openfeign` 源码可验证 InvocationHandler
 
@@ -117,14 +120,15 @@
 
 **自主实现核心**：若我设计——
 1. 识别每个框架的扩展点（调用链可插拔位置）
-2. 用装饰器/拦截器在扩展点织入容错
-3. Feign:InvocationHandler 装饰 MethodHandler
-4. MyBatis:Interceptor + Plugin.wrap 包装 Executor
-5. Redis:包装 RedisConnection 拦截命令
+2. **扩展点(接口)与容错实现(插件)分离**——框架定义扩展点接口，容错框架实现它接入
+3. 用装饰器/拦截器在扩展点织入容错
+4. Feign:InvocationHandler 装饰 MethodHandler
+5. MyBatis:Interceptor + Plugin.wrap 包装 Executor
+6. Redis:实现 RedisConnectionInterceptor 拦截命令
 
-**参考实现**：docs 的 FeignDecorator/MyBatisInterceptor + Sentinel 的 mybatis/redis/web 各层 Filter + microsphere 的 RedisConnectionInterceptor 实证。
+**参考实现**：docs 的 FeignDecorator/MyBatisInterceptor + Sentinel 实现 microsphere 定义的扩展点（`SentinelRedisCommandInterceptor implements RedisConnectionInterceptor`）实证。
 
-**对比取舍**：本篇知识本体是"**扩展点/拦截器机制**"——比具体容错框架更重要。docs 标题是 Resilience4j，但按方法论 08，参考实现用 Sentinel（有源码）。扩展点机制是通用的（Fault Tolerance/Tracing 都靠它）。
+**对比取舍**：本篇知识本体是"**扩展点/拦截器机制**"——比具体容错框架更重要。**关键洞察：框架(microsphere)定义扩展点接口，容错实现(Sentinel)实现该接口接入**——扩展点与实现分离。docs 标题是 Resilience4j，但按方法论 08，参考实现用 Sentinel（有源码）。
 
 **待验证汇总**：
 - Feign InvocationHandler 具体机制（可用 code/spring/spring-cloud-openfeign 验证）
