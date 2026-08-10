@@ -144,12 +144,12 @@
 
 docs 覆盖了"Feign 装饰器 + MyBatis Interceptor + Redis 拦截"。作为架构师，这个主题完整还该包含：
 
-1. **扩展点的机制家族**：不只装饰器/拦截器，而是完整家族——**SPI(Java/Maven)、拦截器(Interceptor)、装饰器(Decorator)、动态代理(JDK/CGLIB)、AOP 切面、事件监听(Listener)、BeanPostProcessor**——各机制的适用场景
+1. **扩展点的机制家族（分两类）**：扩展点机制分两类，勿混为一谈——**加载机制**（发现/注册实现：SPI、Spring factories/AutoConfiguration）和**织入机制**（在调用链插入横切：拦截器、装饰器、动态代理 JDK/CGLIB、AOP 切面、事件监听、BeanPostProcessor）——各机制的适用场景
 2. **各框架扩展点的完整地图**：不只 Feign/MyBatis/Redis，而是 Spring 生态的扩展点全貌——BeanPostProcessor、BeanFactoryPostProcessor、ApplicationListener、HandlerInterceptor、Filter、@Import/ImportSelector、AutoConfiguration（衔接 spring-boot）
 3. **扩展点 vs AOP 的选择**：什么时候用框架自带扩展点，什么时候用 AOP/Spring AOP 织入——AOP 更通用(任意 Bean)，扩展点更"官方"但有局限
 4. **横切能力(容错/Tracing/监控)的统一接入**：一个扩展点可接入多种横切能力（第 8 节容错 + 第 13 节指标 + 第 17 节链路），扩展点设计要支持多能力叠加(装饰器链)
 5. **扩展点设计的通用原则**：框架如何设计好扩展点（接口稳定、可插拔、组合、回调/模板方法）——这是框架设计者的视角
-6. **SPI 与自动装配的关系**：Java SPI vs Spring factories/AutoConfiguration 的定位（衔接 microsphere-spring-boot）
+6. **SPI 与自动装配的关系**：Java SPI vs Spring factories/AutoConfiguration 的定位（衔接 microsphere-spring-boot；见点 1"加载机制"类）
 
 ### 关键决策与权衡
 
