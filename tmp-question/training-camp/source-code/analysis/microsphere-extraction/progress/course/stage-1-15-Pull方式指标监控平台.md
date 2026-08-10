@@ -130,3 +130,50 @@
 **待验证汇总**：
 - Nacos 的 Prometheus sd_configs 等价物
 - Grafana 仪表盘具体配置
+
+---
+
+## 六、架构师视角补全（防井底之蛙）
+
+> **来源标注**：本节大部分为架构师发散；与 docs/前篇重复处已交叉引用。
+
+### 完整认知：Pull 方式指标监控平台在真实架构中完整该讲什么
+
+docs 覆盖了"Actuator Prometheus Endpoint + Eureka 服务发现 + Grafana"。作为架构师，这个主题完整还该包含：
+
+1. **Pull vs Push 的完整权衡**：不只"Prometheus 用 Pull"，而是**Pull vs Push 对比**——Pull(平台主动抓取，可控、易水平扩展，但需服务发现/暴露端点) vs Push(应用主动上报，简单但应用要知道平台地址、可能丢点)——选型看场景(第 16 节 Push 对比)
+2. **指标生命周期与存储**：指标抓取后的**存储、保留期、压缩、查询**（Prometheus 时序库 TSDB 模型、第 13 节指标）+ 远程存储(Thanos/Cortex 水平扩展)
+3. **监控平台的完整组件**：不止"抓取+展示"，而是**采集器(Prometheus)、存储(TSDB)、告警(Alertmanager)、可视化(Grafana)、目标发现(服务发现)**——一套完整可观测平台
+4. **告警体系**：指标 → 告警规则 → Alertmanager 通知——指标要可告警(第 13 节指标与告警衔接)
+5. **服务发现的目标管理**：不只"发现实例"，而是**动态目标发现、目标状态(up/down)、抓取失败处理**——监控要覆盖目标生命周期
+6. **监控成本与覆盖**：全量抓取 vs 采样、抓取频率、监控哪些指标(第 13 节指标设计)——监控本身有成本
+7. **高可用**：Prometheus 本身要 HA(多副本/远程存储)，避免监控单点
+
+### 关键决策与权衡
+
+| 决策 | 权衡 |
+|------|------|
+| Pull vs Push | Pull(可控、易扩展，需发现/暴露端点)；Push(简单，应用主动上报，可能丢点)——第 16 节对比 |
+| 内嵌监控 vs 独立平台 | 内嵌(Actuator 端点)轻；独立平台(Prometheus+Grafana)完整但重 |
+| 全量抓取 vs 采样 | 全量准但成本高；采样省资源但丢细节(第 13 节) |
+| 服务发现 vs 静态配置 | 服务发现(动态、自动，Nacos/K8s)灵活；静态配置(简单)但手动维护 |
+| 本地存储 vs 远程存储 | 本地简单但有容量/单点；远程(Thanos/Cortex)可扩展但复杂 |
+
+### 常见坑/反模式
+
+1. **端点未暴露/路径错误**：应用没暴露 /actuator/prometheus 或 metadata 的 prometheus.path 配错，Prometheus 抓不到——配置对不上
+2. **服务发现失效**：sd_configs 从 Eureka/Nacos 拿不到实例，或 metadata 标签(prometheus.scrape)没配——动态目标发现失败
+3. **抓取失败静默**：Prometheus 抓取失败(应用挂/超时)没告警——要监控 up 状态 + 抓取失败告警
+4. **高基数指标撑爆存储**：第 13 节高基数问题在 Prometheus 存储放大——控制 tag 基数
+5. **监控单点**：Prometheus 单实例挂了监控全失——要 HA/远程存储
+6. **只采集不告警**：指标进了 Prometheus/Grafana 但没配告警规则——异常发现滞后
+7. **抓取频率不当**：抓取太频繁(开销大)或太稀疏(延迟发现)——按需设 interval
+
+### 生态位置
+
+- **可观测性平台层**：第 13 节(指标模型) + 第 15 节(Pull 采集) + 第 16 节(Push) + 第 17 节(链路)共同构成完整可观测
+- **衔接**：第 13 节(Micrometer 指标，数据来源)、第 11 节(负载均衡用指标)、第 17 节(链路追踪)
+- **Prometheus**：国内主流的时序监控，Pull 模式代表；Actuator PrometheusScrapeEndpoint(已源码验证) + microsphere-observability Prometheus 条件注解
+- **服务发现**：Eureka(过时)→Nacos/K8s；Prometheus 通过 sd_configs 发现(第 15 节 KP-03)
+
+**架构师视角结论**：本篇不只是"配几个 Prometheus 配置"，而是"**设计完整的 Pull 模式监控平台**"——Pull/Push 权衡、采集/存储/告警/可视化组件、服务发现目标管理、HA 与成本，是可观测性的监控核心。
