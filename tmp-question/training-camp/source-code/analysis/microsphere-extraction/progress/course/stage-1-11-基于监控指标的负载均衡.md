@@ -73,13 +73,14 @@
 - **关联 microsphere**：`[待验证]` microsphere-observability
 
 ### KP-05 基于监控指标的负载均衡（核心）
-- **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
+- **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：Medium
 - **前置**：LoadBalancer、KP-03
 - **需求**：不用轮询，而根据服务实例的实时指标（CPU/负载）选实例
 - **自主实现**：实现 `ReactorServiceInstanceLoadBalancer.choose()`，读实例上报的指标(如 cpu-usage)，选负载最低的
-- **参考实现**（已源码验证）：biz-client `CpuUsageLoadBalancer implements ReactorServiceInstanceLoadBalancer`——choose() 里 `ServiceInstanceListSupplier.get()` 获取实例，读每个实例 metadata 的 `cpu-usage` 指标（TODO 标记要完成 CPU 算法）
-- **对比取舍**：基于指标的负载均衡比轮询更智能，但需实例上报指标 + 算法
-- **测试佐证**：biz-client `CpuUsageLoadBalancer.java`（choose() 读 metadata.cpu-usage）
+- **参考实现**（已源码验证，但**实现不完整**）：biz-client `CpuUsageLoadBalancer implements ReactorServiceInstanceLoadBalancer`——choose() 里 `ServiceInstanceListSupplier.get()` 获取实例，读到每个实例 metadata 的 `cpu-usage` 指标，但 **`// TODO 完成 CPU 利用率的算法实现` 后直接 `return serviceInstances.get(0)`（无脑返回第一个）——算法未实现**
+- **对比取舍**：基于指标的负载均衡比轮询更智能，但需实例上报指标 + **真实算法**；biz-client 只做了"读指标"这步，选实例算法是 TODO
+- **权重/置信度说明**：**参考实现不完整（TODO），故置信度降为 Medium**——这是 docs 想讲的需求方向，但参考实现未完成；知识本体(基于指标选实例)仍成立，但参考实现不能当作已验证的完整实现
+- **测试佐证**：biz-client `CpuUsageLoadBalancer.java`（choose() 读 metadata.cpu-usage，但 TODO + 返回 get(0)，算法未实现）
 
 ### KP-06 Spring Cloud LoadBalancer 扩展点（ServiceInstanceListSupplier）
 - **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
@@ -119,7 +120,7 @@
 | JMX 标准接口 | 规范 | 核心 | P1 | 🟡 | High |
 | JMX CPU 利用率 | 性能 | 核心 | P1 | 🟡 | High |
 | 监控体系全貌 | 性能 | 支撑 | P2 | 🟡 | High |
-| 基于指标的负载均衡 | 分布式 | 核心 | P1 | 🔴 | High |
+| 基于指标的负载均衡 | 分布式 | 核心 | P1 | 🔴 | Medium（参考实现TODO未完成） |
 | LoadBalancer 扩展点 | 工程 | 核心 | P1 | 🟡 | High |
 | 注册中心 | 分布式 | 核心 | P1 | 🟡 | High（过时→Nacos） |
 | 注册中心对比 | 分布式 | 支撑 | P2 | 🟡 | Medium |
@@ -128,7 +129,7 @@
 
 ## 四、与 microsphere 的关联（参考实现已验证）
 
-- **基于指标负载均衡**：biz-client `CpuUsageLoadBalancer`（choose() 读 metadata.cpu-usage）= 本篇核心实证
+- **基于指标负载均衡**：biz-client `CpuUsageLoadBalancer`——choose() 读到 metadata.cpu-usage 指标，但**算法是 TODO 未实现**（只读指标 + 返回第一个）
 - **LoadBalancer 扩展**：biz-client `UserServiceServiceInstanceListSupplier` + `code/spring/spring-cloud-loadbalancer`
 - **注册中心**：`code/spring/nacos`（主流，替换 Eureka）
 - `[待验证]` microsphere 是否有 LoadBalancer/监控封装
@@ -145,11 +146,12 @@
 3. 实现 ReactorServiceInstanceLoadBalancer.choose()，读实例指标选负载最低者
 4. LoadBalancer 双扩展点：ServiceInstanceListSupplier(实例来源) + LoadBalancer(选择策略)
 
-**参考实现**：biz-client `CpuUsageLoadBalancer`（真实实现"基于监控指标的负载均衡"）+ spring-cloud-loadbalancer + Nacos（主流注册中心，替换过时 Eureka）。
+**参考实现**：biz-client `CpuUsageLoadBalancer`——**注意它只"读指标"未"实现算法"（choose() 里 TODO + return get(0)），参考实现不完整**。完整实现需自定义选实例算法；spring-cloud-loadbalancer 提供扩展点；Nacos（主流注册中心，替换过时 Eureka）。
 
-**对比取舍**：知识本体是"监控指标 + 基于指标的负载均衡"。docs 用 Eureka，按方法论 04 标过时→Nacos；负载均衡用 Spring LoadBalancer（有源码）。**核心洞察：实例 metadata 上报指标(cpu-usage)，负载均衡读指标选实例**——CpuUsageLoadBalancer 正是实证。
+**对比取舍**：知识本体是"监控指标 + 基于指标的负载均衡"。核心洞察：**实例 metadata 上报指标(cpu-usage) → 负载均衡读指标选实例**。但 biz-client 的 CpuUsageLoadBalancer **只读到指标、算法是 TODO 未实现**——不能当作完整实现，置信度 Medium。这提醒：代码"看起来在做"≠"真的实现"。
 
 **待验证汇总**：
 - getProcessCpuLoad 实现（JDK17）
 - Nacos 一致性模式
 - microsphere 是否有 LoadBalancer 封装
+- CpuUsageLoadBalancer 的完整选实例算法（TODO 待实现）
