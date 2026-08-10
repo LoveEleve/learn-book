@@ -163,7 +163,7 @@ docs 覆盖了"Netflix Servo + Ribbon WeightedResponseTimeRule"。作为架构�
 3. **概率选择的数学**：权重累计区间 + 随机数(第 12 节 KP-03 算法)——为什么用概率而非确定性(避免热点、更平滑)
 4. **与监控指标衔接**：权重数据来自监控(第 11 节指标、第 13 节 Micrometer)——指标质量决定权重质量
 5. **权重 vs 其他负载均衡策略**：权重(考虑实例能力/负载) vs 轮询(均分) vs 一致性哈希(会话保持)——按场景选
-6. **现代实现**：Ribbon(过时) vs Spring LoadBalancer `WeightedServiceInstanceListSupplier`(有源码)——现代权重负载均衡
+6. **现代实现**：Ribbon(过时) vs Spring LoadBalancer `WeightedServiceInstanceListSupplier`（类与 WeightFunction 见 KP-03，此处补"**如何配置使用**"——通过 ServiceInstanceListSupplierBuilder 注册、实例 metadata 的 weight key 生效）
 
 ### 关键决策与权衡
 
