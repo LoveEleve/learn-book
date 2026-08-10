@@ -38,6 +38,7 @@
 - **参考实现**（docs）：**Route**（基本块，ID+destination URI+predicates+filters）；**Predicate**（Java 8 Function Predicate，输入 ServerWebExchange，匹配 HTTP 请求）；**Filter**（GatewayFilter 实例，请求/响应前后修改）
 - **对比取舍**：三者关系——Route 由 Predicate 匹配 + Filter 处理；谓词匹配则路由生效
 - **测试佐证**：`code/spring/spring-cloud-gateway` 的 Route/GatewayFilter
+- **关联 microsphere**：`[待验证]` microsphere-gateway（stage-4）
 
 ### KP-02 Route Predicate Factories（路由谓词工厂）
 - **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
