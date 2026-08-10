@@ -219,3 +219,42 @@
 **参考实现**：小马哥/Spring Boot/microsphere 正是这样组织的。
 
 **对比取舍**：本知识点是工程化的"地基"，所有后续 microsphere 源码分析都建立在这个 Maven 理解之上。
+
+---
+
+## 六、架构师视角补全（防井底之蛙）
+
+### 完整认知：Maven 多模块工程化在真实架构中完整该讲什么
+
+docs 只覆盖了 Maven 的"机制面"（继承/聚合/仲裁/作用域/BOM）。作为架构师，这个主题完整还该包含：
+
+1. **依赖治理的完整方案**：不只是 BOM，还有 `dependencyManagement` 分层、`enforcer` 插件强制约束（禁止传递依赖冲突/统一版本）、`maven-dependency-plugin` 分析依赖树
+2. **工程模板的整体观**：不只是"怎么搭"，而是"**标准约定**"——一个团队/企业统一的模块划分、命名、版本策略约定（这是第 2 节"业务工程模板定制"的前置）
+3. **构建性能与可复现性**：`maven.repo.local` 本地仓库、多模块增量构建（`-pl/-am`）、`-T` 并行构建
+4. **发布与 CI/CD 衔接**：SNAPSHOT→RELEASE 发布流、`mvn deploy` 到私服（Nexus）、与 Jenkins/GitHub Actions 集成
+5. **与容器化/新构建工具的演进**：Gradle、Bazel、Maven 4 的变化；FAT JAR 在容器化后的意义变化
+
+### 关键决策与权衡
+
+| 决策 | 权衡 |
+|------|------|
+| 继承 vs 聚合 | 继承=配置复用(纵向)、聚合=构建编排(横向)，**通常同时用**（根 POM 兼做两者） |
+| BOM 集中管理 vs 各自声明 | BOM 统一版本(一致)但升级不灵活；各自声明灵活但易版本冲突 |
+| SNAPSHOT vs RELEASE | SNAPSHOT 更新快但不稳定；RELEASE 稳定但升级慢 |
+| 按需复制 API vs 依赖整个 Artifact | 复制 API 降低依赖爆炸(Dubbo 复制 netty、Spring 复制 ASM)，但要维护复制代码 |
+
+### 常见坑/反模式
+
+1. **依赖冲突(版本地狱)**：传递依赖版本仲裁导致实际生效版本与预期不符——用 `mvn dependency:tree` 排查，exclude 或显式声明解决
+2. **误用 provided/test 作用域**：把运行时需要的依赖标 provided，导致运行时 ClassNotFound
+3. **BOM 版本漂移**：子模块忘了跟随 BOM，各自声明不同版本
+4. **直接把 DataSource 等强转成具体类型**（HikariDataSource）：被包装后 instanceof 不成立，要用 unwrap（第 14 节展开）
+5. **循环依赖**：模块间 A→B→A，破坏构建——分层 + 依赖倒置解决
+
+### 生态位置
+
+- **是所有后续篇的地基**：第 2 节(业务模板)、第 3-4 节(REST API)、第 7 节(Tomcat)、全部 microsphere 源码分析都建立在这个 Maven 多模块理解之上
+- **工程化维度**（5 大维度之一）的起点——多模块/BOM/依赖管理是"工程问题"的核心
+- 前置知识：Java 基础；后置：第 2 节业务工程模板定制
+
+**架构师视角结论**：本篇不只是"Maven 命令怎么用"，而是"**企业级 Java 工程如何组织与治理依赖**"——这是所有 Java 后端架构的地基。
