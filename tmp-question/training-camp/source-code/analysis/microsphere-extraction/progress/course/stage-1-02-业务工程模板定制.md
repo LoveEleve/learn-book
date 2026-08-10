@@ -175,6 +175,8 @@
 
 ## 六、架构师视角补全（防井底之蛙）
 
+> **来源标注**：本节大部分为架构师发散(docs 未展开)；与 docs/前篇重复处已交叉引用。
+
 ### 完整认知：业务工程模板在真实架构中完整该讲什么
 
 docs 只覆盖了"标准分层(api/data/core/web) + BOM"。作为架构师，这个主题完整还该包含：
@@ -191,7 +193,7 @@ docs 只覆盖了"标准分层(api/data/core/web) + BOM"。作为架构师，这
 |------|------|
 | api 单独成模块 vs 放 web 里 | api 是"契约"要分发给消费方(其他服务)，独立模块便于共享；混在一起则暴露实现 |
 | 多模块 vs 单模块 | 多模块高内聚低耦合但复杂度高；单模块简单但易耦合 |
-| 业务 BOM SNAPSHOT vs RELEASE | 业务组件 API 常变用 SNAPSHOT(灵活)，但下游不稳定；RELEASE 稳定但升级慢 |
+| 业务 BOM SNAPSHOT vs RELEASE | 业务组件 API 常变用 SNAPSHOT(灵活)，但下游不稳定；RELEASE 稳定但升级慢（见第 1 篇 KP-14） |
 | 继承 vs 组合基础设施 BOM | 继承简单但耦合；组合(import)灵活 |
 | api/data/core/web 分层 vs 其他分层(如 DDD 四层) | 该分层是"技术分层"，DDD 是"领域分层"——可结合(在 core 里用 DDD 聚合) |
 
