@@ -182,7 +182,7 @@ docs 覆盖了"统一模型 + 校验 + 异常 + 隐形包装"。作为架构师�
 
 1. **统一响应/错误码规范**：不只"有 code/message"，而是**全公司的错误码规范**（错误码分段、国际化文案、与 HTTP 状态码映射、前端如何消费）——这是 API 治理的核心
 2. **REST 语义正确性**：HTTP 方法(GET/POST/PUT/DELETE)语义、状态码(200/201/4xx/5xx)正确使用、资源命名、分页/过滤/排序（RESTful 设计规范）
-3. **幂等性设计**：幂等键(Idempotency-Key)、POST 幂等、重试安全——docs 只提 Redis Token，完整方案要讲幂等键 header、分布式锁
+3. **幂等性设计**：幂等键(Idempotency-Key)、POST 幂等、重试安全——docs 只提 Redis Token(KP-09)，架构师补充幂等键 header、分布式锁等更完整方案
 4. **API 版本策略**：URI 版本(/v1/)vs Header 版本 vs 参数版本，平滑升级、废弃策略（docs 只提"多版本"）
 5. **安全**：认证(认证头/JWT)、授权、限流(API 网关层)、防注入——REST API 的安全边界
 6. **性能**：JSON 序列化性能、DTO 设计(避免 N+1/大对象)、缓存(HTTP 缓存/响应缓存)
@@ -193,11 +193,11 @@ docs 覆盖了"统一模型 + 校验 + 异常 + 隐形包装"。作为架构师�
 | 决策 | 权衡 |
 |------|------|
 | 统一响应壳(ApiResponse) vs 裸数据 | 统一壳一致/可扩展，但包装开销 + 非 REST 纯粹；很多团队用裸数据 + 全局异常 |
-| 业务错误码 vs HTTP 状态码 | 业务码表达业务语义(细分)，HTTP 码表达传输；两者要映射 |
+| 业务错误码 vs HTTP 状态码 | 业务码表达业务语义(细分)，HTTP 码表达传输；两者要映射（见 KP-03 响应模型） |
 | @Valid Bean Validation vs 手写校验 | 声明式标准/可复用，但复杂校验仍需代码；手写灵活但重复 |
 | 隐形包装(ReturnValueHandler) vs 手动返回 ApiResponse | 隐形包装不侵入业务，但隐式(需理解框架)；手动显式但繁琐 |
 | @RestControllerAdvice vs 每方法 try-catch | 全局统一 vs 局部控制 |
-| Redis Token 幂等 vs 幂等键 header | Redis Token 简单；幂等键 header 更标准(客户端生成) |
+| Redis Token 幂等 vs 幂等键 header | Redis Token 简单；幂等键 header 更标准(客户端生成)（docs KP-09 只提 Redis Token，此为架构师补充） |
 
 ### 常见坑/反模式
 
