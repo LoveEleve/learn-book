@@ -54,18 +54,20 @@
 - **前置**：KP-01、概率
 - **需求**：按响应时间(反比)算权重，响应慢的实例分到更少流量
 - **自主实现**：响应时间短的权重高 → 按权重区间随机选
-- **参考实现**（docs 算法）：4 端点 A(wt=10)/B(30)/C(40)/D(20)，生成 1~100 随机数，按累计区间分配——1-10→A，11-40→B，41-80→C，81-100→D；**统计不足时回退 RoundRobinRule**
-- **对比取舍**：核心是"**按权重累计区间 + 随机数**"概率选择；权重由响应时间动态算出
-- **测试佐证**：docs 给出完整权重区间示例
+- **参考实现**（docs 算法，来自 Ribbon `WeightedResponseTimeRule`）：4 端点 A(wt=10)/B(30)/C(40)/D(20)，生成 1~100 随机数，按累计区间分配——1-10→A，11-40→B，41-80→C，81-100→D；**统计不足时回退 RoundRobinRule**
+- **现代等价物**（已源码验证）：Spring LoadBalancer `WeightedServiceInstanceListSupplier` + `WeightFunction`（int apply(ServiceInstance)），默认 metadataWeightFunction 读实例 metadata 的 `weight` key——用 ServiceInstanceListSupplier 扩展点实现权重，而非自定义 IRule
+- **对比取舍**：核心是"**按权重累计区间 + 随机数**"概率选择（时间无关）；Ribbon 用 IRule 实现(过时)，现代 LoadBalancer 用 WeightedServiceInstanceListSupplier + WeightFunction（有源码）
+- **测试佐证**：docs 完整权重区间示例 + `code/spring/spring-cloud-commons/spring-cloud-loadbalancer` 的 `WeightedServiceInstanceListSupplier`/`WeightFunction`
 
 ### KP-04 Ribbon 负载均衡规则接口（IRule 及其实现）
 - **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[过时→LoadBalancer]` | **置信度**：High
 - **前置**：KP-03
 - **需求**：定义可插拔的负载均衡策略
-- **自主实现**：定义 IRule 接口，各实现(随机/轮询/权重)可替换
+- **自主实现**：定义规则接口，各实现(随机/轮询/权重)可替换
 - **参考实现**：Ribbon `IRule`——RandomRule(随机)/RoundRobinRule(轮询)/WeightedResponseTimeRule(权重响应时间)
-- **对比取舍**：**策略模式**——规则可插拔；现代 LoadBalancer 用 ReactorServiceInstanceLoadBalancer 类似
-- **过时说明**：Ribbon 已过时(Netflix OSS)，现代 Spring LoadBalancer 实现等价策略
+- **现代等价物**（已源码验证）：Spring LoadBalancer 用 `ReactorServiceInstanceLoadBalancer`（RandomLoadBalancer/RoundRobinLoadBalancer）+ `ServiceInstanceListSupplier`（WeightedServiceInstanceListSupplier）——策略模式思想一致
+- **对比取舍**：**策略模式**——规则可插拔；Ribbon 用 IRule(过时)，现代 LoadBalancer 用 LoadBalancer 接口 + Supplier
+- **过时说明**：Ribbon 已过时(Netflix OSS)，现代 Spring LoadBalancer 有等价实现（有源码）
 
 ### KP-05 服务列表管理与更新（ServerList/ServerListUpdater）
 - **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[过时→LoadBalancer]` | **置信度**：High
@@ -73,9 +75,9 @@
 - **需求**：负载均衡器需要最新的服务实例列表
 - **自主实现**：从注册中心获取实例列表 + 定期更新
 - **参考实现**：Ribbon `ServerList`（getInitialListOfServers/getUpdatedListOfServers）+ `ServerListUpdater`（PollingServerListUpdater 30s 更新）；DiscoveryEnabledNIWSServerList 整合 DiscoveryClient
-- **对比取舍**：服务列表动态更新是负载均衡的基础；现代用 ServiceInstanceListSupplier
-- **过时说明**：Ribbon 过时，现代 LoadBalancer 用 ServiceInstanceListSupplier（第 11 节）
-- **待验证**：现代 LoadBalancer 实例列表更新
+- **现代等价物**（已源码验证）：Spring LoadBalancer `ServiceInstanceListSupplier`（DiscoveryClientServiceInstanceListSupplier 从注册中心获取 + CachingServiceInstanceListSupplier 缓存/更新 + HealthCheckServiceInstanceListSupplier）；WeightedServiceInstanceListSupplier 是装饰器链一环
+- **对比取舍**：服务列表动态更新是负载均衡的基础；Ribbon 用 ServerList+Updater(过时)，现代 LoadBalancer 用 ServiceInstanceListSupplier 链（有源码）
+- **过时说明**：Ribbon 过时，现代 LoadBalancer 用 ServiceInstanceListSupplier（第 11 节已讲，此处给出现代等价物源码类）
 
 ### KP-06 Ribbon 与 OpenFeign 整合
 - **维度**：`[工程问题]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[过时→LoadBalancer]` | **置信度**：High
@@ -138,11 +140,10 @@
 3. **按权重累计区间 + 随机数**选择实例（概率选择）
 4. 权重动态更新（随指标）
 
-**参考实现**：Ribbon `WeightedResponseTimeRule`（docs 完整算法：A/B/C/D 权重区间 1-10/11-40/41-80/81-100 + 随机数）。**Ribbon/Servo 是 Netflix OSS 已过时**，现代用 Spring LoadBalancer（有源码）+ Micrometer。
+**参考实现**：Ribbon `WeightedResponseTimeRule`（docs 完整算法：A/B/C/D 权重区间 1-10/11-40/41-80/81-100 + 随机数）——**过时**；现代等价物已源码验证：Spring LoadBalancer `WeightedServiceInstanceListSupplier` + `WeightFunction`（读实例 metadata 的 weight）。
 
-**对比取舍**：知识本体是"**动态权重负载均衡算法**"（概率选择 + 权重累计区间）。Ribbon 是参考实现的过时版本，按方法论 04 标过时→LoadBalancer。核心算法思想（按权重区间随机）是通用的。
+**对比取舍**：知识本体是"**动态权重负载均衡算法**"（概率选择 + 权重累计区间）。Ribbon 是过时参考（04 标过时→LoadBalancer），**现代等价物 WeightedServiceInstanceListSupplier + WeightFunction 已源码验证**（code/spring/spring-cloud-commons/spring-cloud-loadbalancer）。核心算法思想（按权重区间随机）通用。
 
 **待验证汇总**：
-- 现代 LoadBalancer 动态权重实现
-- 现代 LoadBalancer 独立上下文/实例列表更新
+- modern LoadBalancer 独立上下文（NamedContextFactory）细节
 - microsphere 动态权重负载均衡
