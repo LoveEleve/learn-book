@@ -141,7 +141,7 @@
 
 docs 覆盖了"Actuator Prometheus Endpoint + Eureka 服务发现 + Grafana"。作为架构师，这个主题完整还该包含：
 
-1. **Pull vs Push 的完整权衡**：不只"Prometheus 用 Pull"，而是**Pull vs Push 对比**——Pull(平台主动抓取，可控、易水平扩展，但需服务发现/暴露端点) vs Push(应用主动上报，简单但应用要知道平台地址、可能丢点)——选型看场景(第 16 节 Push 对比)
+1. **Pull vs Push 的完整权衡**：不只"Prometheus 用 Pull"，而是**Pull vs Push 对比**——Pull(平台主动抓取，可控、易水平扩展，但需服务发现/暴露端点) vs Push(应用主动上报，简单但应用要知道平台地址、可能丢点)——选型看场景（Push 模式本篇只简述，第 16 节为 Push 专题，后续提取时再展开）
 2. **指标生命周期与存储**：指标抓取后的**存储、保留期、压缩、查询**（Prometheus 时序库 TSDB 模型、第 13 节指标）+ 远程存储(Thanos/Cortex 水平扩展)
 3. **监控平台的完整组件**：不止"抓取+展示"，而是**采集器(Prometheus)、存储(TSDB)、告警(Alertmanager)、可视化(Grafana)、目标发现(服务发现)**——一套完整可观测平台
 4. **告警体系**：指标 → 告警规则 → Alertmanager 通知——指标要可告警(第 13 节指标与告警衔接)
@@ -153,7 +153,7 @@ docs 覆盖了"Actuator Prometheus Endpoint + Eureka 服务发现 + Grafana"。�
 
 | 决策 | 权衡 |
 |------|------|
-| Pull vs Push | Pull(可控、易扩展，需发现/暴露端点)；Push(简单，应用主动上报，可能丢点)——第 16 节对比 |
+| Pull vs Push | Pull(可控、易扩展，需发现/暴露端点)；Push(简单，应用主动上报，可能丢点)——Push 为第 16 节专题，本篇仅简述 |
 | 内嵌监控 vs 独立平台 | 内嵌(Actuator 端点)轻；独立平台(Prometheus+Grafana)完整但重 |
 | 全量抓取 vs 采样 | 全量准但成本高；采样省资源但丢细节(第 13 节) |
 | 服务发现 vs 静态配置 | 服务发现(动态、自动，Nacos/K8s)灵活；静态配置(简单)但手动维护 |
