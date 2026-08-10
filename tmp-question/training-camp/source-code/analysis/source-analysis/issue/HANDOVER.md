@@ -1,8 +1,8 @@
 # Spring 生态源码分析 — 交接文档 v5
 
-> **日期**: 2026-08-09
-> **状态**: Stage 1 — Netty 13 章 ✅ | Tomcat T-1/5 ✅ v5 (首轮即达 v5 标准) | T-2~T-5 ⏳
-> **v5 更新**: T-1 容器+Lifecycle 知识规划完成(232行KP/4篇大纲/15问/§0.6规范参考实现多维/源码验证0错误)；Ch12+Ch14 源码级深审完成
+> **日期**: 2026-08-10
+> **状态**: Stage 1 全部完成 — Netty 13 章 ✅ | Tomcat 5 域 (T-1~T-5) ✅ | 52 篇 v5 / 连续五域源码验证零错误
+> **v5 更新**: Tomcat 5/5域全部完成(16篇大纲/47问/0%行号错误)；淘汰机制已修复+方法论§8固化为中英双版; next=Stage 2 Spring Framework
 
 ---
 
@@ -113,6 +113,18 @@
 
 每域完成 outline 后，从 ≥3 身份（开发者/架构师/学生）提 ≥10 问，每问标注大纲可定位节号。覆盖率必须 100%。
 
+### 0.11 淘汰机制处理
+
+**场景句(场景:)和数据流(数据流:)不能以淘汰的配置方式为主体**。必须以该框架在当代生态中的实际使用方式为主——淘汰机制仅作为"备选方案"附带提及。
+
+| 场景 | 淘汰方式 | 当代方式 |
+|------|------|------|
+| Tomcat 配置 | `server.xml` `<Connector>` | Spring Boot `server.port` / `TomcatServletWebServerFactory` |
+| Servlet/Filter 声明 | `web.xml` `<servlet>`/`<filter>` | `@WebServlet`/`@WebFilter` 注解 |
+| Valve 添加 | `server.xml` `<Valve>` | `WebServerFactoryCustomizer` → `addValve()` |
+
+**检测**: `grep -rn 'server\.xml\|web\.xml' outlines/` — 所有引用必须是为辅形式（"独立部署中..."），不能作为主场景句。
+
 ---
 
 ## §一 Netty — 全部 13 章 (36 篇)
@@ -165,8 +177,10 @@ gRPC-Java (`GrpcHttp2ConnectionHandler`) 和 Dubbo Triple 协议直接依赖 Net
 | T-1 容器+Lifecycle | 🔴 | Server→Engine→Host→Context→Wrapper | 4 | 15 ✅ | ✅ v5 |
 | T-2 Connector+Adapter | 🔴 | Http11NioProtocol/CoyoteAdapter/Request/Response | 4 | 12 ✅ | ✅ v5 |
 | T-3 Pipeline+双链 | 🔴 | StandardEngineValve→WrapperValve + ApplicationFilterChain | 4 | 11 ✅ | ✅ v5 |
-| T-4 线程模型 | 🟡 | NioEndpoint(Acceptor/Poller/Worker) | — | — | ⏳ |
-| T-5 Mapper路由 | 🟡 | Exact/Prefix/Extension/Default 四级 | — | — | ⏳ |
+| T-4 线程模型 | 🟡 | NioEndpoint(Acceptor/Poller/Worker) | 2 | 9 ✅ | ✅ v5 |
+| T-5 Mapper路由 | 🟡 | Exact/Prefix/Extension/Default 四级 | 2 | 8 ✅ | ✅ v5 |
+| T-6 ClassLoader | 🟡 | WebappClassLoader 打破双亲委派 + filter 名单 + 并行加载 | 1 | 3 ✅ | ✅ v5 |
+| T-7 SpringBoot集成 | 🟡 | TomcatServletWebServerFactory 全链路 + Customizer + 配置映射 | 2 | 3 ✅ | ✅ v5 |
 
 ### 启动命令
 

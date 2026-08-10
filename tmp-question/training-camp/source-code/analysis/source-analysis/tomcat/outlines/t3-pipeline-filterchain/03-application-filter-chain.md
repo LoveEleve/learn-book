@@ -6,7 +6,7 @@
 
 ### 1. internalDoFilter — pos 索引 + 回调式迭代
 
-场景: web.xml 配置了 3 个 Filter: AuthFilter → LoggingFilter → EncodingFilter — 最后执行 Servlet。Filter 链的执行不是简单的 for 循环 — Filter 可以在 `chain.doFilter()` **之前**做预处理 — **之后**做后处理 — 这才是 Filter 的强大之处。
+场景: 一个 Spring Boot 应用用了 3 个 `@WebFilter`: AuthFilter → LoggingFilter → EncodingFilter — 最后执行 Servlet。Filter 链的执行不是简单的 for 循环 — Filter 可以在 `chain.doFilter()` **之前**做预处理 — **之后**做后处理 — 这才是 Filter 的强大之处。`web.xml` 的 `<filter>` 和 `<filter-mapping>` 是传统的声明式配置 — 现代 Spring Boot 99% 用注解。
 
 源码路径:
 - `ApplicationFilterChain.java:117` — **doFilter()**: 入口 — 如果 request 是 HttpServletRequest→调 `internalDoFilter(req, res)` — 否则直接调
@@ -31,17 +31,17 @@
 |------|------|------|
 | 抽象层 | Tomcat 容器层级 (Engine/Host/Context/Wrapper) | Servlet 规范层 (Filter) |
 | 谁定义 | Tomcat 源码 (Valve 接口) | Servlet 规范 (Filter 接口) |
-| 配置方式 | server.xml `<Valve>` | web.xml `<filter>` 或 `@WebFilter` |
+| 配置方式 | 程序化 API `addValve()`, 独立部署 `server.xml` | `@WebFilter` 注解, 或 `web.xml` `<filter>` |
 | 链结构 | 单向链表 getNext()/setNext() | 数组 filters[] + pos 索引 |
 | 传递方式 | `getNext().invoke()` — 显式 | `chain.doFilter()` — 回调 |
 | 终端 | basic Valve(StandardWrapperValve) | servlet.service() |
 | 生命周期 | 容器启动时创建，停止时销毁 | 请求级别: FilterChain 每次请求新建 |
 
-架构意图: **两链是 Tomcat 的 defense-in-depth 设计** — Valve 链处理容器级关注(路由/安全/集群)，Filter 链处理应用级关注(编码/认证/日志)。运维在 server.xml 加 Valve — 开发者在 web.xml 加 Filter — 两个角色不需要相互了解。 [模式: Layered Architecture — Valve 链在上层, Filter 链在下层]
+架构意图: **两链是 Tomcat 的 defense-in-depth 设计** — Valve 链处理容器级关注(路由/安全/集群 — 程序化配置或独立部署 XML)，Filter 链处理应用级关注(编码/认证/日志 — `@WebFilter` 注解)。运维和开发者两个角色不需要相互了解对方层的配置方式。 [模式: Layered Architecture — Valve 链在上层, Filter 链在下层]
 
 ### 3. ApplicationFilterFactory — URL Pattern 匹配
 
-场景: web.xml 中定义 `<filter-mapping><url-pattern>/api/*</url-pattern></filter-mapping>` — Filter 只匹配 /api/ 开头的请求 — 不匹配 /static/ 请求。FilterFactory 根据 URL pattern 动态构建 Filter 链 — 不是所有 Filter 都对每个请求生效。
+场景: `@WebFilter(urlPatterns = "/api/*")` — Filter 只匹配 /api/ 开头的请求 — 不匹配 /static/ 请求。FilterFactory 根据 URL pattern 动态构建 Filter 链 — 不是所有 Filter 都对每个请求生效。web.xml 的 `<filter-mapping>` 是传统的声明式配置。
 
 源码路径: `ApplicationFilterFactory.createFilterChain(request, wrapper, servlet)` — 检查 context 的所有 FilterMap → 匹配 URL pattern 或 Servlet name → 把匹配的 FilterConfig 加入 FilterChain → 返回。
 

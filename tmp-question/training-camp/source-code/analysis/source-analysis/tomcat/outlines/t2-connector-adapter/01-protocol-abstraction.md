@@ -6,7 +6,7 @@
 
 ### 1. Protocol 三层继承 — AbstractProtocol→AbstractHttp11→Http11NioProtocol
 
-场景: `server.xml` 里配了 `<Connector port="8080" protocol="HTTP/1.1">` — 这个 `<Connector>` 标签如何映射到 Java 类？Tomcat 用 protocol 字符串查找 `Http11NioProtocol` — 这就是 "一个 Connector = 一个 Protocol + 一个 Endpoint" 的设计。
+场景: Spring Boot 项目 `server.port=8080` — 背后是如何创建 Connector 的？`TomcatServletWebServerFactory` 通过 `Tomcat.getConnector()` 或 `Connector(Http11NioProtocol())` 创建 — 这就是 "一个 Connector = 一个 Protocol + 一个 Endpoint" 的设计。在独立部署的 Tomcat 中，同样的映射通过 `server.xml` 的 `<Connector protocol="HTTP/1.1">` 标签完成 — 底层都是用 protocol 字符串反射到 `Http11NioProtocol`。
 
 源码路径:
 - `Http11NioProtocol.java:33-35` — 构造器: `new NioEndpoint()` 创建底层 NIO 传输 → `super(endpoint)` 传给父类 AbstractHttp11JsseProtocol
@@ -18,7 +18,7 @@
 
 → 实现规范: 非 Servlet 规范直接定义 — 但 `ProtocolHandler` 接口是 Tomcat 对"网络协议处理"的抽象。`Adapter` 接口是 Tomcat 对"协议层→容器层"的桥接抽象。
 
-数据流: `server.xml 解析`→找到 protocol="HTTP/1.1"→反射 `Http11NioProtocol.class`→`new Http11NioProtocol()`→`new NioEndpoint()`→`super(endpoint)` 设置 endpoint 字段→`Connector.setProtocolHandler(protocol)`→`connector.init()`→`protocol.init()`→`endpoint.init()`→`endpoint.bind()`(监听 8080)→`protocol.start()`→`endpoint.start()`→Acceptor 线程开始 accept()。
+数据流: Spring Boot `server.port=8080`→`TomcatServletWebServerFactory.getWebServer()`→`Tomcat tomcat = new Tomcat()`→`Connector connector = new Connector("HTTP/1.1")`→反射 `Http11NioProtocol.class`→`new Http11NioProtocol()`→`new NioEndpoint()`→`super(endpoint)` 设置 endpoint 字段→`tomcat.getService().addConnector(connector)`→`tomcat.start()`→`connector.init()`→`protocol.init()`→`endpoint.init()`→`endpoint.bind()`(监听 8080)→`protocol.start()`→`endpoint.start()`→Acceptor 线程开始 accept()。独立 Tomcat 部署中，`server.xml` 的 `<Connector>` 标签通过 Digester 解析达到同样的效果。
 
 ### 2. Endpoint 解耦 — 为什么不用一个类搞定 Protocol + I/O？
 

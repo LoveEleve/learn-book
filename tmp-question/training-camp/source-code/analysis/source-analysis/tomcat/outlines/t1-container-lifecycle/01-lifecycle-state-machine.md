@@ -22,7 +22,7 @@
 
 源码路径: `Lifecycle.java:90-166`。13 种事件常量: `BEFORE_INIT`/`AFTER_INIT`/`START`/`BEFORE_START`/`AFTER_START`/`STOP`/`BEFORE_STOP`/`AFTER_STOP`/`BEFORE_DESTROY`/`AFTER_DESTROY`/`PERIODIC`/`CONFIGURE_START`/`CONFIGURE_STOP`。`Lifecycle.java:172-194` — `addLifecycleListener`/`removeLifecycleListener`/`findLifecycleListeners`。
 
-关键设计: **观察者模式** — 容器状态变化时通知所有注册的 Listener，Listener 本身不干预状态转换(只读消费)。`CONFIGURE_START`/`CONFIGURE_STOP` 是为 `server.xml` 解析设计的——外部配置(XML 解析器)在 `STARTING_PREP` 阶段通过 `CONFIGURE_START_EVENT` 将配置注入到容器属性——容器不用依赖 XML 解析器。`PERIODIC` 用于定期后台任务——`StandardServer.startPeriodicLifecycleEvent()`(L880-894) 通过 utilityExecutor 调度，触发定期事件给监听器。 [模式: Observer]
+关键设计: **观察者模式** — 容器状态变化时通知所有注册的 Listener，Listener 本身不干预状态转换(只读消费)。`CONFIGURE_START`/`CONFIGURE_STOP` 是配置注入的事件点 — Spring Boot 的自动配置、独立部署的 `server.xml` 解析都通过此事件将配置注入到容器属性 — 容器不用依赖特定的配置来源。`PERIODIC` 用于定期后台任务 — `StandardServer.startPeriodicLifecycleEvent()`(L880-894) 通过 utilityExecutor 调度。 [模式: Observer]
 
 数据流: 外部注册 `server.addLifecycleListener(myListener)`→`LifecycleBase.start()`→`setState(STARTING_PREP)`→`fireLifecycleEvent(BEFORE_START_EVENT, null)`→遍历 listeners→各 listener.lifecycleEvent(event)→...→`setState(STARTED)`→`fireLifecycleEvent(AFTER_START_EVENT, null)`→listener 收到通知。
 

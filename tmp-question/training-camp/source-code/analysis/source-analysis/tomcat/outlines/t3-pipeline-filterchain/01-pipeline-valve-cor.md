@@ -6,7 +6,7 @@
 
 ### 1. Pipeline 接口 — basic Valve + 附加 Valves 的双层设计
 
-场景: 运维在 `server.xml` 的 `<Engine>` 中加了 `<Valve className="AccessLogValve"/>` — 希望每个请求都被记录访问日志 — 在进入核心处理逻辑之前/之后都可以插入逻辑。Tomcat 的方案: **basic Valve = 容器核心逻辑(必须最后执行)**，**addValve = 可插入的扩展逻辑(在 basic 之前)**。
+场景: 需要对所有请求做访问日志记录 — 在 Spring Boot 中通过 `WebServerFactoryCustomizer` 程序化添加: `tomcat.getEngine().getPipeline().addValve(new AccessLogValve())` — 希望在进入容器核心逻辑前后都可以插入逻辑。独立 Tomcat 部署中通过 `server.xml` 的 `<Valve>` 标签配置同样的效果。Tomcat 的方案: **basic Valve = 容器核心逻辑(必须最后执行)**，**addValve = 可插入的扩展逻辑(在 basic 之前)**。
 
 源码路径:
 - `Pipeline.java:24-32` — Javadoc: "basic Valve always executed last — additional Valves added before it"
@@ -19,7 +19,7 @@
 
 架构意图: **管道与容器同构** — T-1 学了 Container 树(每一层是一个 Container)。T-3 揭示了: 每个 Container 有一个 Pipeline — Pipeline 的第一个 Valve 被上一层的 Valve 调用 — 级联是: EngineValve→Host Pipeline→HostValve→Context Pipeline→ContextValve→Wrapper Pipeline→WrapperValve→FilterChain — **树结构递归进入管道结构**。
 
-数据流: `server.xml`→解析 `<Valve>` → `container.getPipeline().addValve(new AccessLogValve())`→AccessLogValve 添加到链头→`container.getPipeline().addValve(new RemoteAddrValve())`→RemoteAddr 插入到链头(AccessLog 之前)→链顺序: RemoteAddr→AccessLog→basic(EngineValve)。请求: `pipeline.getFirst().invoke()`(first=RemoteAddr)→RemoteAddr.invoke()→检查 RemoteAddr→`getNext().invoke()`→AccessLog.invoke()→记录开始时间→`getNext().invoke()`→EngineValve.invoke()→选择 Host→进入 Host Pipeline...
+数据流: 程序化配置 `engine.getPipeline().addValve(new AccessLogValve())`→AccessLogValve 添加到链头→`engine.getPipeline().addValve(new RemoteAddrValve())`→RemoteAddr 插入到链头(AccessLog 之前)→链顺序: RemoteAddr→AccessLog→basic(EngineValve)。请求: `pipeline.getFirst().invoke()`(first=RemoteAddr)→RemoteAddr.invoke()→检查 RemoteAddr→`getNext().invoke()`→AccessLog.invoke()→记录开始时间→`getNext().invoke()`→EngineValve.invoke()→选择 Host→进入 Host Pipeline...
 
 ### 2. Valve 接口 — 单向链表 + invoke 契约
 
@@ -41,6 +41,6 @@
 
 源码路径: 每个容器的构造器或 `initInternal()` 中设置 basic Valve: `StandardEngine` 设置 `StandardEngineValve`、`StandardHost` 设置 `StandardHostValve`、`StandardContext` 设置 `StandardContextValve`、`StandardWrapper` 设置 `StandardWrapperValve`。`Pipeline` 由 `ContainerBase` 在构造器中创建。
 
-关键设计: **Why basic Valve 在容器创建时而非配置时设置？** basic Valve 是容器自身的核心逻辑 — 不需要外部配置 — 它在容器创建时就应该存在。`server.xml` 只能通过 `<Valve>` 元素添加额外的 Valves — 不能删除 basic。addValve 在 `server.xml` 解析时调用 — CONFIGURE_START_EVENT 触发。
+关键设计: **Why basic Valve 在容器创建时而非配置时设置？** basic Valve 是容器自身的核心逻辑 — 不需要外部配置 — 它在容器创建时就应该存在。额外的 Valves 通过程序化 API `addValve()` 添加 — Spring Boot 中通过 `WebServerFactoryCustomizer` 访问 Pipeline — 独立 Tomcat 中通过 `server.xml` 解析时调用。两种方式都不能删除 basic。
 
 → 引出 §2 4 Valve 级联 — 理解了 Pipeline+Valve 的 CoR 骨架 — 但 Engine/Host/Context/Wrapper 各自有一个 Pipeline — 每个 Pipeline 的 basic Valve 是什么? 每个 basic Valve 做了什么? 怎么级联?

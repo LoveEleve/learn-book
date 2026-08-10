@@ -16,7 +16,7 @@
 
 关键设计: **Facade 模式** — `StandardServer` 对外暴露单一 `Server` 接口，内部管理 Service 组数、utilityExecutor、Naming、JMX。外部(Catalina)只需 `server.start()` 和 `server.await()` 两个调用——不需知道内部有多少个 Service。**port=-1 模式**是容器管理(SIGTERM)的标准方式——不暴露 TCP shutdown 端口——外部通过 `kill <pid>` 发送 SIGTERM→JVM ShutdownHook→`server.stop()`→`stopAwait=true`→`await()` 返回。**防 DoS 随机种子** (L580-585): 攻击者可能精确填满 1024 字节缓冲区+下一个字节为 "SHUTDOWN"——随机化期望长度使攻击不可行。 [模式: Facade]
 
-数据流: `Catalina.start()`→`server.start()`→`LifecycleBase.start()`→`startInternal()`→fire CONFIGURE_START_EVENT→外部 server.xml 解析器注入配置→setState(STARTING)→`globalNamingResources.start()`→for each service: `service.start()`→各 Service 内部走自己的 startInternal→返回→utilityExecutor.scheduleWithFixedDelay(periodicEvent)→setState(STARTED)→`server.await()` 阻塞。
+数据流: `Catalina.start()`→`server.start()`→`LifecycleBase.start()`→`startInternal()`→fire CONFIGURE_START_EVENT→配置注入(Spring Boot 自动配置或独立部署 XML 解析)→setState(STARTING)→`globalNamingResources.start()`→for each service: `service.start()`→各 Service 内部走自己的 startInternal→返回→utilityExecutor.scheduleWithFixedDelay(periodicEvent)→setState(STARTED)→`server.await()` 阻塞。
 
 ### 2. StandardService — Engine+Connector+Mapper 三要素桥梁
 

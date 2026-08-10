@@ -31,9 +31,9 @@
 
 关键设计: **Why autoDeploy 在 Host 层？** Context 代表一个 Web 应用——Host 代表一个虚拟主机——一个 Host 下有多个 Context。部署粒度是 Context——Host 是自然的管理者。如果 autoDeploy 在 Engine 层——Engine 需要遍历所有 Host→再扫描每个 Host 的 Context——两层嵌套。Host 层管理自己的 appBase——职责单一清晰。
 
-→ 实现规范: `Host` → Servlet 规范 2.3 §9.2.2 — Host 代表一个虚拟主机(域名)。在 Tomcat 中对应 `server.xml` 的 `<Host name="localhost" appBase="webapps">` 配置。规范说 Host 可以有多个 Context——Tomcat 实现为 children Map 中的 Context 条目。
+→ 实现规范: `Host` → Servlet 规范 2.3 §9.2.2 — Host 代表一个虚拟主机(域名)。规范说 Host 可以有多个 Context — Tomcat 实现为 children Map 中的 Context 条目。Spring Boot 中通过 `server.servlet.context-path` 程序化配置，独立部署中对应 `server.xml` 的 `<Host>` 标签。
 
-数据流: `deployOnStartup=true`→`Host.startInternal()`→扫描 `appBase` 目录→发现 `ROOT/`,`app.war`,`manager/`→为每个创建 `StandardContext` 实例→`context.setDocBase("webapps/ROOT")`→`host.addChild(context)`→addChild 触发 MapperListener→Mapper 建立路由映射→context.start()→加载 web.xml→Servlet 初始化→loadOnStartup Servlet。
+数据流: `deployOnStartup=true`→`Host.startInternal()`→扫描 `appBase` 目录→发现 `ROOT/`,`app.war`,`manager/`→为每个创建 `StandardContext` 实例→`context.setDocBase("webapps/ROOT")`→`host.addChild(context)`→addChild 触发 MapperListener→Mapper 建立路由映射→context.start()→Spring Boot 自动配置扫描 `@WebServlet`/@WebFilter 等注解(或独立部署中解析 web.xml)→Servlet 初始化→loadOnStartup Servlet。
 
 ### 3. StandardContext — Wrapper 子容器 + docBase + 规范核心映射点
 
@@ -49,7 +49,7 @@
 
 → 实现规范: `Context` → `ServletContext` (1.0) / `ServletRegistration` (3.0) / `FilterRegistration` (3.0)。Servlet 规范的一个 Web 应用 = 一个 Context，Context 包含多个 Wrapper(每个 Servlet 一个)。
 
-数据流: `host.addChild(context)`→context 被加入 Host 的 children Map→context.start()→`Context.startInternal()`→读取 web.xml→创建 Wrappers(每个 `<servlet>` 一个 StandardWrapper)→`context.addChild(wrapper)` 加入 children→按 loadOnStartup 排序启动 Servlets→`getServletContext()` 的 ApplicationContext 就绪→`context STARTED`。
+数据流: `host.addChild(context)`→context 被加入 Host 的 children Map→context.start()→`Context.startInternal()`→发现 Servlet(Spring Boot `@WebServlet` 注解扫描 或 独立部署 web.xml)→创建 Wrappers(每个 Servlet 一个 StandardWrapper)→`context.addChild(wrapper)` 加入 children→按 loadOnStartup 排序启动 Servlets→`getServletContext()` 的 ApplicationContext 就绪→`context STARTED`。
 
 ### 4. StandardWrapper — 末级容器 + servletClass/loadOnStartup + loadServlet
 

@@ -231,3 +231,36 @@ Audit outcomes may be:
 - **No changes**: Original scope planning is reasonable → proceed directly to §1 source extraction
 - **Minor adjustments**: Remove domains replaced by ecosystem (e.g., Tomcat Session → replaced by Spring Session Redis) → adjust domain count
 - **Dimension supplementation**: Without increasing domain count, add spec/pattern/architecture annotations to knowledge planning
+
+## 8. Handling Obsolete Mechanisms — Scenes/Data Flows Must Use Contemporary Ecosystem as Primary
+
+### 8.1 Principle
+
+In source code analysis articles, **scene sentences (场景:) and data flows (数据流:) must not use obsolete configuration styles as the reader's default experience**. The framework's actual usage in the contemporary ecosystem must be the primary presentation — obsolete mechanisms may only be mentioned secondarily as "alternative approaches."
+
+### 8.2 Typical Scenarios
+
+**Tomcat/Servlet Container Projects**:
+
+| Obsolete Style | Contemporary Style | Rule |
+|------|------|------|
+| `server.xml` `<Connector>` configuration | Spring Boot `server.port=8080` / `TomcatServletWebServerFactory` programmatic config | Contemporary as primary; `server.xml` only as "in standalone deployments..." appendix |
+| `web.xml` `<servlet>`/`<filter>` declarations | `@WebServlet`/`@WebFilter` annotations / Spring Boot auto-config scanning | Annotations as contemporary; `web.xml` as "in traditional deployments..." appendix |
+| `server.xml` `<Valve>` configuration | `WebServerFactoryCustomizer` → `engine.getPipeline().addValve()` | Programmatic API as primary |
+
+**Detection method**: `grep -rn 'server\.xml\|web\.xml' outlines/` → All references must be in secondary form ("in standalone deployments...", "in traditional deployments..."), never as the main scene sentence.
+
+### 8.3 Judgment Criteria
+
+Whether a mechanism is "obsolete" is not about whether it still exists in source code (source may retain extensive historical compatibility code), but about **whether mainstream usage in the current ecosystem has migrated to alternatives**. Judgment flow:
+
+1. How does the mechanism's configuration work in contemporary projects (Spring Boot 2.x+/Quarkus/Micronaut)?
+2. If the contemporary approach differs from the historical one → use contemporary approach as the main scene in outlines
+3. Historical approach only appears as an appendix note "for understanding the underlying principle," never as the first-reading scene entry point
+
+### 8.4 Why This Matters
+
+Readers have a strong "present-tense reflex" to source code analysis scene sentences — if the first sentence mentions `server.xml` configuration, a modern developer will judge "this is legacy / I don't need to learn this." Contemporary-primary scene sentences **immediately connect the source code analysis to the reader's daily development experience**, significantly improving learning motivation and retention.
+
+**Bad example**: "Configured in `server.xml`: `<Connector port="8080" protocol="HTTP/1.1">`"
+**Good example**: "Spring Boot `server.port=8080` — how does `TomcatServletWebServerFactory` create the Connector behind the scenes? In standalone deployments, `server.xml` achieves the same effect through reflection to `Http11NioProtocol`"
