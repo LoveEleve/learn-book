@@ -66,7 +66,7 @@
 - **测试佐证**：biz-api/enums/StatusCode.java 存在
 
 ### KP-05 服务端 API 校验设计（Bean Validation）
-- **维度**：`[规范]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
+- **维度**：`[规范]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[过时→Jakarta Validation]` | **置信度**：High
 - **前置**：Bean Validation 基本使用
 - **需求**：服务端统一校验请求参数
 - **自主实现**：用 Bean Validation 注解(@Valid/@NotNull)声明式校验，避免手写校验逻辑
@@ -76,6 +76,7 @@
   - Spring 适配：`LocalValidatorFactoryBean` / `OptionalValidatorFactoryBean`
   - 不兼容框架：Netty / Hibernate / JBoss Common Logger（注意隔离）
 - **对比取舍**：**推荐 Bean Validation 扩展，不推荐 Spring WebMVC 自定义扩展**——声明式、标准、可复用
+- **过时说明**：docs 与 biz-project 基于 **`javax.validation`**（Spring Boot 2.x 时代）；现代（EE9+/Spring Boot 3.x）已迁移到 **`jakarta.validation`**。机制不变，命名空间迁移。
 - **待验证**：EL 2.0 具体版本要求
 
 ### KP-06 服务端 API 异常处理（统一异常）
@@ -111,12 +112,13 @@
 - **待验证**：可用 spring-framework 源码进一步验证链路
 
 ### KP-09 服务端 API 幂等性 + 多版本
-- **维度**：`[分布式问题]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[时间无关模式]` | **置信度**：Medium
+- **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[时间无关模式]` | **置信度**：Medium
 - **前置**：Redis、Web 幂等性
 - **需求**：REST 幂等性校验 + 多版本 API 平滑升级
 - **自主实现**：幂等——用 Redis 判断请求 Token 是否已处理，存在则拦截；多版本——@RequestMapping 支持版本并行
 - **参考实现**：docs 提到"常规实现：Redis 判断请求 Token 是否存在"；"通用实现"未展开；多版本基于 WebMVC
 - **对比取舍**：Redis 幂等是常规方案；多版本用 URI/版本 header 实现并行（docs 未展开，Medium 置信度）
+- **权重说明**：幂等性是**服务治理核心问题**（面试高频、生产中常见，承载"重复请求安全"的核心决策），故升为 `[核心]`；多版本 part 仍较简略。
 - **待验证**：多版本 API 具体实现 docs 未展开
 
 ---
@@ -129,11 +131,11 @@
 | 请求模型 ApiRequest | 工程 | 核心 | P1 | 🔴 | High |
 | 响应模型 ApiResponse | 工程 | 核心 | P1 | 🔴 | High |
 | 业务 Code | 工程 | 核心 | P1 | 🟡 | High |
-| Bean Validation 校验 | 规范 | 核心 | P1 | 🔴 | High |
+| Bean Validation 校验 | 规范 | 核心 | P1 | 🔴 | High（过时→Jakarta Validation） |
 | 统一异常处理 | 工程 | 核心 | P1 | 🔴 | High |
 | POJO 隐形包装 | 工程 | 核心 | P1 | 🔴 | High |
 | WebMVC 核心流程 | 工程 | 核心 | P1 | 🔴 | High |
-| 幂等 + 多版本 | 分布式 | 支撑 | P2 | 🟡 | Medium |
+| 幂等 + 多版本 | 分布式 | 核心 | P2 | 🟡 | Medium |
 
 ---
 
@@ -160,4 +162,10 @@
 
 **参考实现**：小马哥 biz-api/biz-web 的 ApiResponse + ReturnValueHandler + ExceptionHandler 实证。
 
-**对比取舍**：本篇技术含量高——**核心是理解 WebMVC 流程**(你熟悉源码) + **统一模型/校验/异常/包装的设计思想**。业务错误码 ≠ HTTP 状态码是关键认知。幂等/多版本 docs 未展开(Medium)。
+**对比取舍**：本篇技术含量高——**核心是理解 WebMVC 流程**(你熟悉源码) + **统一模型/校验/异常/包装的设计思想**。业务错误码 ≠ HTTP 状态码是关键认知。幂等升为 `[核心]`（服务治理核心问题）。
+
+**待验证汇总**：
+- KP-05 EL 2.0 具体版本要求
+- KP-08 WebMVC 链路可用 spring-framework 源码验证
+- KP-09 多版本 API 具体实现 docs 未展开
+- microsphere-spring-web 是否有类似 HandlerMethodReturnValueHandler
