@@ -1,0 +1,172 @@
+# stage-1 · 第 2 节：业务工程模板定制 — 知识点提取
+
+> 课程：stage-1 服务治理 第 2 节
+> 来源 docs：`/data/workspace/java-training-camp/stage-1/docs/02. 第二节：业务工程模板定制.md`
+> 提取时间：2026-08-09 | 权重：核心（工程化主线）
+
+---
+
+## 一、本节概览
+
+- **技术域**：工程化（业务工程模块化 + BOM + 脚手架）
+- **维度**：`[工程问题]`（多模块/BOM/标准化结构）
+- **核心命题**：如何借鉴 Spring 模块化，定制一个**高内聚低耦合、可复用**的企业业务工程模板
+- **知识点数**：9 个
+- **前置**：第 1 节 Maven 基础（继承/聚合/BOM/依赖管理）
+
+## 前置条件清单
+读者需先掌握：
+1. **Maven 继承/聚合/依赖管理/BOM**（第 1 节已讲）
+2. **Spring Framework / Boot / Cloud 模块的基本划分**（了解各模块组织）
+未达前置者，先补：第 1 节 + Spring 官方文档"模块划分"页
+
+## 掌握度
+目标读者：**本人（读源码多，Maven/工程化工具弱）** — 已确认
+讲解策略：Maven/BOM 相关补基础；Spring 模块化直接讲（你熟悉）
+
+---
+
+## 二、知识点提取（三层次：需求 / 自主实现 / 参考实现）
+
+### KP-01 Spring 模块化设计
+- **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]`
+- **前置**：Spring 基本概念
+- **需求**：Spring 用"模块化"组织庞大功能，各模块职责单一、可独立依赖
+- **自主实现**：若我设计，按"职责边界"切模块（核心容器 / Web / 数据 / 云），每个模块一个 jar，按需依赖
+- **参考实现**：Spring Framework（core/beans/context/web...）→ Spring Boot（自动装配）→ Spring Cloud（分布式）三层模块化
+- **对比取舍**：模块化是"按需依赖"的根基——用哪个模块就依赖哪个 jar，避免全量引入
+- **关联 microsphere**：`[待验证]` microsphere-spring 模块按 Spring 分层组织
+
+### KP-02 业务工程模块化设计（高内聚低耦合）
+- **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]`
+- **前置**：KP-01 Spring 模块化
+- **需求**：业务应用借鉴 Spring 模块化，实现高内聚、低耦合，最小化 Artifact 依赖
+- **自主实现**：按"业务领域/职责"拆模块，每个模块只依赖必要的 Artifact，避免不必要的传递依赖
+- **参考实现**：小马哥提出"最小化 Artifact 依赖提炼"——只依赖需要的，控制传递依赖
+- **对比取舍**：这是工程化的核心思想——模块边界 = 职责边界，依赖要"最小化"
+
+**基础补充（你画像：工程化薄弱区）**：
+- **高内聚**：一个模块内部的东西联系紧密，都围绕同一职责（如 biz-api 只放接口/模型）
+- **低耦合**：模块之间依赖少、通过接口沟通，改一个不影响其他
+- **最小化 Artifact 依赖**：一个模块不要"顺便"依赖一堆无关 jar——只引自己真正用到的，否则传递依赖会爆炸
+- **package 命名规范**：`com.acme.biz.api` / `com.acme.biz.web`，按模块+层级命名
+
+### KP-03 标准化项目结构（api/data/core/web 分层）
+- **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]`
+- **前置**：第 1 节多模块层次
+- **需求**：定义一套标准的多模块项目结构，让所有业务应用遵循
+- **自主实现**：按职责分层——`api`(接口/模型/常量/枚举/注解) / `data`(数据存储) / `core`(核心逻辑) / `web`(主入口)
+- **参考实现**：
+  - **api**：接口(RPC OpenFeign/Dubbo + 业务接口)、模型(通讯/业务/框架)、常量、枚举、注解
+  - **data**：SQL(JDBC/Spring JDBC/MyBatis/JPA) + NoSQL(Redis/Mongo/ES)，技术栈 Spring Data
+  - **core/biz/service**：核心业务逻辑
+  - **web**：主工程，引导类(main class) + Spring Boot Maven Plugin
+- **对比取舍**：`biz-project` 实证——biz-api/biz-data/biz-core/biz-web + biz-dependencies
+- **测试佐证**：`/data/workspace/java-training-camp/stage-1/src/biz-project/` 下有 biz-api/biz-data/biz-core/biz-web/biz-dependencies 等模块，正是此分层
+
+**基础补充（你画像：工程化薄弱区）**：
+- 这套分层的本质是**职责分离**：接口定义(api)与实现(web/core)分开，数据访问(data)独立
+- **api 工程**为什么单独成模块？因为它是"契约"，要分发给消费方(其他服务)使用，所以只放接口/模型/常量/注解，不放实现
+- **web 工程**是"入口"，包含 main 类和打包配置，把 api/core/data 组装起来
+
+### KP-04 业务组件 BOM 设计
+- **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]`
+- **前置**：第 1 节 BOM 概念
+- **需求**：把业务 API 通过 Maven BOM 分发给其他应用
+- **自主实现**：建一个 `xxx-dependencies` 模块，集中管理业务组件依赖版本；继承/组合基础设施 BOM
+- **参考实现**：
+  - 命名：`xxx-dependencies`
+  - 继承或组合基础设施 BOM（基础设施依赖管理 → 继承开源 BOM）
+  - 聚焦业务组件依赖（大量业务组件 API）
+  - **缺点**：版本升级缺乏灵活度、臃肿；通常用 SNAPSHOT 升级（业务 BOM 保持 SNAPSHOT，组件用 RELEASE；或都 SNAPSHOT）
+- **对比取舍**：业务 BOM 是"版本治理"手段，但牺牲升级灵活度
+- **测试佐证**：microsphere-java 有 `microsphere-java-dependencies` 模块（BOM）；stage-1 有 `biz-dependencies`
+
+**基础补充（你画像：工程化薄弱区）**：
+- **BOM 分两类**：基础设施 BOM（管理 Spring Boot/Cloud 等三方库版本）+ **业务组件 BOM**（管理自家业务组件版本）
+- 业务 BOM 是"继承或组合"基础设施 BOM——你可以在业务 BOM 里 import 基础设施 BOM，再叠加业务组件版本
+- **SNAPSHOT vs RELEASE 在 BOM 的应用**：业务组件 API 常变，所以 BOM 用 SNAPSHOT 保持最新；但 SNAPSHOT 不稳定，是"升级灵活 vs 稳定"的权衡（呼应第 1 节 KP-14）
+
+### KP-05 业务组件依赖管理
+- **维度**：`[工程问题]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[时间无关模式]`
+- **前置**：第 1 节依赖管理
+- **需求**：多方业务组件统一管理
+- **自主实现**：用 BOM 统一声明业务组件版本，Spring Cloud/Boot 兼容性矩阵管理
+- **参考实现**：Spring Cloud 和 Spring Boot 兼容性矩阵（start.spring.io application.yml 的 compatibilityRange → version 映射）
+- **对比取舍**：兼容性矩阵是"版本配对"——Spring Boot 版本决定对应的 Spring Cloud 版本
+
+### KP-06 Spring Cloud 与 Spring Boot 兼容性矩阵
+- **维度**：`[工程问题]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[过时→2023.x/2025.x]`
+- **前置**：KP-05
+- **需求**：Spring Cloud 和 Spring Boot 版本必须配对，否则不兼容
+- **自主实现**：维护一张"Spring Boot 版本范围 → Spring Cloud 版本"的映射表
+- **参考实现**：`compatibilityRange: "[2.6.1,3.0.0-M1)" → 2021.0.4` 等区间映射（docs 里的 yaml）
+- **对比取舍**：选 Spring Boot 版本后，必须用匹配的 Spring Cloud 版本（如 2021.0.4 ↔ Boot 2.6.x）
+- **待验证**：最新兼容矩阵用 JDK17 时代版本更新
+
+### KP-07 Spring Boot 插件排除间接依赖
+- **维度**：`[工程问题]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[过时→3.x]`
+- **前置**：第 1 节排除依赖
+- **需求**：打包 FAT JAR 时排除不需要的间接依赖（如 lombok）
+- **自主实现**：在 spring-boot-maven-plugin 的 repackage 里配置 excludes
+- **参考实现**：`<excludes><exclude>lombok</exclude></excludes>` 排除 lombok（编译期注解处理，运行时不需要）
+- **对比取舍**：lombok 是编译期工具，不需要打包进运行时 jar，所以排除
+
+### KP-08 业务工程模板（Codebase/方法论）
+- **维度**：`[工程问题]` | **权重**：`[支撑]` | **深度**：🟢 | **优先级**：P3 | **过时**：`[时间无关模式]`
+- **前置**：无
+- **需求**：统一工程模板，约束工程行为
+- **自主实现**：定义 Codebase 统一结构 + 案例(samples) + 方法论
+- **参考实现**：基础设施 + 业务组件；方法论 DDD / TDD / BDD
+- **对比取舍**：模板 + 方法论是工程规范化的手段
+- **关联 microsphere**：无直接关联
+
+### KP-09 业务工程脚手架
+- **维度**：`[工程问题]` | **权重**：`[支撑]` | **深度**：🟢 | **优先级**：P3 | **过时**：`[时间无关模式]`
+- **前置**：无
+- **需求**：快速生成业务工程骨架
+- **自主实现**：用脚手架工具生成标准项目结构
+- **参考实现**：start.spring.io(Spring) / start.aliyun.com / code.quarkus.io(Java EE)
+- **对比取舍**：脚手架是"约定优于配置"的落地——生成的标准结构省去手工搭建
+- **关联 microsphere**：无直接关联
+
+---
+
+## 三、聚合与深度汇总
+
+| 知识点 | 维度 | 权重 | 优先级 | 深度 |
+|--------|------|:---:|:---:|:---:|
+| Spring 模块化 | 工程 | 核心 | P1 | 🟡 |
+| 业务工程模块化 | 工程 | 核心 | P1 | 🔴 |
+| 标准化结构(api/data/core/web) | 工程 | 核心 | P1 | 🔴 |
+| 业务组件 BOM | 工程 | 核心 | P1 | 🔴 |
+| 业务组件依赖管理 | 工程 | 支撑 | P2 | 🟡 |
+| 兼容性矩阵 | 工程 | 支撑 | P2 | 🟡 |
+| 插件排除间接依赖 | 工程 | 支撑 | P2 | 🟡 |
+| 工程模板 | 工程 | 支撑 | P3 | 🟢 |
+| 脚手架 | 工程 | 支撑 | P3 | 🟢 |
+
+---
+
+## 四、与 microsphere 的关联（参考实现已验证）
+
+- **BOM**：microsphere-java-dependencies 模块 = 业务组件 BOM 实证
+- **标准化结构**：stage-1 biz-project 的 biz-api/biz-data/biz-core/biz-web + biz-dependencies = api/data/core/web 分层实证
+- **继承+聚合**：延续第 1 节 microsphere-java 根 POM
+
+---
+
+## 五、本节小结（三层次视角）
+
+**需求**：定制一个可复用、高内聚低耦合的企业业务工程模板，用 BOM 统一版本治理，用标准化结构统一模块划分。
+
+**自主实现核心**：若我设计——
+1. 借鉴 Spring 三层模块化(核心/Web/数据)
+2. 标准分层 api/data/core/web 分离职责（api 是契约、web 是入口）
+3. 业务 BOM 集中管理业务组件版本
+4. Spring Cloud/Boot 兼容矩阵配对版本
+5. 打包排除编译期工具(lombok)
+
+**参考实现**：小马哥的 biz-project(api/data/core/web 分层) + microsphere-java-dependencies(BOM)正是这套的实证。
+
+**对比取舍**：本篇是"工程化主线"的延续——从第 1 节"怎么搭 Maven 多模块"到本节"怎么定业务工程模板"。你(读源码多)对 Spring 模块化熟悉，但 api/data/core/web 分层和 BOM 需要结合 biz-project 实际结构理解。
