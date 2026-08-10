@@ -178,3 +178,48 @@
 - 同步/异步 Servlet Boss/Worker（可用 NIO 源码验证）
 - Runtime.exit/ShutdownHook（可用 JDK17 验证）
 - microsphere-spring-boot 是否有 Tomcat 扩展
+
+---
+
+## 六、架构师视角补全（防井底之蛙）
+
+> **来源标注**：本节大部分为架构师发散(docs 未展开)；与 docs/前篇重复处已交叉引用。
+
+### 完整认知：Tomcat 在真实架构中完整该讲什么
+
+docs 覆盖了"组件层级 + 线程模型 + Spring Boot 整合 + 限流"。作为架构师，这个主题完整还该包含：
+
+1. **线程模型调优**：不只"线程池扩展顺序"，而是**Tomcat 线程池/连接器参数怎么调**（maxThreads/acceptCount/maxConnections/minSpareThreads 的关系）、线程池满时的拒绝策略、与阻塞/非阻塞(NIO)的关系
+2. **连接器与 NIO**：HTTP/1.1、HTTP/2、AJP 连接器；NIO/NIO2/APR 模型、Boss/Worker 线程（docs KP-06 提了，补全要展开）、keep-alive 与连接复用
+3. **生命周期与启动**：Server 组件生命周期(Lifecycle 接口)、Catalina 启动流程、优雅关闭（ShutdownHook/第 10 节动态配置衔接）
+4. **性能与安全**：JVM 参数与 Tomcat 配合、Session 管理、安全(HTTPS/连接器安全/防攻击)
+5. **集群与高可用**：Tomcat 集群(会话复制/负载均衡)、与前面注册中心/负载均衡衔接（第 11/12 节）
+6. **Spring Boot 内嵌 vs 独立 Tomcat**：内嵌(Spring Boot 默认,第 7 节 KP-07)vs 独立部署(Tomcat 单独跑)——两种部署模型的权衡
+
+### 关键决策与权衡
+
+| 决策 | 权衡 |
+|------|------|
+| 线程池优先扩线程 vs 先入队 | Tomcat 激进扩线程(响应快但资源占用高)；JDK 线程池先入队(省资源但易堆积)——见 KP-04 |
+| maxThreads 大 vs 小 | 大并发能力强但资源/GC 压力大；小易排队/拒绝——要按压测调优 |
+| 同步 vs 异步 Servlet | 同步占线程(简单)；异步释放线程(高吞吐,长轮询)——见 KP-06 |
+| 内嵌 vs 独立 Tomcat | 内嵌部署简单(Spring Boot)；独立便于统一管理/隔离 |
+| NIO vs 阻塞 IO | NIO 高并发(事件驱动)；阻塞 IO 简单但线程占用高 |
+
+### 常见坑/反模式
+
+1. **线程池调优拍脑袋**：不压测就乱调 maxThreads/acceptCount——参数间有耦合，要结合压测
+2. **连接数/线程数限制不当**：maxConnections 设太小导致 503；acceptCount 队列满拒绝——见 KP-05 限流
+3. **忽略 keep-alive**：连接频繁建立/释放，性能差
+4. **同步 Servlet 阻塞线程**：长耗时操作占线程，线程池耗尽——该用异步/响应式（第 16 节）
+5. **配置不生效**：Spring Boot 配置属性(Tomcat.*)与 Customizer 混用，优先级/覆盖理解错——见 KP-07
+6. **强杀进程丢状态**：不用优雅关闭(ShutdownHook/Endpoint)，强制 kill 丢会话/事务——见 KP-08
+
+### 生态位置
+
+- **Servlet 容器**：所有 Web 应用/JSP 的承载，是 Web 服务的第一层(见第 9 节限流 4 层模式中的"容器层")
+- **与 Spring Boot 深度整合**：内嵌 Tomcat(第 7 节 KP-07)是 Spring Boot Web 应用的默认容器
+- **衔接**：线程模型(性能优化维度)是容错/负载均衡的基础；限流(第 7 节 KP-05)属分布式问题；与第 10 节动态配置(Tomcat 动态更新)衔接
+- 前置：Servlet 规范、Spring Boot 自动装配；后置：第 10 节动态配置、第 16 节 WebFlux(异步/响应式对比)
+
+**架构师视角结论**：本篇不只是"认识 Tomcat 组件"，而是"**理解 Web 容器如何承载/限制服务**"——线程模型调优、连接器 NIO、Spring Boot 内嵌整合、限流，是 Web 性能与容错的第一道关口。
