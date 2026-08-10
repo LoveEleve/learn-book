@@ -49,17 +49,17 @@
 - **需求**：配置变化时重新创建 Bean，动态刷新 @ConfigurationProperties
 - **自主实现**：用自定义 Bean Scope，配置变更时销毁并重建 Bean
 - **参考实现**：`@RefreshScope` 基于 Spring Bean Scope——Bean 上下文存储（Web Request→RefreshScope / Web Session→SessionScope / ServletContextScope / ThreadLocal→SimpleThreadScope）；使用场景 @ConfigurationProperties
-- **对比取舍**：@RefreshScope 用"新 Scope + 重新实例化"实现刷新，而非改已存在 Bean
-- **测试佐证**：`code/spring/spring-cloud-commons` 可验证 RefreshScope
+- **对比取舍**：@RefreshScope 用"新 Scope + 重新实例化"实现刷新（更深更聚焦），与 rebinder(重新绑定属性)配合——二者共同构成配置动态刷新（源码注释 @see RefreshScope）
+- **测试佐证**：`code/spring/spring-cloud-commons` 的 `RefreshScope`（spring-cloud-context）
 
 ### KP-03 ConfigurationPropertiesRebinder（配置重新绑定）
 - **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
 - **前置**：@ConfigurationProperties、Spring 事件
 - **需求**：Environment 变化时，重新绑定 @ConfigurationProperties Bean
 - **自主实现**：监听环境变化事件，对受影响 Bean 重新 bind
-- **参考实现**：`ConfigurationPropertiesRebinder`——触发条件 `EnvironmentChangeEvent`；把新配置重新绑定到 @ConfigurationProperties Bean
-- **对比取舍**：rebinder 是"重新绑定"（改属性），@RefreshScope 是"重新实例化"（建新 Bean）——两种动态刷新路径
-- **测试佐证**：`code/spring/spring-cloud-commons` 可验证 rebinder
+- **参考实现**：`ConfigurationPropertiesRebinder implements ApplicationListener<EnvironmentChangeEvent>`——触发条件 EnvironmentChangeEvent，把新配置重新绑定到 @ConfigurationProperties Bean
+- **对比取舍**：**rebinder 与 @RefreshScope 是"配合"而非互斥**——源码注释明确 "@see RefreshScope for a deeper and optionally more focused refresh"：rebinder 重新绑定属性(@ConfigurationProperties)，@RefreshScope 做更深、更聚焦的 Bean 重建。docs 说"触发条件 EnvironmentChangeEvent"。
+- **测试佐证**（已源码验证）：`code/spring/spring-cloud-commons/spring-cloud-context` 的 `ConfigurationPropertiesRebinder.java` 实现 `ApplicationListener<EnvironmentChangeEvent>` + `rebind()` 方法
 
 ### KP-04 EnvironmentChangeEvent（环境变更事件）
 - **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
@@ -139,15 +139,14 @@
 
 **自主实现核心**：若我设计——
 1. 配置中心推送 → 客户端监听 → 发布 EnvironmentChangeEvent
-2. 两条刷新路径：@RefreshScope(重新实例化) / ConfigurationPropertiesRebinder(重新绑定)
+2. 动态刷新：rebinder 重新绑定属性(@ConfigurationProperties) + @RefreshScope 更深重建 Bean——**配合而非互斥**
 3. 事件驱动解耦（日志/容错/Tomcat 都监听配置变更）
 4. 分布式广播可用 Spring Cloud Bus(需 MQ)
 
-**参考实现**：Spring Cloud @RefreshScope + rebinder + EnvironmentChangeEvent（spring-cloud-commons 可验证）；microsphere-configuration 统一多配置中心抽象。
+**参考实现**：Spring Cloud 的 ConfigurationPropertiesRebinder(implements ApplicationListener<EnvironmentChangeEvent>) + @RefreshScope（spring-cloud-commons 已源码验证）；microsphere-configuration 统一多配置中心抽象。
 
 **对比取舍**：知识本体是"**配置动态变更机制**"（事件 + 刷新/重绑两条路径）。参考实现为 Spring/微服务通用机制，非具体容错框架。动态 Tomcat(第7节衔接)/日志级别(LoggingSystem)是应用场景。
 
 **待验证汇总**：
 - 动态 Tomcat 更新具体实现
 - microsphere-configuration 动态刷新链路
-- @RefreshScope/rebinder 细节（可用 spring-cloud-commons 验证）
