@@ -172,13 +172,13 @@ docs 覆盖了"RestTemplate 三层扩展 + 校验 + 异常 + Feign"。作为架�
 3. **序列化策略**：JSON 库选型(Jackson，第 4 节 KP-06 已标 FastJSON 过时)、DTO 设计、字段过滤
 4. **可观测性**：客户端调用指标(耗时/成功率/错误率，Micrometer，第 13 节)、链路追踪(请求 ID)、日志
 5. **客户端 vs 网关**：直连 vs 走网关(第 19 节)——何时用哪种
-6. **声明式客户端(Feign) vs 命令式(RestTemplate/WebClient)**：编程模型选择
+6. **声明式客户端(Feign) vs 命令式(RestTemplate/WebClient)**：编程模型选择（见 KP-08 Template 类模式 / Feign 声明式）
 
 ### 关键决策与权衡
 
 | 决策 | 权衡 |
 |------|------|
-| RestTemplate(阻塞) vs WebClient(响应式) | 阻塞简单但线程占用高；响应式高并发但编程复杂(见 KP-08 同步/异步思维) |
+| RestTemplate(阻塞) vs WebClient(响应式) | 阻塞简单但线程占用高；响应式高并发但编程复杂(WebFlux/响应式见第16节，非本篇 KP) |
 | 直连 vs 网关 | 直连低延迟但散落治理(熔断/限流在各客户端)；网关集中治理但加一跳 |
 | 连接复用 vs 每次新建 | 连接池复用性能高；每次新建开销大(HTTP keep-alive) |
 | 单 JSON 库 vs 多 | 单库(Jackson)一致/可控；多库灵活但混乱(见 KP-06 FastJSON 过时) |
