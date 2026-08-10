@@ -39,7 +39,7 @@
   - 业务指标：自定义(成交量：数量/总量，时间单位聚合：秒/分/时)
   - **Tags 标签**：如应用(User Service)、实例(IP)——用标签区分同一指标的维度
 - **对比取舍**：指标 + 标签 = 多维监控；标签是区分维度的关键
-- **关联 microsphere**：`[待验证]` microsphere-micrometer
+- **关联 microsphere**：已验证——microsphere-micrometer 有 binder（jmx/sentinel/system/jdbc）实现 MeterBinder
 
 ### KP-02 指标类型（Timer/Counter/Gauge/DistributionSummary）
 - **维度**：`[性能优化]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
@@ -48,7 +48,7 @@
 - **自主实现**：按数据特性选类型——计数(Counter)/耗时(Timer)/瞬时值(Gauge)/分布(DistributionSummary)
 - **参考实现**：Micrometer 指标类型——Counter(计数)/Gauge(瞬时值)/Timer(耗时分布)/DistributionSummary(值分布)
 - **对比取舍**：Timer 与 DistributionSummary 都含分布统计；Counter 单调递增
-- **关联 microsphere**：`[待验证]`
+- **关联 microsphere**：已验证——microsphere-micrometer 实现 Micrometer 指标（见 KP-07）
 
 ### KP-03 指标聚合（平均值/最大/最小）
 - **维度**：`[性能优化]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[时间无关模式]` | **置信度**：High
@@ -75,7 +75,7 @@
 - **自主实现**：用 int/long 字段或 AtomicInteger/AtomicLong 计数
 - **参考实现**：Counter 常见计数——对象 int/long 字段、AtomicInteger/AtomicLong
 - **对比取舍**：Atomic 保证并发安全计数；Counter 单调递增
-- **关联 microsphere**：`[待验证]`
+- **关联 microsphere**：已验证——microsphere-micrometer 用 Counter/指标采集（见 KP-07 binder）
 
 ### KP-06 Micrometer 内建 Binder
 - **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
@@ -90,10 +90,10 @@
 - **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
 - **前置**：KP-06
 - **需求**：把指标注册到 MeterRegistry，Binder 绑定指标
-- **自主实现**：MeterBinder 实现类绑定指标 → 注册到 MeterRegistry
-- **参考实现**：`MeterRegistry`（指标注册表）+ `MeterBinder`（绑定器，实现类把指标绑定到 registry）；microsphere-micrometer 有 binder(sentinel/jmx/system)
-- **对比取舍**：MeterBinder + MeterRegistry 是 Micrometer 扩展/注册的核心机制
-- **测试佐证**：microsphere-micrometer `instrument/binder/`（sentinel/jmx/system/jdbc）+ micrometer-core MeterRegistry
+- **自主实现**：MeterBinder 实现类绑定指标 → 注册到 MeterRegistry（bindTo(registry)）
+- **参考实现**（已源码验证）：`MeterRegistry`（指标注册表）+ `MeterBinder`（接口，`bindTo(MeterRegistry)` 绑定指标）；microsphere-micrometer `AbstractMeterBinder implements MeterBinder`，具体实现 `MBeanAttributeMeterBinder`(jmx)/`SentinelMetrics`(sentinel)/`SystemMemoryMetrics`(system)/`CGroupMemoryMetrics`(cgroup)
+- **对比取舍**：MeterBinder + MeterRegistry 是 Micrometer 扩展/注册的核心机制；扩展新指标=实现 MeterBinder
+- **测试佐证**：microsphere-micrometer `AbstractMeterBinder.java implements MeterBinder` + 各 binder 实现 + micrometer-core MeterRegistry
 
 ---
 
