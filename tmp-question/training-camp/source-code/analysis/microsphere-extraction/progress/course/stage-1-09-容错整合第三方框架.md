@@ -133,3 +133,48 @@
 **待验证汇总**：
 - Feign InvocationHandler 具体机制（可用 code/spring/spring-cloud-openfeign 验证）
 - MyBatis Plugin.wrap 动态代理细节
+
+---
+
+## 六、架构师视角补全（防井底之蛙）
+
+> **来源标注**：本节大部分为架构师发散；与 docs/前篇重复处已交叉引用。
+
+### 完整认知：框架扩展点/整合机制在真实架构中完整该讲什么
+
+docs 覆盖了"Feign 装饰器 + MyBatis Interceptor + Redis 拦截"。作为架构师，这个主题完整还该包含：
+
+1. **扩展点的机制家族**：不只装饰器/拦截器，而是完整家族——**SPI(Java/Maven)、拦截器(Interceptor)、装饰器(Decorator)、动态代理(JDK/CGLIB)、AOP 切面、事件监听(Listener)、BeanPostProcessor**——各机制的适用场景
+2. **各框架扩展点的完整地图**：不只 Feign/MyBatis/Redis，而是 Spring 生态的扩展点全貌——BeanPostProcessor、BeanFactoryPostProcessor、ApplicationListener、HandlerInterceptor、Filter、@Import/ImportSelector、AutoConfiguration（衔接 spring-boot）
+3. **扩展点 vs AOP 的选择**：什么时候用框架自带扩展点，什么时候用 AOP/Spring AOP 织入——AOP 更通用(任意 Bean)，扩展点更"官方"但有局限
+4. **横切能力(容错/Tracing/监控)的统一接入**：一个扩展点可接入多种横切能力（第 8 节容错 + 第 13 节指标 + 第 17 节链路），扩展点设计要支持多能力叠加(装饰器链)
+5. **扩展点设计的通用原则**：框架如何设计好扩展点（接口稳定、可插拔、组合、回调/模板方法）——这是框架设计者的视角
+6. **SPI 与自动装配的关系**：Java SPI vs Spring factories/AutoConfiguration 的定位（衔接 microsphere-spring-boot）
+
+### 关键决策与权衡
+
+| 决策 | 权衡 |
+|------|------|
+| 框架扩展点 vs AOP | 扩展点"官方/定制"但有局限；AOP 通用(任意 Bean)但"魔法"/性能(代理) |
+| 拦截器 vs 装饰器 | 拦截器链(洋葱)；装饰器(逐层包装)——都可组合，选框架提供哪种 |
+| 接口 vs 抽象类扩展点 | 接口灵活但实现需完整；抽象类给默认实现(模板方法)减少重复 |
+| 静态拦截 vs 动态代理 | 静态(显式包装)可控可调试；动态代理(自动)侵入小但隐式 |
+| 扩展点粒度 | 方法级(精确)vs 调用链级(全面)——粒度细规则多，粗简单 |
+
+### 常见坑/反模式
+
+1. **扩展点顺序/执行时机错**：多个拦截器/装饰器顺序影响结果(如认证须在重试前)——要理解链的执行顺序
+2. **扩展点与 AOP 混用冲突**：扩展点里再套 AOP/代理，代理嵌套导致意外行为
+3. **把扩展点当万能**：过度用拦截器/代理做不该做的事(如复杂业务逻辑塞进拦截器)——横切关注点才适合
+4. **破坏扩展点契约**：扩展点实现里调用了内部 API/强转，升级框架就崩——只依赖稳定的扩展点接口
+5. **静态拦截不生效**：用了静态拦截(直接包装)但框架走的是动态代理路径，拦截没被触发(呼应 docs Interceptor.intercept 里"静态拦截则本方法不执行")
+6. **不理解 SPI/自动装配加载**：扩展点实现没被框架加载(SPI 文件/配置缺失)——加载机制错了，实现不生效
+
+### 生态位置
+
+- **框架整合的通用机制**：是理解"如何给任意框架加能力"(容错/监控/链路)的关键
+- **Spring 生态扩展点**是理解 spring-framework/spring-boot 的钥匙（BeanPostProcessor/AutoConfiguration 等）
+- **衔接**：第 8 节(容错接入)、第 13 节(指标接入 Micrometer)、第 17 节(链路接入)；microsphere-alibaba-sentinel 用扩展点接入 mybatis/redis/web(第 9 节)
+- **与 SPI/自动装配**衔接 microsphere-spring-boot（第 4 节工程模板的 starter 机制）
+
+**架构师视角结论**：本篇不只是"怎么接容错进 Feign/MyBatis"，而是"**理解框架扩展点机制**——SPI/拦截器/装饰器/AOP 各机制的适用场景与设计原则"——这是给任意框架加横切能力(容错/监控/链路)的通用能力，也是理解 Spring 生态的钥匙。
