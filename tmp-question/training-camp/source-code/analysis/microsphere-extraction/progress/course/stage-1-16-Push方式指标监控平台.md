@@ -74,7 +74,7 @@
 - **需求**：对比不同时序数据库的指标注册中心
 - **自主实现**：切到 InfluxDB 注册中心，理解与 Prometheus 的差异
 - **参考实现**：Micrometer `InfluxMeterRegistry`（`micrometer-registry-influxdb`）；docs"切换 InfluxDB 注册中心，了解两种时序库差异"
-- **对比取舍**：**Prometheus vs InfluxDB**——Prometheus(拉取为主、内置 TSDB、PromQL)；InfluxDB(写入为主、类 SQL 查询)——不同时序库适配不同场景
+- **对比取舍**：**Prometheus vs InfluxDB**——Prometheus(拉取为主、内置 TSDB、PromQL)；InfluxDB(写入为主、类 SQL 查询)——不同时序库适配不同场景（时序库选型全谱详见架构师补全点 3）
 - **待验证**：InfluxDB 注册中心具体实现（本地无该模块）
 
 ### KP-06 指标监控平台混合模式（Pull + Push 混搭）
@@ -146,7 +146,7 @@ docs 覆盖了"Pushgateway 搭建 + Push 配置 + 多注册中心"。作为架�
 2. **Pushgateway 的定位与局限**：Pushgateway 是"临时缓存/中转"，不是长期存储——它保存应用最后一次推送的指标，**不适合长期/多实例聚合**（指标会互相覆盖/丢失聚合语义）；大批量指标应直接进存储
 3. **多注册中心/时序库选型**：不只 Prometheus/InfluxDB，而是**时序库选型全谱**——Prometheus（拉取+PromQL+内置TSDB）/ InfluxDB（写入+类SQL）/ Graphite/StatsD——按查询语言、写入模式、生态选（Micrometer 门面适配，第 13 节）
 4. **监控可观测性闭环**：Push/Pull 采集 → 存储 → 告警（Alertmanager）→ 可视化（Grafana）→ 告警响应——完整闭环（衔接第 15 节）
-5. **Push 场景的网络/安全**：应用主动 push 需要知道 Pushgateway 地址、鉴权——网络策略、认证
+5. **Push 场景的网络/安全**：应用主动 push 需要知道 Pushgateway 地址、鉴权——网络策略（内网/隔离）、认证（Pushgateway basic auth、限制可推送的 job）
 
 ### 关键决策与权衡
 
