@@ -14,7 +14,7 @@ Stage2 Ch03 教了 Lambda 的基本用法——用 `find_if` 的时候写个 `[]
 
 ---
 
-## 2. 节结构（5 节）
+## 2. 节结构（6 节）
 
 ### §1 Lambda 不是函数——是对象
 
@@ -114,7 +114,34 @@ std::cout << add10(5);  // 15 ——等价于 add(5, 10)
 
 ---
 
-## 3. 编写方针
+### §6 运算符重载——从 `operator()` 说起
+
+Lambda 的 `operator()` 让函数对象"可以像函数一样调用"。C++ 支持重载 40+ 种运算符——以下是生产中最关键的几个：
+
+```cpp
+class Vec2 {
+    double x, y;
+public:
+    // 下标——vec[0] 等价于 vec.x
+    double& operator[](int i) { return i == 0 ? x : y; }
+
+    // 算术——vec1 + vec2
+    Vec2 operator+(const Vec2& rhs) const { return {x + rhs.x, y + rhs.y}; }
+
+    // 比较——vec1 == vec2
+    bool operator==(const Vec2& rhs) const { return x == rhs.x && y == rhs.y; }
+
+    // 输出——std::cout << vec
+    friend std::ostream& operator<<(std::ostream& os, const Vec2& v) {
+        return os << '(' << v.x << ", " << v.y << ')';
+    }
+};
+```
+
+- **可重载的运算符**：算术（`+`/`-`/`*`/`/`）、比较（`==`/`!=`/`<`/`>`）、赋值（`=`/`+=`）、下标（`[]`）、调用（`()`）、解引用（`*`/`->`）、类型转换（`operator int()`）
+- **不可重载**：`::`（作用域）、`.`（成员访问）、`.*`（成员指针）、`?:`（三元）
+- **`friend`** ——当运算符需要访问类的 private 成员，但参数顺序不允许写成成员函数时（如 `operator<<` 第一个参数是 `ostream`，不能是 `Vec2` 的成员）
+- **核心原则**：保持运算符的**期望语义**——`+` 不要做"连接字符串然后到数据库查"的事。运算符重载的正确用法 = 语法糖——让你用熟悉的符号表达清晰的操作
 
 1. **§2 捕获机制是本章灵魂**——必须用"等价伪代码"（`__lambda_456` struct）让读者看到闭包对象的真实布局
 2. **§4 选择矩阵是面试核心**——Lambda/function/函数指针/函数对象四种方式的性能对比表

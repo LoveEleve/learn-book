@@ -126,7 +126,7 @@ std::bernoulli_distribution       coin(0.5);           // 硬币——50% true
 - **可重现性**：`std::mt19937 rng(42);`——固定种子，每次运行同样的"随机"序列。测试和调试的必备特性。
 - **线程安全**：每个线程创建自己的 `rng`——不共享全局随机状态（`rand()` 是全局的）。
 
-### §5 `<array>` 与补充特性速览
+### §5 `<array>` 与语言基础特性速览
 
 **`std::array`——带 size 的 C 数组**：
 ```cpp
@@ -137,13 +137,56 @@ std::sort(arr.begin(), arr.end());  // 可以用 STL 算法！
 // sizeof(arr) = 5 * sizeof(int) ——不是 sizeof(int*)
 ```
 
-**`std::forward_list`**：单向链表——比 `list` 更省内存（每个节点少一个指针）。只有前向遍历——适合"只需要插入不需要回头"的场景。
+**`enum class`——作用域枚举（C++11）**——解决 C `enum` 的三个问题：
+```cpp
+// C 的 enum——值泄漏到全局作用域、隐式转 int、无类型安全
+enum Color { RED, GREEN, BLUE };
+int x = RED + 5;  // OK——RED 隐式转为 0
 
-**`std::unordered_set`**：哈希集合——只存 key 不存 value。`unordered_map` 不要 value 只有 key 的时候用它。
+// C++11 的 enum class——作用域限定、不强转为 int、有类型安全
+enum class Color { Red, Green, Blue };
+Color c = Color::Red;      // ✓ 必须带作用域
+// int x = Color::Red + 5; // ✗ 编译错误——enum class 不隐式转 int
+int y = static_cast<int>(Color::Red) + 5;  // ✓ 显式转换
+```
 
-**`std::to_string` / `std::stoi`（C++11）**：字符串和数字互转——`to_string(42)` → `"42"`，`stoi("42")` → `42`。替代 C 的 `atoi/itoa/sprintf`。
+**`namespace`——命名空间**——读者天天写 `std::` 但不知道原理：
+```cpp
+#include <iostream>
+// using namespace std;  // ✗ 不推荐——把头文件的全部符号导入全局→命名冲突
 
-这些特性不单独成一节——一张速查表 + 一句话说明即可。
+namespace my_lib {
+    void log(const std::string& msg) { std::cout << "[MYLIB] " << msg << '\n'; }
+    namespace detail {  // 嵌套命名空间——内部实现细节
+        int helper() { return 0; }
+    }
+}
+
+my_lib::log("hello");            // ✓ 通过命名空间访问
+// my_lib::detail::helper();     // ✗ 约定：detail 表示"内部实现，别碰"
+```
+
+**`std::initializer_list`——花括号初始化**——读者从 Stage1 就在用但从未解释：
+```cpp
+std::vector<int> v = {1, 2, 3, 4, 5};  // 这个 { ... } 是怎么工作的？
+// vector 有一个接受 std::initializer_list<int> 的构造函数
+// 编译器把 {1,2,3,4,5} 自动构造成 initializer_list<int>——再传给 vector 的构造器
+
+// 自定义类也支持
+class MyVec {
+public:
+    MyVec(std::initializer_list<int> list);  // ✓ 接收花括号初始化
+};
+MyVec mv = {1, 2, 3};  // ✓
+```
+
+**`std::forward_list`**：单向链表——比 `list` 更省内存（每个节点少一个指针）。
+
+**`std::unordered_set`**：哈希集合——`unordered_map` 不要 value 只有 key 时用。
+
+**`std::to_string` / `std::stoi`（C++11）**：字符串和数字互转——`to_string(42)` → `"42"`，`stoi("42")` → `42`。
+
+这些特性是"你一直在用但没学过的"基础——本节补齐它们。
 
 ---
 

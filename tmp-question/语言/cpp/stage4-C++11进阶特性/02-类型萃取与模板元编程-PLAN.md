@@ -16,7 +16,7 @@ Stage2 Ch04 教你用 `enable_if` 做编译时分派——"T 是整数类型就�
 
 ---
 
-## 2. 节结构（5 节）
+## 2. 节结构（6 节）
 
 ### §1 `<type_traits>`——编译时的"类型数据库"
 
@@ -88,7 +88,7 @@ auto multiply(T1 a, T2 b) -> decltype(a * b) {  // 🆕 返回类型后置
 - **`decltype(expr)` vs `decltype((expr))`**：括号括起来的表达式→`decltype((x))` 返回 `int&`（左值引用），`decltype(x)` 返回 `int`。这是最容易踩的坑——面试必考。
 - **返回类型后置**：C++11 中如果模板函数的返回类型依赖参数类型——`decltype(a * b)`——必须把类型写在 `->` 后（参数在这之前声明了）。C++14 起 `auto` 返回类型推导简化了这个需求。
 
-### §3 `constexpr` 函数——编译时计算
+### §3 `const` 与 `constexpr` 深度——编译时的安全网
 
 C++11 的 `constexpr` 不仅用于变量——还可以用于函数：
 
@@ -173,7 +173,59 @@ best_container<std::array<char, 256>> big; // list<array<char,256>>——array �
 
 ---
 
-## 3. 编写方针
+### §6 强制转型与 `explicit`——类型转换的安全边界
+
+**强制转型——四把刀 vs C 风格**：
+
+```cpp
+// C 风格——不做类型检查，编译器不警告
+double* dp = (double*)malloc(sizeof(double));  // void* → double*，无检查
+
+// C++ 四把刀——意图明确 + 安全检查
+double* dp = new double;                        // 替代 malloc
+
+// static_cast——编译时类型明确的转换（相关类型之间）
+int i = static_cast<int>(3.14);                // ✓ double → int
+Animal* a = static_cast<Animal*>(dog_ptr);     // ✓ 派生类 → 基类
+
+// dynamic_cast——运行时安全检查的向下转型
+Dog* d = dynamic_cast<Dog*>(a);                // ✓ 先检查 a 是否真的是 Dog
+if (d) { d->bark(); }                          // 安全——nullptr 表示"不是"
+
+// const_cast——去掉 const（极罕用，几乎是设计错误）
+const int* cp = &i;
+int* mp = const_cast<int*>(cp);                // ⚠️ 谨慎——修改 const 对象是 UB
+
+// reinterpret_cast——重新解释比特位（最危险，仅 FFI 场景）
+int* ip = new int(42);
+// char* cp = reinterpret_cast<char*>(ip);     // ⚠️ 几乎只用于系统编程/FFI
+```
+
+| 转型 | 用途 | 风险 |
+|---|---|---|
+| `static_cast` | 相关类型转换、向上转型 | 低——编译时检查 |
+| `dynamic_cast` | 多态安全向下转型 | 中——运行时开销 |
+| `const_cast` | 去掉 const | 高——修改 const 对象是 UB |
+| `reinterpret_cast` | 比特位重解释 | 极高——几乎只用于 FFI |
+| C 风格 `(T)x` | 以上任一种 | 最高——意图不明确，不检查 |
+
+**`explicit`——阻止隐式转换**：
+
+```cpp
+class Widget {
+public:
+    explicit Widget(int n) : value(n) {}  // explicit——禁止 Widget w = 5;
+    // 没有 explicit→Widget w = 5 隐式调用 Widget(int)→不直观 + 可能 bug
+    int value;
+};
+
+Widget w1(42);     // ✓ 显式构造
+// Widget w2 = 42; // ✗ explicit 阻止了隐式转换
+```
+
+- `explicit` 放在单参数构造函数前——防止"看起来像赋值"的意外构造
+- `explicit operator bool()` ——C++11 起可以对转换操作符使用 explicit
+- 和 `is_constructible` trait 的配合——编译时检测"能否隐式构造"
 
 1. **§1 trait 速查表是本章骨架**——10 个最常用的 trait，每个配一个短代码示例
 2. **decltype 双括号陷阱必须强调**——`decltype(x)` vs `decltype((x))` 面试必考
