@@ -36,7 +36,7 @@
 - **前置**：分布式调用概念
 - **需求**：一次请求跨多个服务，如何串联全部调用链，定位问题
 - **自主实现**：用 Trace ID(整条链唯一) + Span(每个调用) 串联，Trace ID 跨服务传递
-- **参考实现**：Sleuth/Micrometer Tracing 用 **Trace ID(链路)** + **Span(单次调用)** 模型；Tracer.nextSpan() 创建 Span
+- **参考实现**：现代实现 **Micrometer Tracing**（Sleuth 旧名已并入）用 **Trace ID(链路)** + **Span(单次调用)** 模型；Tracer.nextSpan() 创建 Span
 - **对比取舍**：Trace ID 是整条链的"身份证"，Span 是链上每一跳；通过父子 Span 形成调用树
 - **测试佐证**：`micrometer-tracing` 的 `Tracer.nextSpan()` / `Span`
 
@@ -63,7 +63,7 @@
 - **前置**：日志、链路
 - **需求**：日志里带上 Trace ID，定位问题时按链路查日志
 - **自主实现**：把 Trace ID 注入日志（MDC），日志带 traceId
-- **参考实现**：Sleuth/Micrometer Tracing 集成日志（Logback/Log4j2 MDC 注入 traceId/spanId）
+- **参考实现**：现代实现 **Micrometer Tracing**（Sleuth 旧名已并入）集成日志（Logback/Log4j2 MDC 注入 traceId/spanId）
 - **对比取舍**：Trace ID 关联日志是"链路 + 日志"联动的关键
 - **待验证**：具体 MDC 注入实现
 
