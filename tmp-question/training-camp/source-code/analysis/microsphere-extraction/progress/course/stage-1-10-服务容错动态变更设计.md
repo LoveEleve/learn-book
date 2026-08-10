@@ -173,7 +173,7 @@ docs 覆盖了"@RefreshScope + rebinder + EnvironmentChangeEvent + 日志/Tomcat
 
 | 决策 | 权衡 |
 |------|------|
-| Nacos vs Apollo vs Consul | Nacos(国内主流，注册+配置一体，第 11 节)、Apollo(携程，配置能力强)、Consul——按生态/场景选 |
+| Nacos vs Apollo vs Consul | Nacos(国内主流，注册+配置一体)、Apollo(携程，配置能力强)、Consul——按生态/场景选（Nacos 作为注册中心见第 11 节） |
 | 推送 vs 拉取 | 推送实时(长连接/长轮询)但复杂；拉取简单但有延迟——按实时性要求 |
 | 全量刷新 vs 定向刷新 | 全量(简单)影响大；定向(只刷变化 Bean)精准但复杂 |
 | 配置中心 vs 环境变量/代码 | 运行时可变的进配置中心；不可变/环境无关的进代码 |
@@ -191,7 +191,7 @@ docs 覆盖了"@RefreshScope + rebinder + EnvironmentChangeEvent + 日志/Tomcat
 ### 生态位置
 
 - **服务治理的"动态化"能力**：让容错规则(第 8 节)、日志级别、Tomcat 参数(第 7 节)不重启可调——是"动态变更"的价值
-- **衔接**：第 8 节(容错规则动态)、第 7 节(Tomcat 动态)、日志系统(LoggingSystem)；microsphere-configuration 统一多配置中心(第 15 节配置模块)
+- **衔接**：第 8 节(容错规则动态)、第 7 节(Tomcat 动态)、日志系统(LoggingSystem)；**microsphere-configuration**(独立项目)统一多配置中心抽象
 - **配置中心选型**关联第 2 节(CAP/分布式理论)、第 11 节(Nacos 注册+配置一体)
 - 前置：Spring 事件机制、@ConfigurationProperties；后置：后续动态规则/流量管理
 
