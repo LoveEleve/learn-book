@@ -148,7 +148,7 @@
 docs 覆盖了"指标类型 + Tags + 核心 API + 内建 Binder"。作为架构师，这个主题完整还该包含：
 
 1. **指标命名规范**：不只"创建指标"，而是**命名约定**——层级命名(如 `http.server.requests`)、单位后缀(_seconds/_bytes)、避免动态名(高基数陷阱)
-2. **高基数问题**：Tags 值是动态/高基数的(如用户ID、请求路径全量)会撑爆存储——**控制 tag 基数**是监控设计的核心挑战
+2. **高基数问题**：Tags 值是动态/高基数的(如用户ID、请求路径全量)会撑爆存储——**控制 tag 基数**是监控设计的核心挑战。**实证**：microsphere 的 `MicrometerJdbcEventListener` 用 `.tag("sql", sql)` 把完整 SQL 字符串当 tag（SQL 各不相同→高基数），这是高基数反模式
 3. **指标采样与精度**：Gauge/Timer 的采样方式、百分位(Histogram/Percentile)、聚合方式(avg/max 已在 KP-03)——精度 vs 开销权衡
 4. **指标门面(Micrometer)的意义**：Micrometer 是"指标门面/适配层"，一套 API 适配多后端(Prometheus/InfluxDB/Graphite)——这是它比直接写 Prometheus 客户端强的原因
 5. **指标与告警/可视化**：指标最终用于告警规则、Grafana 面板(第 15 节)——设计指标时要考虑可告警/可面板化
@@ -166,7 +166,7 @@ docs 覆盖了"指标类型 + Tags + 核心 API + 内建 Binder"。作为架构�
 
 ### 常见坑/反模式
 
-1. **高基数标签**：把用户ID/请求路径全放 tag，指标爆炸撑爆存储——用低基数标签(状态码/方法/服务)
+1. **高基数标签**：把用户ID/请求路径全放 tag，指标爆炸撑爆存储——用低基数标签(状态码/方法/服务)。实证：microsphere `MicrometerJdbcEventListener` 用完整 SQL 当 tag（见点 2）
 2. **动态指标名**：指标名里拼动态值(如 `requests_${userId}`)——应用固定名 + tag 区分
 3. **Gauge 语义误用**：把累计值当 Gauge(应 Counter)、把瞬时值当 Counter——选错类型语义错误
 4. **Timer 未设百分位**：只记录 count/total，没配 Histogram/Percentile，看不到 P99 延迟——性能监控要百分位
