@@ -66,7 +66,7 @@
   - 核心：`java.lang.reflect.Proxy`——依赖 ClassLoader(加载接口/定义代理类)+ Interfaces + InvocationHandler
   - `Proxy#getProxyClass0`：从 proxyClassCache(WeakCache) 取/生成代理类
   - `ProxyClassFactory` 生成代理类，命名前缀 `$Proxy`
-  - `sun.misc.ProxyGenerator.generateClassFile` 生成字节码，先 addProxyMethod(hashCode/equals/toString, Object.class) 再接口方法
+  - `sun.misc.ProxyGenerator.generateClassFile` 生成字节码，先 addProxyMethod(hashCode/equals/toString, Object.class) 再接口方法（**注意：`sun.misc` 是 JDK 内部 API，非公共 API，JDK 9+ 模块化后不可直接访问**——公共 API 是 java.lang.reflect.Proxy）
   - 生成类：`public final class $Proxy32 extends Proxy implements RedisConnection`，方法转调 `h.invoke(this, method, args)`
 - **对比取舍**：**JDK 动态代理(接口)** vs CGLIB(类继承)——JDK 只能代理接口，CGLIB 可代理类；动态代理是链路埋点(Feign 等)的核心
 - **测试佐证**：`code/spring/jdk17/src/java.base/java/lang/reflect/Proxy.java` + `ProxyGenerator.java`
@@ -142,7 +142,7 @@
 2. 或写 Java Agent(Instrumentation)在类加载时改字节码（SkyWalking 方式）
 3. 覆盖 Feign/WebMVC/Redis/JDBC/MyBatis（第 17 节框架整合 → 字节码层）
 
-**参考实现**：JDK17 动态代理(Proxy/ProxyGenerator 源码验证) + java.lang.instrument(Agent) + 字节码库(Byte Buddy/ASM/CGLIB/Javassist)。SkyWalking/Pinpoint 用 Agent 埋点。
+**参考实现**：JDK17 动态代理(Proxy 公共 API + ProxyGenerator 内部 API 源码验证) + java.lang.instrument(Agent) + 字节码库(Byte Buddy/ASM/CGLIB/Javassist)。SkyWalking/Pinpoint 用 Agent 埋点。
 
 **对比取舍**：知识本体是"**Java 动态代理/反射/Instrument 机制 + 字节码重构链路**"。核心洞察：**应用层埋点(第 17 节,侵入) vs 字节码/Agent 埋点(无侵入)**；动态代理/字节码提升是链路追踪无侵入化的基础。
 
