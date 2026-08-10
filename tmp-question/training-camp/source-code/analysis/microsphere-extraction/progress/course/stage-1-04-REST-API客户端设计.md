@@ -84,13 +84,13 @@
 - **对比取舍**：序列化/拦截/传输分离，各阶段可插拔
 
 ### KP-06 客户端性能优化
-- **维度**：`[性能优化]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[时间无关模式]` | **置信度**：Medium
+- **维度**：`[性能优化]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[过时→Jackson]` | **置信度**：Medium
 - **前置**：KP-03
 - **需求**：客户端序列化和底层通讯性能优化
 - **自主实现**：减少 HttpMessageConverter 数量（如只用 FastJson）、用高性能 HTTP Client
 - **参考实现**：基于 HttpMessageConverter 优化（FastJSON 等）；减少反序列化选项；底层用 HttpComponents/OkHttp3
-- **对比取舍**：FastJSON 性能好但可能有安全/规范问题（`[待验证]` 现代推荐 Jackson）
-- **待验证**：FastJSON 是否已过时（安全漏洞），现代用 Jackson
+- **对比取舍**：FastJSON 性能好但有多个 CVE 安全漏洞 → `[过时→Jackson]`；实际工程(biz-web)用 Jackson（Spring 默认）
+- **过时说明**：docs 提到 FastJSON 是"性能优化举例"，但 biz-project 实际用 Jackson；FastJSON 因安全漏洞业界已弃用 → `[过时→Jackson]`
 
 ### KP-07 Spring Template 类模式（命令模式）
 - **维度**：`[工程问题]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[时间无关模式]` | **置信度**：Medium
@@ -124,7 +124,7 @@
 | 三层扩展架构 | 工程 | 核心 | P1 | 🔴 | High |
 | 装饰器拦截器链 | 工程 | 核心 | P1 | 🔴 | High |
 | 请求/响应模式 | 工程 | 支撑 | P2 | 🟡 | High |
-| 性能优化 | 性能 | 支撑 | P2 | 🟡 | Medium |
+| 性能优化 | 性能 | 支撑 | P2 | 🟡 | Medium（过时→Jackson） |
 | Template 模式 | 工程 | 支撑 | P2 | 🟡 | Medium |
 | 统一异常+POJO+多版本 | 分布式 | 核心 | P2 | 🟡 | Medium |
 
@@ -155,5 +155,4 @@
 
 **待验证汇总**：
 - microsphere-spring 是否有 RestTemplate 扩展
-- FastJSON 是否已过时（现代用 Jackson）
 - 多版本接口/国际化具体实现 docs 未展开
