@@ -89,18 +89,18 @@
 - **前置**：Spring Boot 启动、配置
 - **需求**：失效 Bootstrap 上下文，减少启动时间和事件传播问题
 - **自主实现**：用 `spring.cloud.bootstrap.enabled=false` 关闭 Bootstrap；或理解其弊端
-- **参考实现**（docs）：`spring.cloud.bootstrap.enabled=false` 失效 Bootstrap；Bootstrap 基于 `BootstrapApplicationListener`(监听 ApplicationEnvironmentPreparedEvent)创建 bootstrapServiceContext；**Bootstrap 弊端**——事件多上下文传播重复处理、与 Stream/Integration 整合问题、配置优先级过高难排查、增加启动时间
+- **参考实现**（docs）：`spring.cloud.bootstrap.enabled=false` 失效 Bootstrap；Bootstrap 基于 `BootstrapApplicationListener`(监听 ApplicationEnvironmentPreparedEvent)创建 `bootstrapServiceContext`；**Bootstrap PropertySource 配置源**——名称 `"bootstrap"`、配置名 `${spring.cloud.bootstrap.name:bootstrap}`；**Bootstrap 弊端**——事件多上下文传播重复处理、与 Stream/Integration 整合问题、配置优先级过高难排查、增加启动时间
 - **对比取舍**：Bootstrap 上下文(旧)有诸多弊端(启动慢/事件重复)，新版本默认失效
-- **待验证**：Bootstrap 具体实现
+- **测试佐证**：`code/spring/spring-cloud-commons` 的 BootstrapApplicationListener（docs 第 136-203 行给出 bootstrapServiceContext 完整源码）
 
 ### KP-08 配置读取实现优化（System Properties）
-- **维度**：`[性能优化]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[时间无关模式]` | **置信度**：Medium
+- **维度**：`[性能优化]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[时间无关模式]` | **置信度**：High
 - **前置**：Spring Environment
 - **需求**：优化配置读取（System Properties 的同步消耗）
 - **自主实现**：替换 Java System Properties，避免并发锁阻塞
-- **参考实现**（docs）：Spring Environment 实现 `AbstractEnvironment`/`StandardEnvironment`，动态添加 System Properties(JDK Properties 继承 Hashtable，JDK11 优化存储但仍有同步消耗)+ OS 环境变量；作业：在 ApplicationEnvironmentPreparedEvent 阶段替换 System Properties PropertySource(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME)避免并发锁
+- **参考实现**（docs）：Spring Environment 实现 `AbstractEnvironment`/`StandardEnvironment`，动态添加 System Properties(JDK Properties 继承 Hashtable，JDK11 优化底层存储但仍有同步消耗)+ OS 环境变量；作业：在 ApplicationEnvironmentPreparedEvent 阶段替换 System Properties PropertySource(`SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME`)避免并发锁
 - **对比取舍**：System Properties(Hashtable 同步)有并发消耗；替换避免锁阻塞
-- **待验证**：JDK11 Properties 存储优化细节
+- **测试佐证**：docs 第 218 行明确 JDK11 优化 Properties 底层存储但仍有同步消耗
 
 ---
 
@@ -144,9 +144,7 @@
 **对比取舍**：知识本体是"**Spring Cloud 性能优化**"。核心洞察：**@RefreshScope(AOP 代理开销) vs Rebinder(重绑更优)；Feign 序列化/HTTP 优化；Bootstrap 失效**。
 
 **待验证汇总**：
-- Bootstrap 具体实现
-- microsphere-spring Feign/RefreshScope 扩展
-- JDK11 Properties 存储优化
+- microsphere-spring Feign/RefreshScope 扩展（Bootstrap/Properties 存储均已由 docs 明确，置信度 High）
 
 ---
 
