@@ -103,15 +103,15 @@
 - **对比取舍**：**JRaft(CP) 注册中心**——用 FSM 状态机 + RPC 处理器 + 副本同步实现 CP 一致性
 - **测试佐证**：源码 `sofa-jraft/.../StateMachine.java`/`rpc/RpcProcessor.java`
 
-### KP-08 SOFAJRaft 服务发现客户端
-- **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
-- **前置**：KP-07
-- **来源**：docs §SOFAJRAFT 服务发现实现（客户端，仅标题，架构师发散）
+### KP-08 SOFAJRaft 服务发现客户端（dubbo ServiceDiscovery 对照）
+- **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
+- **前置**：KP-07、dubbo 服务发现
+- **来源**：docs §SOFAJRAFT 服务发现实现（客户端，仅标题）+ dubbo 源码验证（深挖补强）
 - **需求**：SOFAJRaft 服务发现客户端
 - **自主实现**：若我设计——客户端通过 RPC 查询服务实例，缓存/监听
-- **参考实现**（docs 仅标题 + 架构师）：客户端——经 RPC 查询 ServiceInstancesQueryRequest → 获取服务实例列表；结合 RPC 微内核(第 21 节) 的 ServiceInvocationHandler 集成
-- **对比取舍**：**客户端查询**——RPC 查询注册中心获取实例；docs 仅标题，架构师发散
-- **测试佐证**：`[待验证]` 具体实现
+- **参考实现**（docs 仅标题 + dubbo 源码验证）：客户端服务发现工业实现——dubbo `ServiceDiscovery` 接口(`register` 36/`unregister` 40/`getInstances(serviceName)` 49)——注册/注销/查询实例/订阅变更事件；`AbstractServiceDiscovery`(65)——`register`(155 同步注册)/`unregister`(210)/`doRegister`/`doUnregister`(367 抽象，子类实现)；SOFAJRaft 客户端同理——经 RPC 查询 ServiceInstancesQueryRequest → 获取实例列表，结合第 21 节 ServiceInvocationHandler 集成
+- **对比取舍**：**客户端服务发现接口**——register/getInstances/subscribe 标准能力；dubbo 工业实现对照 SOFAJRaft 客户端
+- **测试佐证**：源码 `dubbo-registry-api/.../ServiceDiscovery.java`(36/40/49)+`AbstractServiceDiscovery.java`(65/155/367)
 
 ### KP-09 分布式事务支持（整合 Seata）
 - **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High

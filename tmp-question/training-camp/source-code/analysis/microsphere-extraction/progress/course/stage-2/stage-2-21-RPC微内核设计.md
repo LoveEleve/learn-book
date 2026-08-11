@@ -100,8 +100,9 @@
 - **需求**：客户端调用封装（代理+选实例+发送+等待响应）
 - **自主实现**：若我设计——InvocationHandler 执行——负载均衡选实例→连接→发送→ExchangeFuture 等待
 - **参考实现**（docs + 源码）：`ServiceInvocationHandler`(Java 动态代理 InvocationHandler)——`execute(request, proxy)`——`selectServiceProviderInstance`(负载均衡选实例)→`rpcClient.connect`(建联)→`sendRequest`(发送)→`createExchangeFuture`(创建 Future)→`exchangeFuture.get()`(阻塞等待，Promise setSuccess/setFailure 唤醒)
-- **对比取舍**：**代理 + 异步 Future**——客户端接口透明代理，ExchangeFuture(Promise) 异步等待响应
-- **测试佐证**：docs execute 源码 + Netty Promise
+- **RPC Server/Client 架构图内容（docs 100-104 行图片，dubbo 对照）**：**RPC Client**——动态代理(`InvokerInvocationHandler implements InvocationHandler`，dubbo 34 行)→ 负载均衡选实例 → 连接 → 发送 → Future 等待；**RPC Server**——接收请求 → 过滤器链(`ProtocolFilterWrapper.buildInvokerChain`，dubbo 36 行，Provider 过滤器)→ 反序列化 InvocationRequest → 反射调用目标方法 → 响应
+- **对比取舍**：**代理 + 异步 Future**——客户端接口透明代理，ExchangeFuture(Promise) 异步等待响应；dubbo InvokerInvocationHandler/ProtocolFilterWrapper 工业对照
+- **测试佐证**：docs execute 源码 + Netty Promise + dubbo `InvokerInvocationHandler`(34/51)+`ProtocolFilterWrapper`(36/57)
 
 ### KP-08 InvocationResponseHandler（响应处理）
 - **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
