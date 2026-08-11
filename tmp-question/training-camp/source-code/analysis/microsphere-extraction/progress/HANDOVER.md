@@ -139,6 +139,7 @@
 progress/
 ├── HANDOVER.md            ← 本文（权威进度）
 ├── 提取执行计划与进度.md   ← 每单元状态追踪表
+├── 补充大纲-现代分布式事务实践.md ← 补充教学大纲(Transaction Outbox + 事件驱动/CDC, docs缺口, 供后续AI讲解)
 ├── course/                ← 训练营课程提取文档（按期分目录：stage-1/、stage-2/，stage-1 全完成）
 ├── source/                ← microsphere 源码提取文档（未开始）
 └── outline/               ← 最终维度化总教学大纲（未开始）
