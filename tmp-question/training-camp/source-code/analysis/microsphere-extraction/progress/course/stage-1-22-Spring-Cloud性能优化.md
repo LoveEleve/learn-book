@@ -58,7 +58,7 @@
 - **测试佐证**：`code/spring/spring-cloud-commons` 的 ConfigurationPropertiesRebinder/RefreshScope
 
 ### KP-04 OpenFeign 序列化/反序列化优化
-- **维度**：`[性能优化]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
+- **维度**：`[性能优化]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]`（机制不变，但涉及的 FastJSON 已过时→Jackson，见第 4 节） | **置信度**：High
 - **前置**：Feign Encoder、序列化
 - **需求**：提升 Feign 请求/响应序列化性能
 - **自主实现**：用 Feign Encoder SPI(SpringEncoder) + 优化 HttpMessageConverter
@@ -85,7 +85,7 @@
 - **测试佐证**：biz-client-ribbon 的 EurekaDiscoveryEventServerListUpdater + `code/spring/spring-cloud-loadbalancer`
 
 ### KP-07 Spring Cloud 配置优化（失效 Bootstrap 上下文）
-- **维度**：`[性能优化]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
+- **维度**：`[性能优化]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[过时→现代配置]`（Bootstrap 上下文旧机制，新版本默认失效） | **置信度**：High
 - **前置**：Spring Boot 启动、配置
 - **需求**：失效 Bootstrap 上下文，减少启动时间和事件传播问题
 - **自主实现**：用 `spring.cloud.bootstrap.enabled=false` 关闭 Bootstrap；或理解其弊端
