@@ -99,7 +99,7 @@
 
 ### stage-1 提取：✅ 已全部完成 24 篇 docs（5、6 为 i18n 跳过，共 20 篇产出）
 
-已完成（全部含架构师补全，产出在 `progress/course/`）：
+已完成（全部含架构师补全，产出在 `progress/course/stage-1/` 与 `progress/course/stage-2/`，按期分目录）：
 - **1-4**:工程化(Maven/业务模板)、REST 服务端/客户端
 - **7-10**:Tomcat 容错、Web 容错(Sentinel)、整合第三方、动态变更
 - **11-12**:监控指标负载均衡、动态权重
@@ -139,7 +139,7 @@
 progress/
 ├── HANDOVER.md            ← 本文（权威进度）
 ├── 提取执行计划与进度.md   ← 每单元状态追踪表
-├── course/                ← 训练营课程提取文档（stage-1-01~22 已完成）
+├── course/                ← 训练营课程提取文档（按期分目录：stage-1/、stage-2/，stage-1 全完成）
 ├── source/                ← microsphere 源码提取文档（未开始）
 └── outline/               ← 最终维度化总教学大纲（未开始）
 ```
