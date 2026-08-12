@@ -19,39 +19,39 @@
 
 | 编号 | 产出文件 | KP 数 | 核心主题 |
 |------|---------|:---:|---------|
-| 01 | stage-3-01-my-xhs项目介绍.md | 11 | my-xhs 架构基线图（案例载体决策 B） |
-| 02 | stage-3-02-三高优化计划.md | 12 | 性能调优方法论总纲（JDK11/17 源码实证） |
-| 03 | stage-3-03-架构优化准备一.md | 9 | 可观测三件套+Sentinel 整合（my-xhs 实证） |
-| 04 | stage-3-04-架构优化准备二.md | 8 | JFR（UnlockCommercialFeatures 过时→JEP328） |
-| 05 | stage-3-05-服务容器调优.md | 10 | GC 全景+Tomcat 差异化（CMS 移除实证） |
-| 06 | stage-3-06-微服务架构升级.md | 9 | JMH+微服务化+Feign（模拟 payload 诚实标注） |
-| 07 | stage-3-07-Eureka服务注册与发现.md | 12 | **重写版**：Nacos 讲机制，Eureka 仅场景位 |
-| 08 | stage-3-08-EurekaServer架构.md | 9 | 同上（注册中心服务端架构） |
-| 09 | stage-3-09-HTTP服务架构升级.md | 9 | Servlet 规范+HTTP 三路径（jakarta 实证） |
-| 10 | stage-3-10-RPC架构升级.md | 9 | Dubbo 调用链+Triple（RegistryProtocol 实证） |
-| 11 | stage-3-11-MySQL高可用.md | 8 | 主从/读写分离（三策略+降级实证）/MGR |
-| 12 | stage-3-12-数据存储.md | 9 | MyBatis 架构/分片（三主题全落地） |
-| 13 | stage-3-13-SpringWebReactive.md | 5 | WebFlux 架构（docs 完全空节发散） |
-| 14 | stage-3-14-分布式事件设计.md | 6 | 事件三要素（**docs 二进制损坏清理重建**） |
+| 01 | stage-3-01-my-xhs项目介绍.md | 10 | my-xhs 架构基线图（案例载体决策 B） |
+| 02 | stage-3-02-三高优化计划.md | 11 | 性能调优方法论总纲（JDK11/17 源码实证） |
+| 03 | stage-3-03-架构优化准备一.md | 8 | 可观测三件套+Sentinel 整合（my-xhs 实证） |
+| 04 | stage-3-04-架构优化准备二.md | 7 | JFR（UnlockCommercialFeatures 过时→JEP328） |
+| 05 | stage-3-05-服务容器调优.md | 9 | GC 全景+Tomcat 差异化（CMS 移除实证） |
+| 06 | stage-3-06-微服务架构升级.md | 8 | JMH+微服务化+Feign（模拟 payload 诚实标注） |
+| 07 | stage-3-07-Eureka服务注册与发现.md | 11 | **重写版**：Nacos 讲机制，Eureka 仅场景位 |
+| 08 | stage-3-08-EurekaServer架构.md | 8 | 同上（注册中心服务端架构） |
+| 09 | stage-3-09-HTTP服务架构升级.md | 8 | Servlet 规范+HTTP 三路径（jakarta 实证） |
+| 10 | stage-3-10-RPC架构升级.md | 8 | Dubbo 调用链+Triple（RegistryProtocol 实证） |
+| 11 | stage-3-11-MySQL高可用.md | 7 | 主从/读写分离（三策略+降级实证）/MGR |
+| 12 | stage-3-12-数据存储.md | 8 | MyBatis 架构/分片（三主题全落地） |
+| 13 | stage-3-13-SpringWebReactive.md | 4 | WebFlux 架构（docs 完全空节发散） |
+| 14 | stage-3-14-分布式事件设计.md | 5 | 事件三要素（**docs 二进制损坏清理重建**） |
 | 15 | （docs 缺失，跳过标注） | - | - |
-| 16 | stage-3-16-分布式事件.md | 6 | Redis 命令事件（my-xhs 同名同构实证） |
-| 17 | stage-3-17-Reactive异步服务.md | 9 | Reactive 真相/RSocket（JHipster 报告照录） |
-| 18 | stage-3-18-生产JVM故障分析.md | 8 | 三真实案例（AsyncConfig 正确姿势对照） |
-| 19 | stage-3-19-API网关.md | 9 | Actuator/WebEndpointMapping/8+ 路由 |
-| 20 | stage-3-20-RPC网关.md | 8 | 泛化调用/FilteringWebHandler 优化（Caching 变体实证） |
-| 21 | stage-3-21-Istio.md | 9 | Mesh 机制（灰度 LB TODO 差距 P1） |
-| 22 | stage-3-22-Istio续.md | 7 | K8s 底座（7 能力+5 不提供——深审修正） |
-| 23 | stage-3-23-Dubbo架构设计.md | 9 | 九层架构/三中心（重复内容交叉引用） |
-| 24 | stage-3-24-DubboMess.md | 7 | xDS/Proxyless（链接型文档发散） |
-| 25 | stage-3-25-配置中心Nacos.md | 9 | Nacos 概念体系（23 术语/29 组件——深审修正） |
-| 26 | stage-3-26-配置中心etcd.md | 8 | etcd/PropertySource 四缺陷（Redisson 对照） |
-| 27 | stage-3-27-分布式配置客户端.md | 6 | 客户端三动作（26 篇 89/96 行重复交叉） |
-| 28 | stage-3-28-GraalVM基础.md | 6 | Native/Metadata（docs 14 行发散） |
-| 29 | stage-3-29-日志平台.md | 7 | ELK/Kafka Appender（Logstash 双输入实证） |
-| 30 | stage-3-30-监控平台.md | 6 | VictoriaMetrics（docs 12 行发散） |
-| 31 | stage-3-31-SpringNative.md | 5 | Spring AOT/代理（spring-context-aot 修正实证） |
-| 32 | stage-3-32-JavaNative.md | 5 | Leyden/Native 三路径（docs 3 行最短篇） |
-| 33 | stage-3-33-现代Java发展.md | 9 | Java 9-21 四线归纳（60+ JEP） |
+| 16 | stage-3-16-分布式事件.md | 5 | Redis 命令事件（my-xhs 同名同构实证） |
+| 17 | stage-3-17-Reactive异步服务.md | 8 | Reactive 真相/RSocket（JHipster 报告照录） |
+| 18 | stage-3-18-生产JVM故障分析.md | 7 | 三真实案例（AsyncConfig 正确姿势对照） |
+| 19 | stage-3-19-API网关.md | 8 | Actuator/WebEndpointMapping/8+ 路由 |
+| 20 | stage-3-20-RPC网关.md | 7 | 泛化调用/FilteringWebHandler 优化（Caching 变体实证） |
+| 21 | stage-3-21-Istio.md | 8 | Mesh 机制（灰度 LB TODO 差距 P1） |
+| 22 | stage-3-22-Istio续.md | 6 | K8s 底座（7 能力+5 不提供——深审修正） |
+| 23 | stage-3-23-Dubbo架构设计.md | 8 | 九层架构/三中心（重复内容交叉引用） |
+| 24 | stage-3-24-DubboMess.md | 6 | xDS/Proxyless（链接型文档发散） |
+| 25 | stage-3-25-配置中心Nacos.md | 8 | Nacos 概念体系（23 术语/29 组件——深审修正） |
+| 26 | stage-3-26-配置中心etcd.md | 7 | etcd/PropertySource 四缺陷（Redisson 对照） |
+| 27 | stage-3-27-分布式配置客户端.md | 5 | 客户端三动作（26 篇 89/96 行重复交叉） |
+| 28 | stage-3-28-GraalVM基础.md | 5 | Native/Metadata（docs 14 行发散） |
+| 29 | stage-3-29-日志平台.md | 6 | ELK/Kafka Appender（Logstash 双输入实证） |
+| 30 | stage-3-30-监控平台.md | 5 | VictoriaMetrics（docs 12 行发散） |
+| 31 | stage-3-31-SpringNative.md | 4 | Spring AOT/代理（spring-context-aot 修正实证） |
+| 32 | stage-3-32-JavaNative.md | 4 | Leyden/Native 三路径（docs 3 行最短篇） |
+| 33 | stage-3-33-现代Java发展.md | 8 | Java 9-21 四线归纳（60+ JEP） |
 
 ### 剩余：结营文档（无编号）未处理 + stage-4 未开始
 
@@ -122,7 +122,7 @@
 
 ---
 
-## 五、待验证汇总（37 处，按主题分类）
+## 五、待验证汇总（58 处，按主题分类）
 
 - **网关**（07/19/20）：Nacos 注册 metadata key、RefreshRoutesEvent 监听、RouteLocator 路由方式、reactive 下 server.tomcat 生效性
 - **配置**（25/26/27）：Nacos 阈值、存储后端、@RefreshScope 使用面、Nacos OpenAPI 端点对应
@@ -189,7 +189,7 @@
 - 仓库：`/data/workspace/source-code/book/成长之路`，分支 `fresh`
 - 远端：`git@github.com:LoveEleve/learn-book.git`
 - 只提交 microsphere-extraction 相关文件；**不要碰** `source-analysis/issue/HANDOVER.md` 等他人项目未提交改动
-- 本会话 commit 范围：`e8ff07d` ~ `3822750`（stage-3 全部 + 方法论机制 6 次更新）
+- 本会话 commit 范围：`e8ff07d` ~ `646f04e`（stage-3 全部 33 篇 + 方法论机制 6 次更新 + 交接文档 + my-xhs 优化规划）
 
 ---
 
