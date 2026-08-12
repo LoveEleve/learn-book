@@ -174,7 +174,7 @@
 | Sentinel Metrics→Micrometer 适配 | ❌ **未落地**：Sentinel 有（Bulkhead 舱壁 + Nacos 规则，SentinelBulkheadConfig 实证），但 **sentinel 指标未适配进 Micrometer/Prometheus**（grep 无 sentinel-micrometer 相关） | 差距：sentinel 指标（限流/熔断计数）未进统一监控——补充适配器或自定义 Meter |
 | 监控基础设施容器化 | ✅ docker-compose 全编排（prometheus:591-598 等实证） | 无 |
 | Grafana Provisioning | ✅ 4 dashboard JSON（biz/jvm/api/tomcat） | 无 |
-| 数据源配置与连接池 | ⚠️ HikariCP 依赖（pom:51/169-172）+ Grafana 采 hikaricp 指标（tomcat-monitor.json 实证）；**池参数未见显式配置** | 现状：默认值；如需调优显式配 minimumIdle/maximumPoolSize |
+| 数据源配置与连接池 | ⚠️ HikariCP 依赖（pom:51/169-172）+ Grafana 采 hikaricp 指标（tomcat-monitor.json 实证）；**池参数未见显式配置（本地 yml 无；Nacos 配置侧未核对 `[待验证]`）** | 现状：默认值；如需调优显式配 minimumIdle/maximumPoolSize |
 | hbm2ddl.auto=update | ✅ **已规避**：MyBatis-Plus（无 Hibernate DDL） | 无（若引入 Flyway 更好，当前无迁移工具 `[待验证]`） |
 | Sentinel Dashboard/规则 | ✅ 采用现代路径：规则 Nacos 持久化（my-xhs-sentinel-bulkhead-rules dataId 实证） | 无 |
 
