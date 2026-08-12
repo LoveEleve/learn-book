@@ -1,7 +1,7 @@
 # 交接文档 — Microsphere 训练营知识点提取
 
 > **本文件是唯一权威的进度与约定文档。** 接手前请**完整阅读**本文（含工作方法、当前状态、交接约定），再动任何文件。
-> 最后更新：2026-08-11 | 上一个会话完成 stage-1/2 全部提取（L1 完成）；下一步 stage-3 见 `HANDOVER-session003.md`
+> 最后更新：2026-08-12 | stage-1/2/3 提取全部完成（含结营文档 `[跳过]` 处理）；下一步见 §四.5
 
 ---
 
@@ -123,7 +123,7 @@
 
 > **stage-1/2 L1 提取全部完成。** 每篇均经深 review（穷尽性/源码行号核对/过时工具模式区分/空节标注/置信度）。L2 聚合/聚类、L3 总大纲未开始（07 约定：两主体都提取完再合并）。
 
-**下一步（stage-3）**：**全部完成（2026-08-12）**——stage-3-01~33 全部提取（33 篇 docs，15 缺失跳过；含损坏文档 14 清理重建、空节/极短篇发散重建）；结营文档待处理。**stage-3 细节见 `progress/HANDOVER-session004.md`（详细交接：决策记录/机制演进/差距全景/待验证 37 项/源码索引/教训）**。**关键决策**：①（G0 决策 B）案例载体 Shopizer → my-xhs（`/data/workspace/my-xhs`），docs 方法论主线不变、实例验证锚定 my-xhs、差异显式标注；②（G0 决策 B2）**stage-3 产出 = 提取 + 现状核对**——每篇含"现状核对"小节（docs 升级目标 vs my-xhs 落地实证 + 差距清单），07-10 的 Eureka 主题按"Nacos 讲机制、Eureka 仅 docs 场景"处理（不实操）。详见 `progress/HANDOVER-session003.md`。
+**下一步（stage-3）**：**全部完成（2026-08-12）**——stage-3-01~33 全部提取（33 篇 docs，15 缺失跳过；含损坏文档 14 清理重建、空节/极短篇发散重建）；**结营文档已完成 `[跳过]` 处理（2026-08-12——`progress/course/stage-3/stage-3-结营.md`：无新教学知识点，阿里云 2023.11.12 事故案例作高可用主题关联素材）**。**stage-3 细节见 `progress/HANDOVER-session004.md`（详细交接：决策记录/机制演进/差距全景/待验证 37 项/源码索引/教训）**。**关键决策**：①（G0 决策 B）案例载体 Shopizer → my-xhs（`/data/workspace/my-xhs`），docs 方法论主线不变、实例验证锚定 my-xhs、差异显式标注；②（G0 决策 B2）**stage-3 产出 = 提取 + 现状核对**——每篇含"现状核对"小节（docs 升级目标 vs my-xhs 落地实证 + 差距清单），07-10 的 Eureka 主题按"Nacos 讲机制、Eureka 仅 docs 场景"处理（不实操）。详见 `progress/HANDOVER-session003.md`。
 
 ### 仓库清单：✅ 已核实（00）
 - 官方 36 仓库；microsphere-test 已拉取(纯配置)；3 个站点/UI 仓库跳过；本地独有 confucius/shopizer/segmentfault
