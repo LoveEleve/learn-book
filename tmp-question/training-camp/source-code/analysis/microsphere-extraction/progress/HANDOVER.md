@@ -123,7 +123,7 @@
 
 > **stage-1/2 L1 提取全部完成。** 每篇均经深 review（穷尽性/源码行号核对/过时工具模式区分/空节标注/置信度）。L2 聚合/聚类、L3 总大纲未开始（07 约定：两主体都提取完再合并）。
 
-**下一步（stage-3）**：提取中（2026-08-12 起）。已完成 stage-3-01~10（项目介绍/优化计划/准备×2/容器调优/微服务升级/注册发现/服务端架构/HTTP 升级/RPC 升级）。**关键决策**：①（G0 决策 B）案例载体 Shopizer → my-xhs（`/data/workspace/my-xhs`），docs 方法论主线不变、实例验证锚定 my-xhs、差异显式标注；②（G0 决策 B2）**stage-3 产出 = 提取 + 现状核对**——每篇含"现状核对"小节（docs 升级目标 vs my-xhs 落地实证 + 差距清单），07-10 的 Eureka 主题按"Nacos 讲机制、Eureka 仅 docs 场景"处理（不实操）。详见 `progress/HANDOVER-session003.md`。
+**下一步（stage-3）**：**全部完成（2026-08-12）**——stage-3-01~33 全部提取（33 篇 docs + 结营待处理；15 缺失跳过；含损坏文档 14 清理重建、空节/极短篇发散重建）。**关键决策**：①（G0 决策 B）案例载体 Shopizer → my-xhs（`/data/workspace/my-xhs`），docs 方法论主线不变、实例验证锚定 my-xhs、差异显式标注；②（G0 决策 B2）**stage-3 产出 = 提取 + 现状核对**——每篇含"现状核对"小节（docs 升级目标 vs my-xhs 落地实证 + 差距清单），07-10 的 Eureka 主题按"Nacos 讲机制、Eureka 仅 docs 场景"处理（不实操）。详见 `progress/HANDOVER-session003.md`。
 
 ### 仓库清单：✅ 已核实（00）
 - 官方 36 仓库；microsphere-test 已拉取(纯配置)；3 个站点/UI 仓库跳过；本地独有 confucius/shopizer/segmentfault
