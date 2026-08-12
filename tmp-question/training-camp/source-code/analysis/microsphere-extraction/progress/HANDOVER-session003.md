@@ -40,27 +40,68 @@
 ## 三、stage-3 概况（已核实）
 
 ### docs 位置与规模
-- `/data/workspace/java-training-camp/stage-3/docs/` — **37 个文件**（约 32 篇 docs + 5 张图片 + 1 篇结营文档）
+- `/data/workspace/java-training-camp/stage-3/docs/` — **33 个 md 文件 + 4 张图片**（编号 01-33，**15 号文件缺失**，另含 1 篇无编号的课程结营文档）
 - 主题：**三高架构（高并发、高性能、高可用）**，基于 **Shopizer 电商项目** 实战优化
 
-### docs 分组建议（按主题，供 G0 盘问参考）
-| 组 | 篇目 | 主题 |
+### docs 完整清单（编号精确对应，供穷尽性核对）
+| 编号 | 标题 |
+|------|------|
+| 01 | [公开课] 电商项目 Shopizer 介绍 |
+| 02 | [公开课] Shopizer 项目"高并发、高性能与高可用"优化计划 |
+| 03 | [公开课] 第一节："高并发、高性能与高可用"架构优化准备（一） |
+| 04 | [公开课] 第二节："高并发、高性能与高可用"架构优化准备（二） |
+| 05 | 第三节：高并发、高性能服务容器调优 |
+| 06 | 第四节：高可用微服务架构升级 |
+| 07 | 第五节："高可用" Eureka 服务注册与发现 |
+| 08 | 第六节："高性能" Eureka Server 架构 |
+| 09 | 第七节："高性能"HTTP 服务架构升级 |
+| 10 | 第八节："高并发、高可用"RPC 架构升级 |
+| 11 | 第九节："高可用"MySQL 数据库 |
+| 12 | 第十节："高并发、高性能"数据存储 |
+| 13 | [公开课] 加餐一：Spring Web Reactive |
+| 14 | [公开课] 加餐二：分布式事件设计 |
+| 15 | **（文件缺失，编号跳过）** |
+| 16 | 第十一节："高性能、高可用"分布式事件 |
+| 17 | 第十二节："高并发"Reactive 异步服务 |
+| 18 | [公开课] 生产环境 JVM 故障分析 |
+| 19 | 第十三节："高并发、高性能与高可用"API 网关 |
+| 20 | 第十四节："高并发、高性能与高可用"RPC 网关 |
+| 21 | 第十五节："高并发、高性能与高可用"Istio |
+| 22 | 加餐四："高并发、高性能与高可用"Istio（续） |
+| 23 | 加餐五：Dubbo 架构设计与实现 |
+| 24 | 第十六节："高并发、高性能与高可用"Dubbo 生态 |
+| 25 | 第十七节："高并发、高性能与高可用"配置中心 - Nacos |
+| 26 | 第十八节："高并发、高性能与高可用"配置中心 - etcd |
+| 27 | 加餐六："高并发、高性能与高可用"分布式配置客户端实现 |
+| 28 | 加餐七：GraalVM 基础 |
+| 29 | 第十九节："高并发、高性能与高可用"日志平台 |
+| 30 | 第二十节："高并发、高性能与高可用"监控平台 |
+| 31 | 第二十一节："高并发、高性能与高可用"Spring Native 应用 |
+| 32 | 第二十二节："高并发、高性能与高可用"Java Native 应用 |
+| 33 | 加餐八：现代 Java 发展与变化 |
+| — | [课程结营] 第三期 Java 分布式高并发、高性能、高可用架构 |
+
+### 分组建议（按主题，供 G0 盘问参考）
+| 组 | 篇目编号 | 主题 |
 |----|------|------|
-| 项目准备 | 01-04 | Shopizer 介绍/优化计划/优化准备（公开课+前2节） |
-| 容器/服务 | 05-08 | 服务容器调优、微服务架构升级、Eureka 注册/架构、HTTP 架构升级 |
-| 数据 | 09-12 | RPC 架构升级、MySQL 高可用、数据存储、分布式事件 |
-| 加餐 | 13-15 | Spring Web Reactive、分布式事件设计、Reactive 异步服务 |
-| JVM | 16(18) | 生产环境 JVM 故障分析 |
-| 网关/服务网格 | 17-20 | API 网关、RPC 网关、Istio×2 |
-| Dubbo | 21-22 | Dubbo 架构设计与实现、Dubbo 生态 |
-| 配置 | 23-25 | 配置中心 Nacos、配置中心 etcd、分布式配置客户端 |
-| Native | 26-28 | GraalVM、Spring Native、Java Native |
+| 项目准备 | 01-04 | Shopizer 介绍/优化计划/优化准备 |
+| 容器/服务 | 05-10 | 容器调优、微服务升级、Eureka×2、HTTP、RPC 架构升级 |
+| 数据 | 11-12 | MySQL 高可用、数据存储 |
+| 加餐/Reactive | 13-17 | Spring Web Reactive、事件设计、分布式事件、Reactive 异步 |
+| JVM | 18 | 生产环境 JVM 故障分析 |
+| 网关/服务网格 | 19-22 | API 网关、RPC 网关、Istio×2 |
+| Dubbo | 23-24 | Dubbo 架构设计与实现、Dubbo 生态 |
+| 配置 | 25-27 | 配置中心 Nacos、etcd、分布式配置客户端 |
+| Native | 28,31-32 | GraalVM、Spring Native、Java Native |
 | 可观测 | 29-30 | 日志平台、监控平台 |
-| 结营 | 31-37 | 现代 Java 发展、课程结营 |
+| 结营 | 33+结营 | 现代 Java 发展、课程结营 |
+
+> **注意**：编号 15 缺失（docs 原始就无此文件）；加餐七(GraalVM 28) 与 Native 组(31-32) 同主题但编号分离；4 张 png 为架构图（Shopizer 优化计划/Spring Redis 分布式事件设计等）——按边缘处理或作图片佐证。
 
 ### 参考实现源码（本地已确认）
 - `code/spring/`：spring-framework/spring-boot/spring-cloud-*/netty/tomcat/sentinel/nacos/dubbo/skywalking/arthas 等
 - `java-training-camp/cloud-native-code/`：更全的 microsphere 生态
+- **`java-training-camp/cloud-native-code/stage-3/shopizer`**：stage-3 的 Shopizer 电商项目源码（docs 01-04 实战对象，核心参考实现）
 - stage-3 有 `references/` + `slides/`（补充材料）
 
 ---
@@ -124,9 +165,9 @@
 ## 七、当前未决问题（供 Session 003 处理）
 
 1. **stage-3 分组顺序**：建议按"项目准备→容器/服务→数据→网关→配置→可观测→Native→结营"分组走，但需 G0 与用户确认
-2. **Shopizer 项目**：docs 01-04 基于 Shopizer 电商项目实战——需确认是否深挖 shopizer 源码（本地 `shopizer` 仓库在清单中）
+2. **Shopizer 项目**：docs 01-04 基于 Shopizer 电商项目实战——**核心参考实现已确认**：`/data/workspace/java-training-camp/cloud-native-code/stage-3/shopizer`（stage-3 的 shopizer 源码，G0 时与用户确认深挖深度）
 3. **Redis/Redisson 深挖**：stage-2 第 27/28 节标注"源码深挖后续单独规划"——属源码提取主体（source/），非 stage-3 范围，但可留意衔接
-4. **stage-2 加餐/图片**：docs 37 个文件含 5 图片 + 结营文档——按边缘/支撑判定跳过或简提（参照 stage-1 的 i18n 跳过先例）
+4. **stage-3 图片/缺失文件**：docs 共 33 md + 4 图片，编号 15 缺失——按边缘/支撑判定跳过或简提（参照 stage-1 的 i18n 跳过先例）；4 张 png 为架构图，作图片佐证不独立提取
 
 ---
 
