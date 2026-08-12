@@ -123,7 +123,7 @@
 
 > **stage-1/2 L1 提取全部完成。** 每篇均经深 review（穷尽性/源码行号核对/过时工具模式区分/空节标注/置信度）。L2 聚合/聚类、L3 总大纲未开始（07 约定：两主体都提取完再合并）。
 
-**下一步（stage-3）**：详见 `progress/HANDOVER-session003.md`（交接文档）。
+**下一步（stage-3）**：提取中（2026-08-12 起）。已完成 stage-3-01（my-xhs 项目介绍，10 KP）。**关键决策（G0 决策 B）**：案例载体由 Shopizer 替换为本地 my-xhs 项目（`/data/workspace/my-xhs`），docs 方法论主线不变、实例验证锚定 my-xhs、差异显式标注。详见 `progress/HANDOVER-session003.md`。
 
 ### 仓库清单：✅ 已核实（00）
 - 官方 36 仓库；microsphere-test 已拉取(纯配置)；3 个站点/UI 仓库跳过；本地独有 confucius/shopizer/segmentfault

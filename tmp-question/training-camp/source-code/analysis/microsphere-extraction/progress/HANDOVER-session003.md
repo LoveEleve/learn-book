@@ -165,12 +165,14 @@
 ## 七、当前未决问题（供 Session 003 处理）
 
 1. **stage-3 分组顺序**：建议按"项目准备→容器/服务→数据→网关→配置→可观测→Native→结营"分组走，但需 G0 与用户确认
-2. **Shopizer 项目定位（已决策，务必遵守）**：
-   - **不需要深入研究 Shopizer 源码**——它是 docs 01-04 的**教学案例载体**（被优化的对象），**不是知识本体**
-   - 知识本体 = **三高优化方法论**（docs 正文：怎么分析瓶颈/怎么架构升级/怎么调优）
-   - Shopizer 源码位置（`/data/workspace/java-training-camp/cloud-native-code/stage-3/shopizer`）**仅作可选轻量验证**——如 docs 说"Shopizer 用了 X 架构"可快速 grep 确认，**不逐文件研究、不深挖**
-   - 源码主体提取（source/）时 shopizer 按"stage-3 示例"权重处理（支撑/边缘）
-   - 方法论依据：08 SOP"小马哥课程/源码只是参考，不是知识本体"——Shopizer 连小马哥代码都不是，只是 docs 案例
+2. **案例载体已替换（2026-08-12 用户 G0 决策 B，覆盖原 Shopizer 决策）**：
+   - **stage-3"被优化对象"由 Shopizer 替换为本地 my-xhs 项目**（`/data/workspace/my-xhs`，小红书克隆：社交+电商微服务，19 模块/15 服务，JDK17+Boot 3.2.5+SCA 2023.0.1.2）
+   - docs 教学主线（三高优化方法论）不变，01-04 的 Shopizer 优化计划知识点照提；实例讲解与源码验证锚定 my-xhs
+   - **docs 场景 vs my-xhs 现状差异必须显式标注**（如 docs 06"单体拆微服务"——my-xhs 已是微服务）
+   - my-xhs 未实现主题（Istio/etcd/GraalVM/Dubbo 等）→ 方法论照提，参考实现回退官方源码（code/spring），诚实标注"my-xhs 无此实现"
+   - **`docs/test-2/` 业务梳理文档仅作线索，写文档必须以代码为准**（教训：test-2 的 MySQL 13306-13309 是旧架构，当前 config 实证为 3306 主/3307 从）
+   - my-xhs 摸底要点（已实证）：common 27 包（tcc/trace/mq/loadbalancer/zone/id/xxljob...）、gateway 7 过滤器（Auth/Hmac/RateLimit/Gray/TrafficColoring/ApiVersion/RequestLog）、RocketMQ 68 处、ES 8.12.2、XXL-Job 18080、zone 17 java 文件
+   - 产出：`progress/course/stage-3/stage-3-01-my-xhs项目介绍.md`（10 KP，架构基线图）
 3. **Redis/Redisson 深挖**：stage-2 第 27/28 节标注"源码深挖后续单独规划"——属源码提取主体（source/），非 stage-3 范围，但可留意衔接
 4. **stage-3 图片/缺失文件**：docs 共 33 md + 4 图片，编号 15 缺失——按边缘/支撑判定跳过或简提（参照 stage-1 的 i18n 跳过先例）；4 张 png 为架构图，作图片佐证不独立提取
 
