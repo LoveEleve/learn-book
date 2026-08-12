@@ -5,7 +5,7 @@
 > 提取时间：2026-08-12 | 权重：核心（按需订阅 + 动态配置变更——主题③正文最充实；主题①正文缺失发散）
 > 案例载体：my-xhs（决策 B）+ 现状核对（决策 B2）——**Eureka 仅 docs 场景，参考实现回退 Nacos（D3 纪律）**
 
-> **文档形态**：直播讲稿 + 代码笔记混合（339 行）——三主题：①Region/AZ（**头部声明正文缺失**——发散）②Microsphere Spring Config 动态配置（框架设计标题为主）③按需服务订阅（正文最充实：设计现状 + 四方式 + VIP 优化 + 源码块 10 个）；"关联技术"（@ConfigurationProperties 全家桶，docs:131-339）为支撑知识。
+> **文档形态**：直播讲稿 + 代码笔记混合（339 行）——三主题：①Region/AZ（**头部声明正文缺失**——发散）②Microsphere Spring Config 动态配置（框架设计标题为主）③按需服务订阅（docs 以 Eureka 设计现状/VIP 优化讲——**机制用 Nacos 源码实证讲（D3 重写），Eureka 仅 docs 场景**）；"关联技术"（@ConfigurationProperties 全家桶，docs:131-339）为支撑知识。
 
 ---
 
@@ -37,16 +37,16 @@
 
 ## 二、知识点提取（三层次：需求 / 自主实现 / 参考实现）
 
-### KP-01 Eureka Client 设计现状与全量订阅问题（Applications 1:M:N）【docs §设计现状】
+### KP-01 客户端注册表模型与全量订阅问题（Applications 1:M:N——机制通用）【docs §设计现状场景】
 - **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
 - **前置**：stage-3 07（服务发现）
-- **来源**：docs §Eureka Client 设计现状（docs:20-26）
-- **需求**：**按需订阅的问题背景**——docs 明确：Eureka Client 订阅拿到**全量服务实例列表**；底层 EurekaClient 接口/DiscoveryClient 实现；核心存储以 Applications 为基准，**Applications : Application : InstanceInfo = 1 : M : N**（docs:26）——注册中心实例过多 → 客户端内存消耗过大（docs 头部声明主题③动机）；**`[跳过：docs:11-16 §Eureka Client 配置两空节标题（默认配置实现/Spring Cloud 实现配置——无内容）]`**
-- **自主实现**：若我设计——客户端注册表模型 = 服务名（Application）× 实例（InstanceInfo）两级；**全量拉取** = 所有服务所有实例常驻内存（大集群下内存线性增长）
-- **参考实现**（docs 照录 + 发散）：**docs 模型（照录）**——Applications（1）→ Application（M）→ InstanceInfo（N）（docs:20-26）；**类名（诚实标注）**——`EurekaClient`/`DiscoveryClient` **`[无本地源码：spring-cloud-netflix 未在本地——docs 照录]`**；**Nacos 对照（发散 + stage-3 07 交叉）**——Nacos 客户端**同样全量缓存**（注册表服务端下发全量 + UDP/gRPC 增量推送——stage-3 07 已提取）——**全量订阅是注册中心客户端通用设计**（简单一致），按需订阅是优化方向
-- **对比取舍**：**全量订阅（简单/一致）vs 按需订阅（省内存/多一跳）**——小集群无需优化，大集群（服务数 × 实例数大）内存压力触发（docs 主题③）
+- **来源**：docs §Eureka Client 设计现状（docs:20-26——场景）+ stage-3 07（Nacos 客户端模型）+ 架构师整合
+- **需求**：**按需订阅的问题背景**——客户端注册表模型：服务名（Application）× 实例（InstanceInfo）两级，**Applications : Application : InstanceInfo = 1 : M : N**（docs:26）——**全量订阅** = 所有服务所有实例常驻内存（大集群内存线性增长——docs 头部声明主题③动机）
+- **自主实现**：若我设计——客户端注册表 = 两级模型（服务名 → 实例列表）；**全量拉取** = 大集群下内存 ∝ M×N
+- **参考实现**（Nacos 实证 + docs 场景）：**机制（通用——docs:20-26 的 1:M:N 模型照录）**——docs 场景载体：EurekaClient 接口/DiscoveryClient 实现（`[无本地源码：spring-cloud-netflix]`——docs 照录）；**Nacos 对照（stage-3 07 交叉）**——Nacos 客户端**同构全量/订阅模型**（`NacosNamingService` 服务注册表 + subscribe 按需——KP-03 展开）——**1:M:N 是注册中心客户端注册表的通用形态**（与组件无关）；**`[跳过：docs:11-16 §Eureka Client 配置两空节标题（默认配置实现/Spring Cloud 实现配置——无内容）]`**
+- **对比取舍**：**全量订阅（简单/一致）vs 按需订阅（省内存/多一跳）**——小集群无需优化，大集群（服务数 × 实例数大）内存压力触发（docs 主题③动机）
 - **机制/说明**：1:M:N 两级模型是"客户端注册表"的标准形态——InstanceInfo 是叶子（IP:Port+元数据+租约）；客户端内存 ∝ M×N——**按需订阅的本质 = 缩小 M（只订阅本应用依赖的 ServiceId）**
-- **测试佐证**：docs:20-26（1:M:N 照录）+ stage-3 07（Nacos 全量缓存交叉）
+- **测试佐证**：docs:20-26（1:M:N 照录）+ stage-3 07（Nacos 客户端模型交叉）
 
 ### KP-02 按需服务订阅：Spring Cloud 四方式 + NamedContextFactory【docs 主题③主体】
 - **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[有效]`（Ribbon 方式 [过时→LoadBalancer]）| **置信度**：High
@@ -59,16 +59,16 @@
 - **机制/说明**：NamedContextFactory 是 Spring Cloud 客户端（LB/Feign）的**核心抽象**：每个 ServiceId 有独立子上下文（隔离配置——不同服务的超时/重试可不同）；**getContextNames() = 本应用的服务依赖清单**——这是按需订阅的数据源（docs:93 改造链路的输入）
 - **测试佐证**：docs:61-75（源码块照录）+ 本地 grep（NamedContextFactory/LoadBalancerClientFactory 实存）
 
-### KP-03 EurekaClient VIP 按需订阅优化设计【docs §EurekaClient 优化设计思路】
-- **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：Medium
+### KP-03 按需订阅机制（客户端注册表内存优化——Nacos 讲机制，Eureka 仅 docs 场景）
+- **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
 - **前置**：KP-01/02
-- **来源**：docs §EurekaClient 优化设计思路（docs:79-93——getAndStoreFullRegistry 源码块）
-- **需求**：**按需订阅的 EurekaClient 落地改造**——docs 设计思路：①`DiscoveryClient` 的 `localRegionApps` 结构不变化（docs:79）②**VIP 查询**：配置 `RegistryRefreshSingleVipAddress` → 走 `/eureka/vips/${vipAddress}` 而非全量 `/applications`（docs:87-89 源码块 `getAndStoreFullRegistry()`）③**Server 改造**：默认仅支持单个 VIP → 支持**多服务合并查询** `/eureka/vips/${vipAddresses}`（eureka-server,user-service,...）④**ServiceID 来源**：`NamedContextFactory#getContextNames()`（KP-02）⑤启动时填充 `EurekaClientConfigBean#setRegistryRefreshSingleVipAddress`（`[无本地源码：spring-cloud-netflix——docs:93 原文照录]`）
-- **自主实现**：若我设计——客户端改造四步：VIP 配置（服务清单）→ 拉取接口改为 VIP 合并查询 → 注册表只存订阅服务 → Server 支持多 VIP 合并——**docs 明确"对 Eureka Server 做一点点调整，改造成本非常低"（docs:93）**
-- **参考实现**（docs 源码照录 + 发散）：**源码块（docs:83-91 照录）**——`getAndStoreFullRegistry()`：`registryRefreshSingleVipAddress == null ? getApplications(remoteRegionsRef) : getVip(...)`（VIP 走 `/eureka/vips/`）；**优化链路（docs:93 文字照录）**——主上下文启动 → getContextNames() 拿全部 ServiceID → 填充 EurekaClientConfigBean#setRegistryRefreshSingleVipAddress（`[无本地源码]`）→ EurekaClient 按需订阅 InstanceInfo 集合；**Nacos 对照（发散 + stage-3 07 交叉）**——Nacos 客户端**原生按需订阅**（gRPC 订阅指定 serviceName——stage-3 07 NacosNamingService.registerInstance/订阅交叉）——**docs 的"改造"在 Nacos 是内建能力**（D3 参考实现回退：不搞 Eureka VIP 改造，机制理解即可）
-- **对比取舍**：**Eureka 需改造（VIP 合并查询——Server+Client 双改）vs Nacos 内建（按需订阅原生）**——docs 展示"改造思路"（机制价值），生产选 Nacos 免改造（主流性）
-- **机制/说明**：VIP（Virtual IP）是 Eureka 的**虚拟服务地址查询**（按服务名过滤的注册表视图）——与全量 Applications 相对；改造本质 = **把"客户端全量 + 本地过滤"变成"服务端按需返回"**（内存压力从客户端转移到服务端查询面）；`remoteRegionsRef`（docs:88）说明**拉取可跨区域**（02 篇 KP-05 衔接：客户端可查任何区域注册表）
-- **测试佐证**：docs:83-91（源码块照录）+ 02 篇（Region 交叉）+ stage-3 07（Nacos 按需交叉）
+- **来源**：stage-3 07（Nacos 订阅源码实证）+ docs §EurekaClient 优化设计思路（docs:79-93——场景）+ my-xhs 实证
+- **需求**：**按需订阅的机制本体**——全量订阅（1:M:N 常驻内存）在**大集群**（千级服务 × 万级实例）内存压力显著 → **只订阅本应用依赖的 ServiceId**（缩小 M）
+- **自主实现**：若我设计——客户端按需订阅三要素：①**订阅清单**（本应用依赖的服务名——来自声明式客户端/配置）②**按清单订阅**（注册中心只下发订阅服务的实例）③**变更推送**（订阅服务实例变更实时通知）
+- **参考实现**（Nacos 源码实证 + my-xhs + docs 场景）：**Nacos 机制（源码实证——stage-3 07 已深挖，交叉不重提）**——`NacosNamingService.subscribe()`（`NacosNamingService.java:454-469` 重载族：serviceName/group/clusters + EventListener）+ `selectInstances(subscribe)`（按订阅状态查询）+ 2.x gRPC 双向流推送——**按需订阅是 Nacos 内建 API**（docs 的"改造"在 Nacos 免做）；**my-xhs 实证**——Feign 声明式（stage-3 06——依赖服务即订阅清单）+ Nacos 订阅（stage-3 07 交叉）`[现状：按需订阅内建完整]`；**docs 场景（Eureka——2016 前后探索）**——VIP 改造思路（docs:79-93：`RegistryRefreshSingleVipAddress` → `/eureka/vips/` 多服务合并查询 + `getContextNames()` 填充——**按服务清单过滤的同一机制**）——**机制同构、载体不同：Eureka 需 Server+Client 双改，Nacos 内建**（D3 参考实现回退）
+- **对比取舍**：**订阅式（按需——Nacos 内建）vs 拉取式全量+本地过滤（Eureka 30s 轮询）**——实时性/流量 vs 简单——现代演进方向是订阅（Nacos gRPC）；**docs 的 VIP 改造是拉取式的按需化补丁**（历史探索，生产无需照搬）
+- **机制/说明**：按需订阅的本质 = **"声明即订阅"**（服务依赖声明 → 客户端按依赖订阅）——内存 ∝ 依赖服务数 × 实例数（而非全量服务数）；触发条件：**服务数 × 实例数 × InstanceInfo 大小**（元数据膨胀时更严重）——小集群（my-xhs 15 服务）无需优化
+- **测试佐证**：`NacosNamingService.java:454-469`（stage-3 07 实证）+ docs:79-93（场景照录）+ my-xhs（stage-3 06/07 交叉）
 
 ### KP-04 动态配置事件链（Microsphere Spring Config → Spring Cloud 刷新）【docs 主题②——§Microsphere Spring Stack 配置设计 + §Spring Cloud 配置】
 - **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[有效]` | **置信度**：Medium
@@ -119,9 +119,9 @@
 
 | 知识点 | 维度 | 权重 | 优先级 | 深度 | 过时 | 置信度 |
 |--------|------|:---:|:---:|:---:|:---:|:---:|
-| 设计现状与全量订阅问题（1:M:N） | 分布式问题 | 核心 | P1 | 🟡 | 时间无关 | High |
+| 客户端注册表模型与全量订阅问题（1:M:N） | 分布式问题 | 核心 | P1 | 🟡 | 时间无关 | High |
 | 按需订阅四方式 + NamedContextFactory | 分布式问题 | 核心 | P1 | 🔴 | 有效 | High |
-| VIP 按需订阅优化设计 | 分布式问题 | 核心 | P1 | 🔴 | 时间无关 | Medium |
+| 按需订阅机制（Nacos 内建） | 分布式问题 | 核心 | P1 | 🔴 | 时间无关 | Medium |
 | 动态配置事件链 | 工程问题 | 核心 | P1 | 🔴 | 有效 | Medium |
 | Region/AZ 多活范围扩展 | 分布式问题 | 支撑 | P2 | 🟡 | 时间无关 | Medium |
 | @ConfigurationProperties 机制 | 规范 | 支撑 | P2 | 🟡 | 有效 | High |
@@ -146,7 +146,7 @@
 
 **参考实现**：docs 源码块照录（docs 共 10 个 java 代码块——NamedContextFactory 2/getAndStoreFullRegistry/ConfigurationPropertiesBean.get/AbstractBindHandler/getBindHandler/Advisor 2/EnvironmentManager——本篇引用核心部分）+ 本地类名实证（spring-cloud-context/spring-boot/microsphere-spring-context）+ 27 篇交叉（动态刷新不重提）+ Nacos 对照（按需订阅内建——docs 改造免做）。
 
-**对比取舍**：知识本体是"**服务发现客户端的按需订阅与动态配置机制**"——全量 vs 按需（内存）、四方式同一底座（NamedContextFactory）、VIP 改造 vs Nacos 内建（主流性回退）、事件链分层（可观测 vs 简单）；my-xhs **Nacos 内建按需订阅 + SCA 动态配置完整**（docs 优化全部内建，无需照搬改造）。
+**对比取舍**：知识本体是"**服务发现客户端的按需订阅与动态配置机制**"——全量 vs 按需（内存）、四方式同一底座（NamedContextFactory）、按需订阅（Nacos 内建——Eureka VIP 改造为 docs 场景）、事件链分层（可观测 vs 简单）；my-xhs **Nacos 内建按需订阅 + SCA 动态配置完整**（docs 优化全部内建，无需照搬改造）。
 
 **待验证汇总**：
 - docs Microsphere 框架 6 类名（`[未找到]`——本地 microsphere 生态无此名）

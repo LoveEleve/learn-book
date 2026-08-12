@@ -5,7 +5,7 @@
 > 提取时间：2026-08-12 | 权重：核心（多注册中心发现/注册 + 发布策略——主题②正文充实）
 > 案例载体：my-xhs（决策 B）+ 现状核对（决策 B2）——**Eureka 仅 docs 场景，参考实现回退 Nacos（D3 纪律）**
 
-> **文档形态**：直播讲稿 + 代码笔记（268 行）——三主题：①多注册中心**注册**（**docs:156-157 "TODO Next"——作者未写，空节标注**）②多注册中心**发现**（正文充实：AOP 拦截器合并 + CompositeDiscoveryClient + 实现思路）③**灰度/蓝绿/金丝雀发布策略**（**头部声明正文缺失**——发散）；尾部"常见问题"（@EnableDiscoveryClient）。
+> **文档形态**：直播讲稿 + 代码笔记（268 行）——三主题：①多注册中心**注册**（**docs:156-157 "TODO Next"——作者未写，空节标注**）②多注册中心**发现**（docs 以 Eureka 拦截器/Composite 讲——**机制用 Nacos 源码实证讲（D3 重写），Eureka 仅 docs 场景**）③**灰度/蓝绿/金丝雀发布策略**（**头部声明正文缺失**——发散）；尾部"常见问题"（@EnableDiscoveryClient）。
 
 ---
 
@@ -36,16 +36,16 @@
 
 ## 二、知识点提取（三层次：需求 / 自主实现 / 参考实现）
 
-### KP-01 多注册中心服务发现机制（EurekaClientMethodInterceptor AOP 合并）【docs 主题②正文本体】
+### KP-01 多注册中心发现机制（客户端合并——Nacos 讲机制，Eureka 仅 docs 场景）
 - **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🔴 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：High
 - **前置**：Spring AOP、04 篇（DiscoveryClient）
-- **来源**：docs §具体实现（docs:55-106——EurekaClientMethodInterceptor 源码块全文）
-- **需求**：**多注册中心的服务发现合并**——docs 明确：EurekaClient Bean 可被动态代理，当 `getApplications()`/`getInstancesByVipAddress()` 被调用时，代理拦截、委派给**多个内部 EurekaClient 实例（集合）**处理（docs:55）
-- **自主实现**：若我设计——代理拦截两个方法：getApplications（合并多个 Applications 的 Application 集合）+ getInstancesByVipAddress（合并多个实例列表）——**方法级委派 + 结果合并**
-- **参考实现**（docs 源码块照录 + 本地验证）：**拦截器（docs:56-106 源码块照录）**——`EurekaClientMethodInterceptor implements MethodInterceptor`：`invoke()` 按 methodName switch——`getApplications` → `doGetApplications`（**遍历 eurekaClients 逐个取 Applications → 合并到 combinedApplications**——docs:74-90）；`getInstancesByVipAddress` → `doGetInstancesByVipAddress`（**合并 InstanceInfo 列表**——docs:92-105）；**AopUtils.isAopProxy 判断**（被代理的 client 走 invocation.proceed() 保持代理链，未代理的直接 method.invoke——docs:78-83/96-100）；**为什么拦截这两个方法（docs:108-137 源码块照录）**——`EurekaDiscoveryClient.getInstances()` 调 `getInstancesByVipAddress`（docs:111-112）+ `getServices()` 调 `getApplications`（docs:121-122）——**拦截这两个 = 覆盖 Spring Cloud DiscoveryClient 的全部查询面**；**类名验证**——`EurekaClientMethodInterceptor`/`EurekaDiscoveryClient`/`CloudEurekaClient`/`EurekaDiscoveryClientConfiguration` **`[无本地源码：spring-cloud-netflix 未在本地——docs 源码块照录]`**
-- **对比取舍**：**代理拦截合并（AOP）vs 客户端内自持多连接**——对既有客户端无侵入（代理包装）vs 侵入改造——**docs 用代理：单 Bean 外观 + 内部多实例委派**
-- **机制/说明**：**多注册中心 = 一个"组合外观"包装多个真实客户端**——AOP 拦截在方法粒度合并结果；**合并语义**：getServices 并集、getInstances 并集（docs 的 doGet* 都是全合并——对比 KP-02 CompositeDiscoveryClient 的"首个非空"差异——**两种合并策略**）；被代理 client 的 proceed() 保持嵌套代理链（多级包装安全）
-- **测试佐证**：docs:55-106（源码块）+ 本地 `spring-cloud-commons`（DiscoveryClient 抽象实证——KP-02）
+- **来源**：Nacos 源码实证（多 serverList）+ docs §具体实现（docs:55-106——Eureka 场景）+ stage-3 07
+- **需求**：**多注册中心的服务发现合并**——跨域/多环境场景：一个应用面对多个注册中心（多机房/迁移过渡/多云），发现侧需要统一可见
+- **自主实现**：若我设计——**单外观 + 多注册源合并**：服务列表并集 + 实例列表并集（跨注册中心全量可见 + 故障切换）
+- **参考实现**（Nacos 源码实证 + Spring Cloud 通用 + docs 场景）：**Nacos 机制（源码实证——主体）**——Nacos 客户端**内建多 server 管理**：`NacosNamingService.java:57`（`NamingServerListManager serverListManager`）+ `:76-77`（构造 + `start()`）；`NamingServerListManager.java:44`（`currentIndex`）+ `:66`（初始随机）+ `:96`（`incrementAndGet() % serverList.size()`——**轮询切换多 server**）+ `:102`（当前 server 获取）——**"多注册中心"在 Nacos 是客户端内建形态**（多 serverList + 轮询/切换容灾）；**跨域多集群**——namespace/多集群（stage-3 25 `namespace: my-xhs` 实证）——**单客户端多服务端 = 配置面/集群面**；**Spring Cloud 通用**——CompositeDiscoveryClient（KP-02 展开）+ DiscoveryClient SPI（04 篇 KP-02）；**docs 场景（Eureka——2016 前后探索）**——`EurekaClientMethodInterceptor`（docs:55-106——AOP 代理拦截 `getApplications()`/`getInstancesByVipAddress()` 委派多个内部 EurekaClient 合并——**同一"外观+合并"机制的 Eureka 版**，`[无本地源码：spring-cloud-netflix]`）——**机制同构、载体不同：Eureka 需 AOP 包装，Nacos 原生多 server**（D3 参考实现回退）
+- **对比取舍**：**代理拦截合并（Eureka 探索——外观+委派）vs 客户端内建多 server（Nacos——原生）**——包装方案 vs 原生形态——**"多注册"的现代形态 = 客户端配置面（Nacos 多 server/集群），非组合包装**
+- **机制/说明**：**多注册中心 = 一个"组合外观"包装多个真实客户端**（服务列表并集 + 实例列表并集——docs 拦截器与 Union 语义）；Nacos 的多 serverList 是**同产品多节点的容灾形态**（轮询切换），跨产品异构（Nacos+Eureka 并存）才需要抽象层组合（KP-02/03）——**两个层次：同构多节点（内建）vs 异构多产品（组合）**
+- **测试佐证**：`NacosNamingService.java:57/76-77` + `NamingServerListManager.java:44/66/96/102`（本地源码实证）+ docs:55-106（场景照录）+ 04 篇（DiscoveryClient 交叉）
 
 ### KP-02 Spring Cloud DiscoveryClient 抽象与 CompositeDiscoveryClient（聚合 vs 首个非空）【docs §Spring Cloud 服务发现核心 API】
 - **维度**：`[工程问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[有效]` | **置信度**：High
@@ -69,16 +69,16 @@
 - **机制/说明**：多注册中心的两种落地——**客户端合并**（本 KP：多 DiscoveryClient 组合——Eureka 思路）vs **服务端聚合**（Nacos 集群/多集群——单客户端多服务端）；**Union 思想** = 组合 + 并集合并（跨注册中心故障切换/全量可见）
 - **测试佐证**：docs:233-236（思路照录）+ `[未找到]` 标注 + stage-3 25（Nacos namespace 交叉）
 
-### KP-04 跨域注册与认证（OAuth 2.0 + RestTemplate/WebClient 通道）【docs §跨域服务注册能力】
+### KP-04 跨域注册的认证与隔离（namespace 租户——Nacos 讲机制，Eureka OAuth 仅 docs 场景）
 - **维度**：`[分布式问题]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[有效]` | **置信度**：Medium
-- **前置**：OAuth 2.0、04 篇 KP-06（EurekaHttpClient）
-- **来源**：docs §Eureka Client 实现跨域服务注册能力（docs:140-154）
-- **需求**：**跨域注册的认证机制**——docs 明确：Eureka Server 增加 **OAuth 2.0 协议**、Client 增加对应支持（docs:141）；底层依赖 **EurekaHttpClient 接口**（docs:144）
-- **自主实现**：若我设计——注册通道加认证：HTTP 拦截器注入令牌（RestTemplate ClientHttpRequestInterceptor）/WebClient 定制（filter 注入）
-- **参考实现**（docs 照录 + 本地验证）：**RestTemplate 3.0+（docs:147-150）**——拦截功能：`org.springframework.http.client.ClientHttpRequestInterceptor` **`[本地实证：spring-web `http/client/ClientHttpRequestInterceptor.java`]`** + `RestTemplateTransportClientFactory` **`[无本地源码：spring-cloud-netflix——docs 照录]`**；**WebClient 5.0+（docs:152-153）**——`WebClient.Builder` 自定义 **`[本地实证：spring-webflux `function.client.WebClient.Builder`——09 篇交叉]`**；**跨域认证语义（发散）**——OAuth 2.0 client credentials（服务间注册授权——机器身份）
-- **对比取舍**：**RestTemplate 拦截器 vs WebClient Builder 定制**——命令式拦截 vs 响应式 filter——两通道的认证注入点不同（拦截器/ExchangeFilterFunction）
-- **机制/说明**：**跨域注册 = 注册请求带认证**（对方注册中心信任凭据）；EurekaHttpClient 是注册通讯的抽象（04 篇 KP-06 已提取 RestTemplate/WebClient 双实现）
-- **测试佐证**：docs:140-154（照录）+ `ClientHttpRequestInterceptor.java`（本地实证）+ 04 篇（EurekaHttpClient 交叉）
+- **前置**：stage-3 25（Nacos namespace）、04 篇 KP-06（EurekaHttpClient 场景）
+- **来源**：stage-3 25（Nacos 实证）+ docs §Eureka Client 实现跨域服务注册能力（docs:140-154——场景）+ 架构师发散
+- **需求**：**跨域注册的信任边界**——注册到"对方"注册中心时的认证/隔离（docs 场景：Eureka Server 增加 OAuth 2.0、Client 增加对应支持——docs:141）
+- **自主实现**：若我设计——跨域注册两条路：①**隔离面**（各环境各集群——namespace/租户隔离，无需跨域认证）②**认证面**（真实跨域时凭据认证——client credentials 类）
+- **参考实现**（Nacos 实证 + docs 场景）：**Nacos 机制（主体——stage-3 25 交叉）**——**namespace 租户隔离**（`namespace: my-xhs`——stage-3 25 实证）：跨域/跨环境 = **各 namespace 各注册面，天然隔离无需协议级认证**；Nacos 鉴权（服务端开启 token 校验——`[待验证：my-xhs Nacos 鉴权配置]`）；**通道（发散 + 本地实证）**——注册通讯抽象：RestTemplate 拦截器（`org.springframework.http.client.ClientHttpRequestInterceptor` **`[本地实证：spring-web `http/client/ClientHttpRequestInterceptor.java`]`**）/WebClient Builder 定制（`[本地实证：spring-webflux]`——09 篇交叉）；**docs 场景（Eureka——OAuth 2.0 协议认证）**——Server 加协议 + Client 加支持（docs:141）+ EurekaHttpClient 接口（docs:144——04 篇 KP-06 已提取场景）——**协议级认证是 Eureka 时代的跨域方案，Nacos 生态用 namespace 隔离为主**
+- **对比取舍**：**隔离面（namespace——简单、无认证成本）vs 认证面（OAuth——真实跨域信任）**——默认隔离优先，真实跨域才认证——**跨域诉求在 Nacos 生态走 namespace/集群面（05 篇 KP-03 衔接）**
+- **机制/说明**：跨域注册的本质是**信任边界设计**——隔离（各环境各面）或认证（凭据互信）；Nacos namespace 是"环境级隔离"的默认解，协议级 OAuth 是"产品级互信"的通用解（注册中心间的场景）
+- **测试佐证**：stage-3 25（namespace 实证）+ `ClientHttpRequestInterceptor.java`（本地实证）+ docs:140-154（场景照录）
 
 ### KP-05 发布策略（灰度/蓝绿/金丝雀——docs 声明正文缺失）【docs 主题③发散】
 - **维度**：`[分布式问题]` | **权重**：`[核心]` | **深度**：🟡 | **优先级**：P1 | **过时**：`[时间无关模式]` | **置信度**：Medium
@@ -118,10 +118,10 @@
 
 | 知识点 | 维度 | 权重 | 优先级 | 深度 | 过时 | 置信度 |
 |--------|------|:---:|:---:|:---:|:---:|:---:|
-| 多注册发现机制（AOP 拦截合并） | 分布式问题 | 核心 | P1 | 🔴 | 时间无关 | High |
+| 多注册发现机制（客户端合并——Nacos 多 server） | 分布式问题 | 核心 | P1 | 🔴 | 时间无关 | High |
 | DiscoveryClient 抽象 + Composite | 工程问题 | 核心 | P1 | 🟡 | 有效 | High |
 | 多注册实现思路（Union） | 分布式问题 | 核心 | P1 | 🔴 | 时间无关 | Medium |
-| 跨域注册与认证（OAuth 2.0） | 分布式问题 | 支撑 | P2 | 🟡 | 有效 | Medium |
+| 跨域注册的认证与隔离（namespace） | 分布式问题 | 支撑 | P2 | 🟡 | 有效 | Medium |
 | 发布策略（灰度/蓝绿/金丝雀） | 分布式问题 | 核心 | P1 | 🟡 | 时间无关 | Medium |
 | @EnableDiscoveryClient 机制 | 规范 | 支撑 | P3 | 🟢 | 有效 | High |
 | 现状核对（Nacos 单注册 + 灰度 header） | 分布式问题 | 支撑 | P2 | 🟢 | 时间无关 | High |
