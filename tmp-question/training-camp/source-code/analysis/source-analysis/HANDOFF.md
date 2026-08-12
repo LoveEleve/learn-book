@@ -1,6 +1,6 @@
 # HANDOFF — 主交接文档(唯一入口,非常详细版)
 
-> **状态**: 2026-08-11 | 卷 2 写作进行中(第 1 批,6/13 篇完成) | 上下文已满,本文件为**非常详细交接版**——新 AI 只读本文件即可继续,不必读其他文档
+> **状态**: 2026-08-11 | 卷 2 写作进行中(第 1 批 12 篇,6/12 完成) | 上下文已满,本文件为**非常详细交接版**——新 AI 只读本文件即可继续,不必读其他文档
 > **接收者: 新 AI —— 只读本文件,按"第一步"执行**
 
 ---
@@ -22,11 +22,11 @@
 | 卷 | 位置 | 状态 |
 |---|---|---|
 | 卷 0 地基 | `docs/openjdk/vol-00/`(4 章) | ✅ 旧会话完成,不动 |
-| 卷 T 工具观测 | `docs/openjdk/vol-tools/ch01-07.md` | ✅ 本会话完成(7 篇,深审 32 处修正),写作时引用其素材做实证 |
+| 卷 T 工具观测 | `docs/openjdk/vol-tools/ch01-07.md` | ✅ 本会话完成(7 篇,每篇经写时自查+用户要求的多轮深审,修正均留档 commit message),写作时引用其素材做实证 |
 | 卷 1-bak 启动 | `docs/openjdk/vol-01-bak/`(14 章) | ✅ 归档(旧会话的启动链叙事,新写作不沿用此结构) |
 | **卷 2 运行时深处** | `docs/openjdk/vol-02/` | 🚧 **当前任务**,按 48 域依赖拓扑写 |
 | 域规划 | `docs/openjdk/planning/` | 48 域权威清单(00-domain-discovery-v3.md)+ 每域 KP(knowledge-planning/0X-*.md)+ 每域大纲(planning/outlines/0X-*/) |
-| 工具素材库 | `docs/openjdk/planning/outlines/00-jvm-tools/materials/` | ✅ 130+ 命令输出/21 截图/10 JFR 录制(gitignore,不入库) |
+| 工具素材库 | `docs/openjdk/planning/outlines/00-jvm-tools/materials/` | ✅ 115 命令输出/21 截图/10 JFR 录制/2 日志(gitignore,不入库) |
 
 **git 仓库**: `/data/workspace/source-code/openjdk-book/`(remote: git@github.com:LoveEleve/openjdk-book.git,main 分支,每篇一提交一推送)
 
@@ -37,7 +37,7 @@
 **写作顺序依据**: `docs/openjdk/planning/knowledge-planning/00-domain-writing-order.md`(48 域依赖拓扑 7 层,脚本验证自洽)
 
 ```
-第 1 批(地基):     01 → 05 → 45 → 48      ← 当前在这: 01✅ 05✅ 45 进行中
+第 1 批(地基,12 篇): 01(4 篇) → 05(2 篇) → 45(2 篇: poly-approximation/stubroutine-native) → 48(4 篇: vmerror/concurrent-bitmap/stream-exception/utf8-json-decoder)   ← 当前: 01✅ 05✅ 45 进行中
 第 2 批(原语):     02 → 03 → 04 → 06 → 16 → 38 → 41 → 42
 第 3 批(对象/类):  07 → 09 → 17
 第 4 批(执行/帧):  10 → 19 → 23 → 24 → 08 → 31 → 44
@@ -50,14 +50,14 @@
 
 | 域 | 篇 | 文件 | 行数 |
 |---|---|---|---|
-| 01-os | 1 | `01-os/01-platform-detection.md`(平台探测) | 294 |
-| 01-os | 2 | `01-os/02-virtual-memory.md`(虚拟内存四态) | 203 |
-| 01-os | 3 | `01-os/03-threads-and-sync.md`(7 种线程/优先级/Event) | 219 |
-| 01-os | 4 | `01-os/04-signals-and-safepoint.md`(SIGSEGV 五阶段) | 165 |
-| 05-cpu | 1 | `05-cpu-primitives/01-atomic-and-memory-order.md` | 123 |
-| 05-cpu | 2 | `05-cpu-primitives/02-safefetch-and-platform.md` | 122 |
+| 01-os | 1 | `01-os/01-platform-detection.md`(平台探测) | 293 |
+| 01-os | 2 | `01-os/02-virtual-memory.md`(虚拟内存四态) | 202 |
+| 01-os | 3 | `01-os/03-threads-and-sync.md`(7 种线程/优先级/Event) | 227 |
+| 01-os | 4 | `01-os/04-signals-and-safepoint.md`(SIGSEGV 五阶段) | 174 |
+| 05-cpu | 1 | `05-cpu-primitives/01-atomic-and-memory-order.md` | 122 |
+| 05-cpu | 2 | `05-cpu-primitives/02-safefetch-and-platform.md` | 121 |
 
-**每篇 commit 号**: 01=e8e9e92, 02=c3627f1, 03=46a85e2, 04=d909938, 05=884c66e, 06=74352ee(+各自深审修正 commit)
+**每篇 commit 号**: 01=e8e9e92, 02=c3627f1, 03=46a85e2, 04=d909938, 05=884c66e, 06=74352ee(后续深审修正 commit 见 git log)
 
 ---
 
@@ -131,7 +131,7 @@
 |---|---|---|
 | 素材索引 | `planning/outlines/00-jvm-tools/materials/INDEX.md` | 按域查素材的入口 |
 | JFR 录制 | `materials/jfr-recordings/rec-demo.jfr` 等 10 个 | 事件计数实证(如 SafepointBegin 2710) |
-| 命令输出 | `materials/commands/` 130+ 文件 | jcmd/jstat/jmap 等真实输出 |
+| 命令输出 | `materials/commands/` 115 文件 | jcmd/jstat/jmap 等真实输出 |
 | 截图 | `materials/screenshots/` 21 张 | 已复制进文章 assets 的用 assets |
 | 卷 T 文章 | `vol-tools/ch01-07.md` | 引用格式: "[卷 T ch05](openjdk/vol-tools/ch05.md) 的 Environment 页" |
 
