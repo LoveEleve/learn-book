@@ -1,14 +1,14 @@
 # 会话交接 — Session 005 交接说明（stage-4 全部完成）
 
 > **本文是 Session 005 的详细交接文档**，供下一个 AI 接手时完整了解状态。
-> 时间：2026-08-12 | 本会话完成 stage-4 全部 19 篇提取（docs 01-19+22，20/21 缺失）
+> 时间：2026-08-12 | 本会话完成 stage-4 全部 20 篇提取（docs 01-19+22，20/21 缺失）
 > 权威进度：`progress/HANDOVER.md`（唯一权威——必须先读）+ 本文（stage-4 细节 + source/ 提取准备）
 
 ---
 
 ## 一、本会话完成的工作
 
-### stage-4 提取：✅ 全部完成（19 篇产出，20/21 docs 缺失跳过）
+### stage-4 提取：✅ 全部完成（20 篇产出，20/21 docs 缺失跳过）
 
 产出在 `progress/course/stage-4/`（文件名见 §二 清单）。
 
@@ -29,7 +29,7 @@
 
 ---
 
-## 二、stage-4 产出清单（19 篇）
+## 二、stage-4 产出清单（20 篇）
 
 | 编号 | 产出文件 | KP 数 | 核心主题 | 关键实证 |
 |------|---------|:---:|---------|---------|
@@ -143,4 +143,4 @@
 
 - 仓库：`/data/workspace/source-code/book/成长之路`，分支 `fresh`，远端 `git@github.com:LoveEleve/learn-book.git`
 - 只提交 microsphere-extraction 相关文件；不碰 source-analysis/issue、talk-method、issue 等他人项目未提交改动
-- 本会话 commit 范围：`0220069` ~ `4612c74`（stage-4 19 篇 + stage-3-21 修正 + 05/08/12 [未找到] 修正 + 11-15 反模式 1 重写 + 08 SOP/prompt/HANDOVER 沉淀）
+- 本会话 commit 范围：`0220069` ~ `936d956`（stage-4 20 篇 + stage-3-21 修正 + 05/08/12 [未找到] 修正 + 11-15 反模式 1 重写 + 08 SOP/prompt/HANDOVER 沉淀 + 交接文档）
