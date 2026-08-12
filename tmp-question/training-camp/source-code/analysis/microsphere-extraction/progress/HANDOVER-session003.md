@@ -165,7 +165,12 @@
 ## 七、当前未决问题（供 Session 003 处理）
 
 1. **stage-3 分组顺序**：建议按"项目准备→容器/服务→数据→网关→配置→可观测→Native→结营"分组走，但需 G0 与用户确认
-2. **Shopizer 项目**：docs 01-04 基于 Shopizer 电商项目实战——**核心参考实现已确认**：`/data/workspace/java-training-camp/cloud-native-code/stage-3/shopizer`（stage-3 的 shopizer 源码，G0 时与用户确认深挖深度）
+2. **Shopizer 项目定位（已决策，务必遵守）**：
+   - **不需要深入研究 Shopizer 源码**——它是 docs 01-04 的**教学案例载体**（被优化的对象），**不是知识本体**
+   - 知识本体 = **三高优化方法论**（docs 正文：怎么分析瓶颈/怎么架构升级/怎么调优）
+   - Shopizer 源码位置（`/data/workspace/java-training-camp/cloud-native-code/stage-3/shopizer`）**仅作可选轻量验证**——如 docs 说"Shopizer 用了 X 架构"可快速 grep 确认，**不逐文件研究、不深挖**
+   - 源码主体提取（source/）时 shopizer 按"stage-3 示例"权重处理（支撑/边缘）
+   - 方法论依据：08 SOP"小马哥课程/源码只是参考，不是知识本体"——Shopizer 连小马哥代码都不是，只是 docs 案例
 3. **Redis/Redisson 深挖**：stage-2 第 27/28 节标注"源码深挖后续单独规划"——属源码提取主体（source/），非 stage-3 范围，但可留意衔接
 4. **stage-3 图片/缺失文件**：docs 共 33 md + 4 图片，编号 15 缺失——按边缘/支撑判定跳过或简提（参照 stage-1 的 i18n 跳过先例）；4 张 png 为架构图，作图片佐证不独立提取
 
