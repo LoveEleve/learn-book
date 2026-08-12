@@ -69,7 +69,7 @@
 - **来源**：docs §Istio（简介/为什么用）+ §流量管理 + my-xhs 灰度对照
 - **需求**：掌握 **Istio 流量管理机制**——docs 主要内容②：版本/流量分配控制 + 负载均衡
 - **自主实现**：若我设计——Envoy 代理承载 data plane（网格内所有流量经它）→ 控制平面下发路由规则（版本/百分比切分/超时重试熔断）
-- **参考实现**（docs + my-xhs 对照）：**Istio 定位（docs）**——完全开源服务网格/透明一层/平台（集成日志遥测策略）/保护连接监控统一方法；**为什么用（docs）**——大厂背书（Google、IBM）/轻松构建/功能丰富；**流量管理（docs）**——路由规则控制流量 API 调用；简化服务级别属性（**熔断器、超时、重试**）；**A/B 测试、金丝雀发布、基于流量百分比切分的分阶段发布**；开箱即用故障恢复；**机制（docs 明确）**——**data plane 流量都经由 Envoy 代理**（网格内服务收发全过 Envoy）→ 控制网格流量**无需服务任何更改**；**my-xhs 对照（灰度现状实证）**——`GrayRouteFilter.java:15`（X-Gray-Tag Header 路由灰度实例）+ `:47`（灰度比例由上游 CDN/前端按百分比设置 X-Gray-Tag——**非网关内权重切分**）——**docs 的"版本/流量分配"在 my-xhs 是 header 灰度（可控但非百分比切分）**
+- **参考实现**（docs + my-xhs 对照）：**Istio 定位（docs）**——完全开源服务网格/透明一层/平台（集成日志遥测策略）/保护连接监控统一方法；**为什么用（docs）**——大厂背书（Google、IBM）/轻松构建/功能丰富；**流量管理（docs）**——路由规则控制流量 API 调用；简化服务级别属性（**熔断器、超时、重试**）；**A/B 测试、金丝雀发布、基于流量百分比切分的分阶段发布**；开箱即用故障恢复；**机制（docs 明确）**——**data plane 流量都经由 Envoy 代理**（网格内服务收发全过 Envoy）→ 控制网格流量**无需服务任何更改**；**my-xhs 对照（灰度现状实证——2026-08-12 修正：读 GrayRouteFilter.java 全文后精确化）**——`GrayRouteFilter.java:61`（X-Gray-Tag Header 打标）+ `:63-75`（**网关内 userId hash 灰度切分 10%**——`:56` `GRAY_PERCENT=10`，`(userId.hashCode() & 0x7FFFFFFF) % 100 < 10`）+ `:86`（exchange 打标）；**按标实例过滤 TODO**（`:43` "GrayLoadBalancer（需后续实现）"）；**`:47` 注释"灰度比例由上游 CDN/前端设置"与实际代码矛盾（注释过时）**——**docs 的"版本/流量分配"在 my-xhs 是打标面已实现、实例过滤未实现**
 - **对比取舍**：**Envoy 全流量代理（透明）vs 网关 header 灰度（应用协作）**——零侵入 vs 需 header 约定——**Istio 的流量管理是"无感"的**（docs"无需服务更改"）
 - **测试佐证**：docs §Istio/§流量管理（Envoy 机制原文）+ my-xhs `GrayRouteFilter.java:15/47`
 
@@ -134,7 +134,7 @@
 
 - **本地源码可验证（源码优先，08）**：my-xhs（灰度/可观测对照）+ 03/19 篇交叉引用
 - **关键源码**（本次实证）：
-  - my-xhs `GrayRouteFilter.java:15`（X-Gray-Tag Header 灰度路由）/`:43`（**"GrayLoadBalancer（需后续实现）"——灰度 LB TODO**）/`:47`（灰度比例由上游设置）
+  - my-xhs `GrayRouteFilter.java:61/63-75/86`（X-Gray-Tag 打标 + userId hash 10% 切分——2026-08-12 修正）/`:43`（**"GrayLoadBalancer（需后续实现）"——按标实例过滤 TODO**）
   - my-xhs k8s 模板（deployment/hpa/ingress/service/configmap——**无 istio**，grep 实证）
   - my-xhs Prometheus/Grafana/SkyWalking（03 篇汇总）
 - **诚实标注**：docs §Istio 的发展为**空节标题**；§实战为**外部教程链接**（getting-started `[无本地源码]`）；docs 用 Istio（2023 时点），my-xhs 无 Istio——**能力对照而非实操**；**my-xhs 灰度 LB 是 TODO**（GrayRouteFilter:43 注释实证——"看起来在做≠真的实现"教训）
@@ -166,12 +166,12 @@
 | docs 目标（升级动作） | my-xhs 现状（实证） | 差距/行动项 |
 |---|---|---|
 | ① Istio 网关部署（类目 API） | ❌ 无 Istio（k8s 模板 grep 实证） | 现状说明：网关能力已有（19 篇 8+ 路由/7 过滤器）——Mesh 为演进项 |
-| ② 流量控制（版本/流量分配） | ⚠️ **部分**：X-Gray-Tag header 灰度（GrayRouteFilter:15 实证）+ 染色；**灰度 LB 是 TODO**（:43 "需后续实现"）+ 非百分比切分（:47 上游设置） | **差距 P1**：灰度负载均衡补全（GrayLoadBalancer——"看起来在做≠真的实现"教训）；百分比流量切分评估 |
+| ② 流量控制（版本/流量分配） | ⚠️ **部分**：X-Gray-Tag header 灰度（GrayRouteFilter:15 实证）+ 染色；**灰度**打标面已实现**（:61 header + :63-75 userId hash 10%——2026-08-12 修正）+ **按标实例过滤 TODO**（:43） | **差距 P1**：灰度负载均衡补全（GrayLoadBalancer——"看起来在做≠真的实现"教训）；百分比流量切分评估 |
 | ③ 可观测（Prometheus/自定义 Metrics/追踪） | ✅ 已有：Prometheus/Grafana（4 面板）+ SkyWalking + trace 透传（03 篇） | 无（黄金四标识面：api-monitor 覆盖延迟/流量/错误） |
 
 ### 差距清单（服务网格层）
 
-1. **P1**：灰度负载均衡补全（GrayRouteFilter:43 的 TODO——当前 header 灰度路由到实例后 LB 未实现灰度权重）
+1. **P1**：灰度按标实例过滤补全（GrayRouteFilter:43 的 TODO——打标面已实现（:61/:63-75/:86），LB 未实现按 grayTag 过滤实例）
 2. **P2**：百分比流量切分（docs ②的"基于流量分配"——当前依赖上游 header）
 3. **P3**：Mesh 引入评估（能力对照：当前网关+应用层已覆盖主要面）
 

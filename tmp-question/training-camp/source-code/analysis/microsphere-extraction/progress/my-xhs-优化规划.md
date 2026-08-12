@@ -21,16 +21,16 @@
 
 ## 二、P1 优化项（立即执行）
 
-### P1-1 灰度负载均衡补全（"看起来在做≠真的实现"现场）
-- **现状**（21 篇实证）：`GrayRouteFilter.java:15` 已按 `X-Gray-Tag` Header 路由到灰度实例；但 `:43` 注释"**GrayLoadBalancer（需后续实现）**"——**灰度 LB 未实现**；`:47` 灰度比例依赖上游（CDN/前端）设置 header
-- **差距**：docs 21"基于版本、流量分配的流量控制"——my-xhs 只有 header 路由，无**权重切分**与**灰度负载均衡**
+### P1-1 灰度按标实例过滤补全（"看起来在做≠真的实现"现场——2026-08-12 修正）
+- **现状**（2026-08-12 读 `GrayRouteFilter.java` 全文精确化）：**打标面已实现**——`:61` X-Gray-Tag Header 读取、`:63-75` **网关内 userId hash 灰度切分 10%**（`:56` `GRAY_PERCENT=10`，`(userId.hashCode() & 0x7FFFFFFF) % 100 < 10`）、`:86` exchange 打标；**未实现**——**:43** 注释"GrayLoadBalancer（需后续实现）"——**按标记过滤实例（LB 层）未实现**；`:47` 注释"灰度比例由上游 CDN/前端设置"**与实际代码矛盾（注释过时）**
+- **差距**：docs 21"基于版本、流量分配的流量控制"——my-xhs **打标+切分已实现**，缺**按标记的实例过滤/路由**（打标后所有流量仍走默认 LB 到全部实例）
 - **优化动作**：
-  1. 实现 `GrayLoadBalancer`（扩展 `ReactorServiceInstanceLoadBalancer`——参照 `LeastConnectionsLoadBalancer.java:53` 的扩展模式）：根据实例 metadata（gray/stable 标记）+ 灰度权重选择实例
-  2. 灰度比例支持：Header 指定（现有）+ 配置中心比例（Nacos——灰度百分比切分）
+  1. 实现 `GrayLoadBalancer`（扩展 `ReactorServiceInstanceLoadBalancer`——参照 `LeastConnectionsLoadBalancer.java:53` 的扩展模式）：根据实例 metadata（gray/stable 标记）+ exchange 中的 grayTag 属性选择实例（实例过滤）
+  2. 灰度比例配置化：当前 `GRAY_PERCENT` 硬编码 10 → Nacos 配置中心化（动态调整灰度比例）
   3. 配套：`TrafficColoringFilter`（染色）与灰度联动（压测流量走灰度实例）
 - **涉及文件**：`gateway/filter/GrayRouteFilter.java` + 新增 `gateway/loadbalancer/GrayLoadBalancer.java` + `gateway/.../config`
-- **预期收益**：发布策略基建化（金丝雀/灰度权重——docs 21 主要内容②）
-- **验证**：灰度实例部署 → X-Gray-Tag 路由验证 + 权重切分压测对比
+- **预期收益**：发布策略基建化（金丝雀/灰度路由——docs 21 主要内容②）
+- **验证**：灰度实例部署 → grayTag 打标后实例过滤验证 + 比例配置化压测对比
 
 ### P1-2 建立真实压测基线与前后对比（docs 每节核心动作）
 - **现状**（02/06/09 篇共识）：my-xhs-benchmark 3 个 JMH 类为**模拟 payload**（`OrderServiceBenchmark` 的 `simulateOrderCreation` = Math.sqrt 循环——不能当性能结论）；无 JMeter 端到端；无 JFR 启用；无 TPS/QPS/RT 基线数据
