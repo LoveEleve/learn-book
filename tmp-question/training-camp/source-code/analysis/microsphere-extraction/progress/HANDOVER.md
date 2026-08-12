@@ -1,7 +1,7 @@
 # 交接文档 — Microsphere 训练营知识点提取
 
 > **本文件是唯一权威的进度与约定文档。** 接手前请**完整阅读**本文（含工作方法、当前状态、交接约定），再动任何文件。
-> 最后更新：2026-08-11 | 上一个会话完成 stage-1 全部 24 篇提取（L1 完成）
+> 最后更新：2026-08-11 | 上一个会话完成 stage-1/2 全部提取（L1 完成）；下一步 stage-3 见 `HANDOVER-session003.md`
 
 ---
 
@@ -97,9 +97,8 @@
 
 ### 方法论：✅ 完整（10 SOP + prompt + skills），经多次 review 沉淀
 
-### stage-1 提取：✅ 已全部完成 24 篇 docs（5、6 为 i18n 跳过，共 20 篇产出）
+### stage-1 提取：✅ 全部完成（24 篇 docs，5/6 i18n 跳过，20 篇产出）
 
-已完成（全部含架构师补全，产出在 `progress/course/stage-1/` 与 `progress/course/stage-2/`，按期分目录）：
 - **1-4**:工程化(Maven/业务模板)、REST 服务端/客户端
 - **7-10**:Tomcat 容错、Web 容错(Sentinel)、整合第三方、动态变更
 - **11-12**:监控指标负载均衡、动态权重
@@ -109,9 +108,22 @@
 - **21-22**:Spring Web/Cloud 性能优化
 - **23-24**:Spring 脚手架运用/架构/定制 + 原理/实现/扩展
 
-> **stage-1 L1 提取全部完成。** 第 22-24 篇均经深 review 修正（穷尽性核对、过时标注工具/模式区分、置信度 High）。L2 聚合/聚类、L3 总大纲未开始（07 约定：两主体都提取完再合并）。
+### stage-2 提取：✅ 全部完成（28 篇 docs，产出在 `progress/course/stage-2/`）
 
-**下一步（stage-2）**：开始 stage-2 模式设计与实现提取（38 篇），逐篇含架构师补全 + 及时 commit/push。
+- **1-4**:CAP/BASE、Paxos、Raft、ZAB（分布式理论）
+- **5-6**:SOFAJRaft 实现/架构（源码验证）
+- **7-8**:Nacos 2.x Raft/Distro（AP/CP 双协议，源码验证）
+- **9-12**:Zookeeper 数据模型/通讯会话/共识实现/共识运用（源码验证）
+- **13-16**:Java EE/Spring 本地事务、JTA/XA、分布式事务整合（JDK17 验证）
+- **17-20**:可靠事件(本地消息表)、TCC、Seata 架构上下（rocketmq/seata 源码验证）
+- **21-22**:RPC 微内核、RPC 生态整合（netty/dubbo 源码验证）
+- **23-24**:配置中心设计、配置客户端设计（nacos/spring-core 源码验证）
+- **25-26**:读写分离设计、ShardingSphere（shardingsphere 源码验证）
+- **27-28**:分布式缓存设计/实战（redis/redisson 源码验证；Redis/Redisson 深挖后续单独规划）
+
+> **stage-1/2 L1 提取全部完成。** 每篇均经深 review（穷尽性/源码行号核对/过时工具模式区分/空节标注/置信度）。L2 聚合/聚类、L3 总大纲未开始（07 约定：两主体都提取完再合并）。
+
+**下一步（stage-3）**：详见 `progress/HANDOVER-session003.md`（交接文档）。
 
 ### 仓库清单：✅ 已核实（00）
 - 官方 36 仓库；microsphere-test 已拉取(纯配置)；3 个站点/UI 仓库跳过；本地独有 confucius/shopizer/segmentfault
