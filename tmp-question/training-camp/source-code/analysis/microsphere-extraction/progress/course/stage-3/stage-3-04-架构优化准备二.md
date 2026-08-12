@@ -151,7 +151,19 @@
 
 ---
 
-## 六、架构师视角补全（防井底之蛙）
+## 六、现状核对（my-xhs 落地核对与差距清单）
+
+### 现状核对表
+
+| docs 目标/知识点 | my-xhs 现状（实证） | 差距/行动项 |
+|---|---|---|
+| JFR 激活与使用 | ❌ **未启用**：start-all.sh JAVA_OPTS 无 JFR 参数（grep 实证）；JDK17 运行时 jcmd 动态可用 | 差距：生产诊断工具未接入——事故复盘/GC 分析可用 `jcmd JFR.start` 动态补录（零重启） |
+| 三工具分工（JMeter/JFR/JMH） | ⚠️ JMH ✅（3 基准）；JMeter/JFR ❌ | 缺口：JMeter 端到端压测 + JFR 进程诊断均未启用 |
+| 自定义事件（JFR API） | ❌ 未使用（无自定义 Event） | 可选：业务关键路径（订单创建等）入 JFR 与 JVM 事件同窗 |
+
+**结论**：04 篇 JFR 是 my-xhs 最大的**未启用工具**——docs"优化准备"的进程内诊断面缺失；`/data/workspace` 根目录已有 jmc-main.png/jitwatch/gcviewer 等分析素材（18 节 JVM 故障分析时启用）。
+
+## 七、架构师视角补全（防井底之蛙）
 
 > **来源标注**：docs 为 Oracle JFR 手册转写（商业时代）+ §性能分析空节；JFR API/命令已 JDK11/17 源码验证；"docs 明确内容"vs"架构师发散"如下。
 

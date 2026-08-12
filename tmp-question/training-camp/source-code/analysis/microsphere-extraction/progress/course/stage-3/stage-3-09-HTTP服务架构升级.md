@@ -160,7 +160,27 @@
 
 ---
 
-## 六、架构师视角补全（防井底之蛙）
+## 六、现状核对（my-xhs 落地核对与差距清单）【重点篇】
+
+### 现状核对表
+
+| docs 目标（升级动作） | my-xhs 现状（实证） | 差距/行动项 |
+|---|---|---|
+| ① 异步 HTTP（Servlet 3.0/Spring 异步） | ⚠️ **部分异步化**：15 文件用 CompletableFuture + common/AsyncConfig（自定义线程池）+ **OrderService.java:77【O2修复】"异步补偿/联动任务线程池（MDC 感知，替代 CompletableFuture.runAsync 的 commonPool 丢 traceId）"** + :465-466（释放库存/退券异步）——**"异步化配套 trace 透传"已正确落地** | 差距：业务服务无 DeferredResult/Callable 风格（MVC 异步出口），控制器层仍阻塞等待；可按长任务路径评估（如订单创建） |
+| ② 非阻塞 HTTP（Servlet 3.1/Reactive） | ⚠️ **网关层**：WebFlux（spring-cloud-starter-gateway + WebHandler 实证，05 篇）✅；**业务服务**：阻塞 Tomcat 栈（threads.max 差异化实证） | 现状：入口非阻塞 + 业务阻塞（混合架构合理）；评估项：高并发瓶颈服务（如 feed/搜索）是否转 Reactive |
+| ③ HTTP/2 | ✅ **已启用**：`http2.enabled=true`（user yml:18-19 实证）+ compression + keep-alive 调优 | 无（配置面完成） |
+| 压测对比（docs 每路径都要求） | ❌ 无升级前后对比数据 | 缺口：HTTP 三路径的实测对比未做（02 篇同一缺口） |
+
+### 差距清单（HTTP 升级优先级建议）
+
+1. **P0**：建立真实压测基线（JMH 真实化或 JMeter 端到端）——三路径的"对比"前提（docs 意图核心）
+2. **P1**：核对 gateway（WebFlux）server.tomcat 配置块（不生效则改 server.netty）
+3. **P2**：长任务路径（订单创建/Feed 聚合）评估 DeferredResult/WebFlux 化
+4. **P2**：启用 JFR（jcmd 动态）为 HTTP 升级做进程内取证
+
+**结论**：09 篇 HTTP 升级的**配置面已大部分完成**（HTTP2/压缩/keep-alive/异步配套 trace），**测量面缺失**（无压测对比）是最大差距——这正好是 docs"对比升级前后性能变化"的核心动作。
+
+## 七、架构师视角补全（防井底之蛙）
 
 > **来源标注**：docs 为 Servlet 规范深度教程 + 三路径意图（主要内容）；spring-framework/my-xhs 实证；"docs 明确内容"vs"架构师发散"如下。
 

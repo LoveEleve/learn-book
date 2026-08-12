@@ -175,7 +175,21 @@
 
 ---
 
-## 六、架构师视角补全（防井底之蛙）
+## 六、现状核对（my-xhs 落地核对与差距清单）
+
+### 现状核对表
+
+| docs 目标/知识点 | my-xhs 现状（实证） | 差距/行动项 |
+|---|---|---|
+| Tomcat 线程池/队列/网络参数 | ✅ 完整落地：差异化线程数（网关 300/其他 150 注释实证）+ accept-count 100 + keep-alive 60s + max-keep-alive-requests 200 + compression + http2 + graceful（user yml:4-19 实证） | ⚠️ gateway（WebFlux）的 server.tomcat 块大概率不生效（netty 栈）——需确认或改 server.netty 配置 |
+| GC 选型与目标（G1/ZGC） | ✅ G1 + MaxGCPauseMillis=200（start-all.sh 实证） | 可评估：docs 数据显示 ZGC 吞吐更高（Shopizer 场景）——若追求吞吐可 A/B 实测 |
+| 分代/自适应调整 | ⚠️ 未显式配置（G1 自适应默认） | 现状合理（目标导向已定） |
+| Spring Boot 最小化（自动装配裁剪） | ✅ 实证：GatewayApplication:14（exclude DataSourceAutoConfiguration + TransactionManager——"Gateway 不需要数据库连接"注释）+ OrderApplication:26（exclude DataSource + MybatisPlus）+ :28（ComponentScan 过滤） | 可继续：其他服务按需裁剪（`[待验证]`） |
+| 压测对比（docs 测试数据模式） | ❌ 无同口径对比数据 | 缺口：容器调优的前后对比未做 |
+
+**结论**：05 篇容器参数落地度高（差异化线程/exclude 裁剪是 docs"动态调整/最小化"的工程答案）；差距 = gateway 的 tomcat 配置生效性 + 压测对比数据。
+
+## 七、架构师视角补全（防井底之蛙）
 
 > **来源标注**：docs 为 GC 全景手册（JDK8-15 时代）+ 空节（G1）+ 测试数据；GC 存在性与参数已 JDK11/17 源码验证；my-xhs Tomcat 配置实证；"docs 明确内容"vs"架构师发散"如下。
 

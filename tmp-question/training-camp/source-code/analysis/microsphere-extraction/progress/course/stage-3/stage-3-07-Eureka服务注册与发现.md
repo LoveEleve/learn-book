@@ -199,7 +199,21 @@
 
 ---
 
-## 六、架构师视角补全（防井底之蛙）
+## 六、现状核对（my-xhs 落地核对与差距清单）
+
+### 现状核对表
+
+| docs 目标/知识点 | my-xhs 现状（实证） | 差距/行动项 |
+|---|---|---|
+| 服务注册与发现（Nacos） | ✅ 完整落地：nacos-discovery starter（gateway pom:28）+ application.yml:37 + SCA register/deregister 生命周期 | 无 |
+| 心跳/租约 | ⚠️ 未显式配置（Nacos 默认） | 现状合理；如遇误摘除再调 |
+| 客户端缓存/容灾 | ✅ Nacos 客户端内建（ServiceCache/FailoverReactor——服务端实现，my-xhs 直接受益） | 无 |
+| 优雅停机 | ✅ `server.shutdown=graceful`（yml 实证）+ SCA deregister（Spring 生命周期自动触发） | ⚠️ 需确认注册中心侧注销与静默期策略（docs 5 步的 ②③ 未显式实现 `[待验证]`） |
+| 区域路由（多区域对照） | ✅ common/zone（ZoneContext/ZonePreferenceFilter 实证，03 篇） | 无（比 docs 的"区域间不交流"更精细） |
+
+**结论**：07 篇注册中心面落地度高（Nacos 现代路径 + zone 区域路由）；唯一待核对 = 优雅停机的"静默期/在途请求处理"显式实现。
+
+## 七、架构师视角补全（防井底之蛙）
 
 > **来源标注**：docs 为 Eureka 1.x 文档转写（数字精确，作场景背景）；机制本体时间无关；参考实现 Nacos 源码实证 + stage-2 07/08；"docs 明确内容"vs"架构师发散"如下。
 

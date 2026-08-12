@@ -164,7 +164,23 @@
 
 ---
 
-## 六、架构师视角补全（防井底之蛙）
+## 六、现状核对（my-xhs 落地核对与差距清单）
+
+### 现状核对表
+
+| docs 目标/知识点 | my-xhs 现状（实证） | 差距/行动项 |
+|---|---|---|
+| 可观测三件套（M+P+G） | ✅ 完整落地：micrometer-registry-prometheus（common pom:40-41）+ prometheus.yml（/actuator/prometheus 抓取 + alert_rules）+ Grafana provisioning 4 dashboard | 无（最完整的一项） |
+| Sentinel Metrics→Micrometer 适配 | ❌ **未落地**：Sentinel 有（Bulkhead 舱壁 + Nacos 规则，SentinelBulkheadConfig 实证），但 **sentinel 指标未适配进 Micrometer/Prometheus**（grep 无 sentinel-micrometer 相关） | 差距：sentinel 指标（限流/熔断计数）未进统一监控——补充适配器或自定义 Meter |
+| 监控基础设施容器化 | ✅ docker-compose 全编排（prometheus:591-598 等实证） | 无 |
+| Grafana Provisioning | ✅ 4 dashboard JSON（biz/jvm/api/tomcat） | 无 |
+| 数据源配置与连接池 | ⚠️ HikariCP 依赖（pom:51/169-172）+ Grafana 采 hikaricp 指标（tomcat-monitor.json 实证）；**池参数未见显式配置** | 现状：默认值；如需调优显式配 minimumIdle/maximumPoolSize |
+| hbm2ddl.auto=update | ✅ **已规避**：MyBatis-Plus（无 Hibernate DDL） | 无（若引入 Flyway 更好，当前无迁移工具 `[待验证]`） |
+| Sentinel Dashboard/规则 | ✅ 采用现代路径：规则 Nacos 持久化（my-xhs-sentinel-bulkhead-rules dataId 实证） | 无 |
+
+**结论**：03 篇可观测准备几乎全落地；**唯一明显差距 = Sentinel 容错指标未接入统一监控**（docs 主要内容第 2 条未完全达成）。
+
+## 七、架构师视角补全（防井底之蛙）
 
 > **来源标注**：docs 为环境准备+整合意图（§项目整合完全空节、§Prometheus 配置空节）；实例全部 my-xhs 实证；"docs 明确内容"vs"架构师发散"如下。
 
