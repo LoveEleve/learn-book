@@ -1,7 +1,7 @@
 # 交接文档 — Microsphere 训练营知识点提取
 
 > **本文件是唯一权威的进度与约定文档。** 接手前请**完整阅读**本文（含工作方法、当前状态、交接约定），再动任何文件。
-> 最后更新：2026-08-12 | stage-1/2/3 提取全部完成（含结营文档 `[跳过]` 处理）；下一步见 §四.5
+> 最后更新：2026-08-12 | **stage-1/2/3/4 提取全部完成**（stage-4：19 篇——01-19+22，20/21 docs 缺失）；下一步：L2 聚合 / source/ 提取 / L3 大纲（见 §四.5）
 
 ---
 
@@ -126,6 +126,25 @@
 
 **下一步（stage-3）**：**全部完成（2026-08-12）**——stage-3-01~33 全部提取（33 篇 docs，15 缺失跳过；含损坏文档 14 清理重建、空节/极短篇发散重建）；**结营文档已完成 `[跳过]` 处理（2026-08-12——`progress/course/stage-3/stage-3-结营.md`：无新教学知识点，阿里云 2023.11.12 事故案例作高可用主题关联素材）**。**stage-3 细节见 `progress/HANDOVER-session004.md`（详细交接：决策记录/机制演进/差距全景/待验证 37 项/源码索引/教训）**。**关键决策**：①（G0 决策 B）案例载体 Shopizer → my-xhs（`/data/workspace/my-xhs`），docs 方法论主线不变、实例验证锚定 my-xhs、差异显式标注；②（G0 决策 B2）**stage-3 产出 = 提取 + 现状核对**——每篇含"现状核对"小节（docs 升级目标 vs my-xhs 落地实证 + 差距清单），07-10 的 Eureka 主题按"Nacos 讲机制、Eureka 仅 docs 场景"处理（不实操）。详见 `progress/HANDOVER-session003.md`。
 
+### stage-4 提取：✅ 全部完成（2026-08-12——19 篇 docs，20/21 缺失跳过，19 篇产出）
+
+- **01**:多活概念基座（含 §七 跨区域多活完整规划——六步设计/业界参考/分阶段路径）
+- **02-06**:Eureka 面（Server/Client/加餐——**D3 纪律：机制用 Nacos 源码实证讲、Eureka 仅 docs 场景**——05 篇修正 stage-3-21 灰度断言：userId hash 切分已实现/实例过滤 TODO）
+- **07-09**:通用化组（AZ Locator 抽象——microsphere-multiactive 全命中实证 + my-xhs zone 包三层对应；Cloud-Native 注册发现）
+- **10-13**:负载均衡/REST Client/Dubbo（Ribbon 过时 docs 自证→LoadBalancer 参考；四形态"声明即负载均衡"）
+- **14-15**:SCG 多活/优化（双形态/refresh scope 动态路由/区域过滤两方案）
+- **16-17**:MySQL Server/JDBC 多活（binlog 订阅/Canal——my-xhs 已部署；Multi-Host/failOverReadOnly 语义）
+- **18-19**:Redis Client/Server 多活（写入事件化——my-xhs zone/redis 5 同名同构；Sentinel 双层判定/配置要点）
+- **22**:动态 JDBC（配置驱动/ha-datasource 区域化/子上下文隔离/动态换源——收官）
+
+**本会话沉淀的关键教训**（详见 prompt §3.5/§4 与 08 SOP §5-4）：
+1. **现状核对不得吞没知识本体**（08 SOP §5-4——01 篇 §七 规划补全）
+2. **08 SOP 反模式 1（只翻译源码）**：源码块照录降为"机制简述 + 自主实现决策"（11-15 篇核心 KP 重写——最终实现视角）
+3. **验证方法可靠性**：grep --include 在本环境漏检（UnionDiscoveryClient 等 8 类假阴性）——改用 ls 目录实证
+4. **数字/步数逐条数**（sed/awk——执行链步数/SPI 实现数等凭印象错误 3 次）
+5. **行号张冠李戴**（跨篇行号引用必须在本篇验证——2 次）
+6. **修正不彻底**（改汇总漏 KP 级残留——修正后必须全文件残留扫描）
+
 ### 仓库清单：✅ 已核实（00）
 - 官方 36 仓库；microsphere-test 已拉取(纯配置)；3 个站点/UI 仓库跳过；本地独有 confucius/shopizer/segmentfault
 
@@ -163,12 +182,11 @@
 - 远端：`git@github.com:LoveEleve/learn-book.git`
 - **只提交 microsphere-extraction 相关文件**；**不要碰** `tmp-question/training-camp/source-code/analysis/source-analysis/issue/HANDOVER.md` 及其他项目未提交改动（`git status` 里他人项目的 M/?? 一律不动）
 
-### 下一个任务（stage-4）
+### 下一个任务（已完成 stage-4；下一步选择）
 
-- 目录：`/data/workspace/java-training-camp/stage-4/docs/`（先 `ls` 确认清单）
-- 按方法论流程：G0 盘问（grill-me）确认范围/深度/顺序 → 逐篇提取（01 SOP）→ 每篇交付前跑 §3.5 + §3.5.2 双层检查 → 附深度 review 七项报告 → 用户确认后 commit+push
-- stage-4 主题（预判）：配置中心/服务治理等深化（以实际 docs 为准）
-- 若延续 B2 模式（提取+现状核对 my-xhs）需与用户确认；默认按方法论 01/02 SOP 标准流程
+- **stage-4 已完成**（2026-08-12——19 篇：01-19+22，20/21 docs 缺失跳过；已按 01 SOP 流程 + §3.5/§3.5.2 双层检查 + 深度 review 七项报告逐篇交付）
+- **剩余工作**（用户决策下一步）：①**L2 聚合/聚类**（stage-1/2/3/4 共 ~120 篇 L1 → 5 维度聚合——07 SOP 阶段 2）②**source/ 提取**（microsphere 生态源码——00 清单 36 仓库）③**L3 总教学大纲**（最终交付物）④**my-xhs 差距清单执行**（P1 灰度 LB/压测基线 + P2 八项——my-xhs-优化规划）
+- 若延续 B2 模式需与用户确认；默认按方法论 01/02 SOP 标准流程
 
 ### 关键纪律提醒（stage-1/2/3 沉淀的教训）
 
