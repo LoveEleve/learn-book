@@ -64,10 +64,10 @@
 - **来源**：docs §假设需要实现多服务发现（docs:233-236）+ 本地验证
 - **需求**：**多注册中心合并的工程实现路径**——docs 明确两条：①高挑战性——调整 BeanDefinition 注册、移除 compositeDiscoveryClient BeanDefinition、替换新的组合实现（**注意 Composite 的复用限制：不合并实例列表**，docs:235）②低挑战性——**UnionDiscoveryClient 作为第一优先级 DiscoveryClient**（docs:236——microsphere-spring-cloud 的 `io.microsphere.spring.cloud.client.discovery.UnionDiscoveryClient`）
 - **自主实现**：若我设计——继承 Composite 语义但覆盖 getInstances 为**并集合并**（对比 KP-02 的首个非空）——"Union"（联合）即此
-- **参考实现**（docs 思路照录 + 本地验证）：**高挑战（docs:235）**——BeanDefinition 层替换（移除 Composite BeanDefinition → 注册新组合实现）——**侵入 Spring 装配内部**；**低挑战（docs:236）**——`UnionDiscoveryClient` 作为第一优先级——**`[未找到：本地 microsphere-spring-cloud grep 无此类（docs:236 类名待验证——与 04 篇 docs 类名版本差异同类问题）]`**——Union 语义（发散）：getInstances 返回**所有注册中心实例的并集**（修复 Composite 限制——与 KP-01 拦截器的全合并语义一致）；**Nacos 对照（发散 + stage-3 07 交叉）**——Nacos 多集群/命名空间（stage-3 25 namespace 实证）在**单客户端**内解决"多注册面"（namespace 隔离而非多 DiscoveryClient）——**多注册中心需求在 Nacos 生态 = 集群/namespace 配置**
+- **参考实现**（docs 思路照录 + 本地验证）：**高挑战（docs:235）**——BeanDefinition 层替换（移除 Composite BeanDefinition → 注册新组合实现）——**侵入 Spring 装配内部**；**低挑战（docs:236）**——`UnionDiscoveryClient` 作为第一优先级——**`[本地实证：microsphere-spring-cloud/microsphere-spring-cloud-commons `io.microsphere.spring.cloud.client.discovery.UnionDiscoveryClient`——2026-08-12 修正：初稿误标 [未找到]（grep --include 验证方法在本环境漏检，ls 目录实证存在）]`**——Union 语义（发散）：getInstances 返回**所有注册中心实例的并集**（修复 Composite 限制——与 KP-01 拦截器的全合并语义一致）；**Nacos 对照（发散 + stage-3 07 交叉）**——Nacos 多集群/命名空间（stage-3 25 namespace 实证）在**单客户端**内解决"多注册面"（namespace 隔离而非多 DiscoveryClient）——**多注册中心需求在 Nacos 生态 = 集群/namespace 配置**
 - **对比取舍**：**BeanDefinition 替换（彻底但侵入）vs 优先级包装（低挑战但仍是"首个"语义）**——低挑战方案需 Union 覆盖实例方法才真正合并——**合并语义是核心分歧**（并集 vs 首个非空）
 - **机制/说明**：多注册中心的两种落地——**客户端合并**（本 KP：多 DiscoveryClient 组合——Eureka 思路）vs **服务端聚合**（Nacos 集群/多集群——单客户端多服务端）；**Union 思想** = 组合 + 并集合并（跨注册中心故障切换/全量可见）
-- **测试佐证**：docs:233-236（思路照录）+ `[未找到]` 标注 + stage-3 25（Nacos namespace 交叉）
+- **测试佐证**：docs:233-236（思路照录）+ UnionDiscoveryClient `[本地实证]` + stage-3 25（Nacos namespace 交叉）
 
 ### KP-04 跨域注册的认证与隔离（namespace 租户——Nacos 讲机制，Eureka OAuth 仅 docs 场景）
 - **维度**：`[分布式问题]` | **权重**：`[支撑]` | **深度**：🟡 | **优先级**：P2 | **过时**：`[有效]` | **置信度**：Medium
@@ -130,9 +130,9 @@
 
 ## 四、与 microsphere 的关联（参考实现验证）
 
-- **本地源码可验证（源码优先，08）**：spring-cloud-commons（DiscoveryClient/CompositeDiscoveryClient/EnableDiscoveryClient/AutoServiceRegistrationConfiguration——4 类实证）；spring-web（ClientHttpRequestInterceptor）；spring-webflux（WebClient.Builder）；microsphere-spring-cloud（**UnionDiscoveryClient `[未找到]`**——docs:236 类名与本地版本差异）
+- **本地源码可验证（源码优先，08）**：spring-cloud-commons（DiscoveryClient/CompositeDiscoveryClient/EnableDiscoveryClient/AutoServiceRegistrationConfiguration——4 类实证）；spring-web（ClientHttpRequestInterceptor）；spring-webflux（WebClient.Builder）；microsphere-spring-cloud（**UnionDiscoveryClient `[本地实证：spring-cloud-commons/client/discovery/]`**——docs:236）
 - **关键实证**（交叉引用）：stage-3 07（NacosDiscoveryClient implements DiscoveryClient——**多注册思路的 Nacos 侧对照**）；stage-3 25（Nacos namespace——多注册/多集群的 Nacos 形态）；stage-3 21（灰度——GrayRouteFilter TODO 差距）
-- **诚实标注**：docs 为**讲稿 + 代码笔记（268 行）**——主题①多注册注册 **docs:156-157 "TODO Next"（作者未写——空节标注）**；主题③发布策略**声明正文缺失（空节标注）**；`EurekaClientMethodInterceptor`/`EurekaDiscoveryClient`/`CloudEurekaClient`/`RestTemplateTransportClientFactory` **`[无本地源码：spring-cloud-netflix——docs 源码块照录]`**；`UnionDiscoveryClient` **`[未找到：本地 microsphere-spring-cloud 无此类]`**；docs:263 `@interface` 语法 typo 标注
+- **诚实标注**：docs 为**讲稿 + 代码笔记（268 行）**——主题①多注册注册 **docs:156-157 "TODO Next"（作者未写——空节标注）**；主题③发布策略**声明正文缺失（空节标注）**；`EurekaClientMethodInterceptor`/`EurekaDiscoveryClient`/`CloudEurekaClient`/`RestTemplateTransportClientFactory` **`[无本地源码：spring-cloud-netflix——docs 源码块照录]`**；`UnionDiscoveryClient` **`[本地实证：microsphere-spring-cloud-commons/client/discovery/——2026-08-12 修正]`**；docs:263 `@interface` 语法 typo 标注
 - **关联标注**：04 篇（DiscoveryClient/按需订阅——本篇延续）；02 篇（多区域——跨域语义）；stage-3 07（Nacos 发现实证）；stage-3 21（灰度差距）；stage-3 25（namespace）
 
 ---
@@ -148,7 +148,7 @@
 **对比取舍**：知识本体是"**多注册中心的客户端合并机制与发布策略**"——AOP 合并（并集）vs Composite（首个非空）、BeanDefinition 替换 vs Union 包装、OAuth 认证通道（RestTemplate/WebClient）、灰度/蓝绿/金丝雀（元数据+状态+路由三要素）；my-xhs **单 Nacos + 灰度 header 路由**（GrayLoadBalancer TODO = P1 差距延续）。
 
 **待验证汇总**：
-- `UnionDiscoveryClient`（`[未找到]`——本地 microsphere-spring-cloud 无此类）
+- `UnionDiscoveryClient`（`[本地实证]`——2026-08-12 修正：初稿误标 [未找到]）
 - 主题①多注册注册的 docs 设计（`[TODO Next]`——作者未写）
 - my-xhs 灰度权重（GrayLoadBalancer TODO——stage-3 21 P1 差距延续）
 
@@ -212,6 +212,6 @@ docs 是讲稿笔记。完整还该包含：
 
 - **stage-4 教学主线**：**Eureka Client 面（02-06 第五篇）**——02 Server 多活 → 03 优化 → 04 Client 发现多活 → **05 Client 注册多活（本篇：多注册中心 + 发布策略）** → 06 加餐 → 07-09 通用化/Cloud-Native → 10-11 负载均衡
 - **前后篇衔接**：04 篇（DiscoveryClient/按需订阅——本篇底座）；06 篇（加餐——docs 顺序）；stage-3 07（Nacos 发现实证）；stage-3 21（灰度差距——发布策略衔接）；stage-3 25（namespace——多注册 Nacos 形态）；02 篇（区域隔离——跨域对照）
-- **与源码提取的关系**：本篇为 microsphere 生态引用第二篇（UnionDiscoveryClient `[未找到]`——source/ 提取时核对）；spring-cloud-commons 官方源码实证
+- **与源码提取的关系**：本篇为 microsphere 生态引用第二篇（UnionDiscoveryClient `[本地实证：spring-cloud-commons/client/discovery/]`——source/ 提取时核对实现细节）；spring-cloud-commons 官方源码实证
 
 **架构师视角结论**：本篇为 **docs 讲稿 + 代码笔记（268 行）**——三个主题：**多注册中心发现**（EurekaClientMethodInterceptor AOP 合并——正文本体）、**多注册中心注册**（docs TODO 未写——空节标注）、**发布策略**（声明无正文——发散补全）；知识本体是"**多注册中心的客户端合并机制（并集 vs 首个非空）与发布策略三要素（元数据/状态/路由）**"；my-xhs **单 Nacos + 灰度 header 路由**（GrayLoadBalancer 权重 TODO = P1 差距延续——my-xhs-优化规划 P1-1）；**多注册的现代形态 = Nacos 集群/namespace（机制学习，不照搬 Eureka 实现——D3 纪律）**。

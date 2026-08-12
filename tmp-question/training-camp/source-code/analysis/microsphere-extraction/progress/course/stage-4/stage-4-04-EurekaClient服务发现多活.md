@@ -133,7 +133,7 @@
 
 - **本地源码可验证（源码优先，08）**：spring-cloud-context（NamedContextFactory/ConfigurationPropertiesRebinder/EnvironmentManager/WritableEnvironmentEndpoint）；spring-cloud-loadbalancer（LoadBalancerClientFactory）；spring-cloud-openfeign；spring-boot（ConfigurationPropertiesBinder/BindingPostProcessor/AbstractBindHandler 全家）；spring-boot-autoconfigure（JacksonProperties/ConfigurationPropertiesAutoConfiguration）；**microsphere-spring-context（PropertySourcesChangedEvent）**——microsphere 生态本地有源码（source/ 提取未开始，本篇先行引用验证）
 - **关键实证**（本地 grep）：NamedContextFactory.java（spring-cloud-context/named）；ConfigurationPropertiesRebinder.java（spring-cloud-context/properties）；PropertySourcesChangedEvent.java（microsphere-spring-context/config/env/event）；AbstractBindHandler.java（spring-boot/context/properties/bind）——**类名全部写入时验证**
-- **诚实标注**：docs 类名 vs 本地核对——**6 个类未找到**（BeanPropertyChangedEvent/BindListener/ListenableBindHandlerAdapter/EventPublishingConfigurationPropertiesBeanPropertyChangedListener/ConfigurationPropertiesBeanContext/TomcatDynamicConfigurationListener——`[未找到：本地 microsphere 生态 grep 无此名——docs 类名待验证（docs 早于本地仓库重构可能）]`）；`DiscoveryClient`/`EurekaClient`/Ribbon 类 `[无本地源码：spring-cloud-netflix/Ribbon 未在本地]`；**docs:43 `robbin.client.name` 拼写 typo（应为 ribbon）**；主题①正文缺失 `[空节标注]`；源码块 10 个照录（docs 行号）——本篇引用其中核心 3 块
+- **诚实标注**：docs 类名 vs 本地核对——**6 个类未找到**（BeanPropertyChangedEvent/BindListener/ListenableBindHandlerAdapter/EventPublishingConfigurationPropertiesBeanPropertyChangedListener/ConfigurationPropertiesBeanContext/TomcatDynamicConfigurationListener——`[未找到：ls 目录实证——microsphere-spring-context `config/env/event/` 仅 PropertySourceChangedEvent/PropertySourcesChangedEvent 两事件类、spring-boot-core `context/properties/` 无 BindListener 族——docs 为早期版本设计快照（2026-08-12 补证）]`）；`DiscoveryClient`/`EurekaClient`/Ribbon 类 `[无本地源码：spring-cloud-netflix/Ribbon 未在本地]`；**docs:43 `robbin.client.name` 拼写 typo（应为 ribbon）**；主题①正文缺失 `[空节标注]`；源码块 10 个照录（docs 行号）——本篇引用其中核心 3 块
 - **关联标注**：02 篇（Region/AZ——主题①）；stage-3 27（动态刷新三动作——主题②增量）；stage-3 25（Nacos 配置/namespace）；stage-3 07（Nacos 订阅）；stage-3 06（Feign 微服务化）；stage-1 10（动态配置）
 
 ---
@@ -149,7 +149,7 @@
 **对比取舍**：知识本体是"**服务发现客户端的按需订阅与动态配置机制**"——全量 vs 按需（内存）、四方式同一底座（NamedContextFactory）、按需订阅（Nacos 内建——Eureka VIP 改造为 docs 场景）、事件链分层（可观测 vs 简单）；my-xhs **Nacos 内建按需订阅 + SCA 动态配置完整**（docs 优化全部内建，无需照搬改造）。
 
 **待验证汇总**：
-- docs Microsphere 框架 6 类名（`[未找到]`——本地 microsphere 生态无此名）
+- docs Microsphere 框架 6 类名（`[未找到：ls 目录实证——microsphere-spring-context `config/env/event/` 仅两事件类、spring-boot-core `context/properties/` 无 BindListener 族——docs 早期版本设计快照（2026-08-12 补证）]`）
 - `ConfigurationPropertiesBindHandler`（`[未找到：本地 spring-boot 3.x 无此类——docs 基于 Boot 2.1+ 可能移除/改名]`）
 - `NacosConfigRefreshEvent` → @RefreshScope/rebinder 完整链路（`[待验证]`——SCA 自研事件线细节）
 - 主题① Region 的 docs 直播设计（`[空节标注]`——正文缺失）

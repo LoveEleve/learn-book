@@ -5,7 +5,7 @@
 > 提取时间：2026-08-12 | 权重：核心（Zone 组件生命周期/事件时序/装配——07 篇的机制深化）
 > 案例载体：my-xhs（决策 B）+ 现状核对（决策 B2）——**microsphere 框架设计文档（非 Eureka 文档）——机制 = docs 源码块照录 + Spring Cloud/Boot 侧实证；Eureka 仅场景（Netflix OSS 空节/EurekaInstanceInfoZoneResolver 类名）**
 
-> **文档形态**：**07 篇加餐（397 行）**——核心 API 补充（supports/locate + Environment 准备时机）+ **Zone 组件事件监听器族**（Discovery/Attachment/Initialized/ContextChanged——事件时序分析链）+ ZoneAutoConfiguration 两方案 + Netflix OSS 空节；**诚实标注**：docs 的 9 个框架类（监听器族/装配/Resolver）**本地 microsphere 生态全未找到** `[未找到：docs 类名待验证——docs 源码块照录机制，类以本地为准（source/ 提取时核对）]`；Spring Cloud/Boot 侧类全部本地实证。
+> **文档形态**：**07 篇加餐（397 行）**——核心 API 补充（supports/locate + Environment 准备时机）+ **Zone 组件事件监听器族**（Discovery/Attachment/Initialized/ContextChanged——事件时序分析链）+ ZoneAutoConfiguration 两方案 + Netflix OSS 空节；**诚实标注**：docs 的 9 个框架类（监听器族/装配/Resolver）——**2026-08-12 修正：6 个 `[本地实证]`（ZoneAttachmentHandler（commons）/ZoneAttachmentListener（spring-cloud event——签名不同 RegistrationPreRegisteredEvent）/CloudServerZoneResolver（spring-cloud）/EurekaInstanceInfoZoneResolver（netflix）/ZoneAutoConfiguration（spring-boot）/ZoneContextChangedListener（spring event））+ 3 个 `[未找到]`（ZoneDiscoveryListener/ZoneInitializedListener/OnceMainApplicationPreparedEventListener——ls 实证）**；Spring Cloud/Boot 侧类全部本地实证。
 
 ---
 
@@ -30,7 +30,7 @@
 讲解策略：
 - **机制照录**：docs 源码块 9 个照录核心（supports/locate/attachZone/start/装配/监听器）+ 机制时间无关
 - **Spring 侧实证**：AbstractAutoServiceRegistration/InstancePreRegisteredEvent/WebServerInitializedEvent/EnvironmentChangeEvent 本地实证（docs 源码块的 Spring 对应物）
-- **诚实标注**：docs 框架类 9 个 `[未找到]`——类名待验证、机制照录
+- **诚实标注**：docs 框架类 9 个——6 个 `[本地实证]` + 3 个 `[未找到]`（2026-08-12 修正——详见四节）
 - **参考实现回退**：my-xhs ZoneContextAutoConfiguration（应用装配实证）
 
 ---
@@ -54,7 +54,7 @@
 - **来源**：docs §ZoneDiscoveryListener（docs:64-85）+ §ZoneInitializedListener（docs:264-308）+ §ZoneContextChangedListener（docs:316-372——源码块）
 - **需求**：**Zone 组件的事件化生命周期**——docs 三个监听器：**ZoneInitializedListener（Order=50——初始化 ZoneContext/CompositeZoneLocator）→ ZoneDiscoveryListener（Order=100——发现区域）→ ZoneContextChangedListener（运行期变更）**
 - **自主实现**：若我设计——Zone 生命周期事件化：初始化（最早——Order 50 注册 Bean）→ 发现（Order 100 读取 Environment）→ 变更（运行期监听配置变更）
-- **参考实现**（docs 源码块照录 + 本地验证）：**ZoneInitializedListener（docs:273-308 源码块照录）**——继承 OnceMainApplicationPreparedEventListener（`DEFAULT_ORDER = 50`——docs:275）；**Once 语义（docs:72-74 照录）**——`OnceMainApplicationPreparedEventListener` 来自 microsphere-core-spring-boot-starter，**仅允许主 Spring 应用上下文执行一次 ApplicationPreparedEvent**（继承 OnceApplicationPreparedEventListener——**"Once 表示事件仅执行一次"——防多上下文/多 ApplicationContext 重复执行**）；`onApplicationEvent` 注册 **ZoneContext Bean**（`ZoneContext.get()` 单例——docs:293）+ **CompositeZoneLocator Bean**（`loadFactories(ZoneLocator.class)` SPI 加载 + `registerSingleton`——docs:297-307；**TODO：Spring Bean 作为 Composite 成员——docs:299 注释**）；**ZoneDiscoveryListener（docs:64-85）**——继承 OnceMainApplicationPreparedEventListener（**Order=100——docs:85：默认最低优先级"实际被设置了 100"**）；监听 ApplicationPreparedEvent（**早于 ContextRefreshedEvent、晚于 Environment 准备**——docs:77-84：ZoneLocator 仅依赖 Environment——Environment 构建完即可）；**ZoneContextChangedListener（docs:323-372 源码块照录）**——`SmartApplicationListener`：监听 **ApplicationStartedEvent + EnvironmentChangeEvent**（docs:327-331）；`changeZoneContext`——**临时挂 PropertyChangeListener → propertyChangedHandlers 分发 → 有变更则 publish ZoneContextChangedEvent**（docs:344-369——**PropertyChange 事件化模式**）；**类名诚实标注**——`OnceMainApplicationPreparedEventListener`/`OnceApplicationPreparedEventListener`（docs:73——microsphere-core-spring-boot-starter）+ 三个监听器 **`[未找到：本地 microsphere 生态 grep 无此类——docs 类名待验证（docs 早于本地仓库重构）]`**
+- **参考实现**（docs 源码块照录 + 本地验证）：**ZoneInitializedListener（docs:273-308 源码块照录）**——继承 OnceMainApplicationPreparedEventListener（`DEFAULT_ORDER = 50`——docs:275）；**Once 语义（docs:72-74 照录）**——`OnceMainApplicationPreparedEventListener` 来自 microsphere-core-spring-boot-starter，**仅允许主 Spring 应用上下文执行一次 ApplicationPreparedEvent**（继承 OnceApplicationPreparedEventListener——**"Once 表示事件仅执行一次"——防多上下文/多 ApplicationContext 重复执行**）；`onApplicationEvent` 注册 **ZoneContext Bean**（`ZoneContext.get()` 单例——docs:293）+ **CompositeZoneLocator Bean**（`loadFactories(ZoneLocator.class)` SPI 加载 + `registerSingleton`——docs:297-307；**TODO：Spring Bean 作为 Composite 成员——docs:299 注释**）；**ZoneDiscoveryListener（docs:64-85）**——继承 OnceMainApplicationPreparedEventListener（**Order=100——docs:85：默认最低优先级"实际被设置了 100"**）；监听 ApplicationPreparedEvent（**早于 ContextRefreshedEvent、晚于 Environment 准备**——docs:77-84：ZoneLocator 仅依赖 Environment——Environment 构建完即可）；**ZoneContextChangedListener（docs:323-372 源码块照录）**——`SmartApplicationListener`：监听 **ApplicationStartedEvent + EnvironmentChangeEvent**（docs:327-331）；`changeZoneContext`——**临时挂 PropertyChangeListener → propertyChangedHandlers 分发 → 有变更则 publish ZoneContextChangedEvent**（docs:344-369——**PropertyChange 事件化模式**）；**类名诚实标注**——`OnceMainApplicationPreparedEventListener`/`OnceApplicationPreparedEventListener`（docs:73——microsphere-core-spring-boot-starter）——**`[未找到：ls 实证（Once 基类与 ZoneDiscoveryListener/ZoneInitializedListener 同列）]`**；**`ZoneContextChangedListener` `[本地实证：multiactive-spring `zone/spring/event/ZoneContextChangedListener`——2026-08-12 修正]`**
 - **对比取舍**：**事件化生命周期（Order 编排）vs 硬编码装配顺序**——可扩展/可观测 vs 简单——**Spring 生态的标准编排（Order + 事件）**
 - **机制/说明**：**Order 编排语义**——Initialized(50) < Discovery(100)（Order 小先执行）——**先初始化组件后发现区域**；ApplicationPreparedEvent 是"Environment 就绪 + Bean 未初始化"的窗口（ZoneLocator 只需 Environment——在此窗口执行）；运行期变更走 EnvironmentChangeEvent（04 篇中枢——**ZoneContext 动态化与配置中心联动**）
 - **测试佐证**：docs:64-85/264-372（3 监听器 + 源码块）+ `EnvironmentChangeEvent.java`（本地实证——04 篇已证）
@@ -87,20 +87,20 @@
 - **来源**：docs §ZoneResolver（docs:252-261）+ 发散 + my-xhs 实证
 - **需求**：**ZoneResolver 的内建实现**——docs 明确：设计思考（**被优先对象 = 上游（upstream）——来自服务发现；服务实例元信息（metadata）是区域信息来源**——docs:255）+ 内建实现 2 个：**CloudServerZoneResolver**（Spring Cloud 服务发现）/ **EurekaInstanceInfoZoneResolver**（Eureka Client）
 - **自主实现**：若我设计——Resolver 从实例元信息解析区域（metadata 的 zone 字段——KP-03 上报的对称读取）
-- **参考实现**（docs 标题 + 本地验证 + my-xhs 实证）：**两个内建（docs:259-261 照录）**——`CloudServerZoneResolver`（Spring Cloud 服务发现通用——**从 ServiceInstance metadata 解析**）/ `EurekaInstanceInfoZoneResolver`（Eureka Client 实例——**docs 类名 `[未找到：本地 microsphere 生态无此类]`**）；**机制（发散 + 07 篇衔接）**——Resolver = **metadata 的读取方**（KP-03 attachZone 写入 zone → Resolver 读取）——**写读闭环**；**my-xhs 实证**——`common/zone/ZoneResolver.java`（`extends Function<E,String>`——07 篇 KP-06 已证）+ `loadbalancer/ServiceInstanceZoneResolver.java`（**Spring Cloud 服务实例的区域解析——与 docs CloudServerZoneResolver 同定位的应用实现**）
+- **参考实现**（docs 标题 + 本地验证 + my-xhs 实证）：**两个内建（docs:259-261 照录）**——`CloudServerZoneResolver`（Spring Cloud 服务发现通用——**从 ServiceInstance metadata 解析**）/ `EurekaInstanceInfoZoneResolver`（Eureka Client 实例——**`[本地实证：multiactive-netflix `zone/netflix/eureka/EurekaInstanceInfoZoneResolver`——2026-08-12 修正]`**）；**机制（发散 + 07 篇衔接）**——Resolver = **metadata 的读取方**（KP-03 attachZone 写入 zone → Resolver 读取）——**写读闭环**；**my-xhs 实证**——`common/zone/ZoneResolver.java`（`extends Function<E,String>`——07 篇 KP-06 已证）+ `loadbalancer/ServiceInstanceZoneResolver.java`（**Spring Cloud 服务实例的区域解析——与 docs CloudServerZoneResolver 同定位的应用实现**）
 - **对比取舍**：**通用（CloudServer——Spring Cloud 抽象）vs 特化（EurekaInstanceInfo——产品耦合）**——通用适配 vs 特化访问——**Spring Cloud 抽象层内用通用实现（my-xhs 同）**
 - **机制/说明**：Resolver 与 Attachment 的**读写闭环**——上报（attachZone 写 metadata）→ 注册中心携带 → 发现（Resolver 读 metadata 解析区域）——**区域信息经注册中心流转**（metadata 是载体）
 - **测试佐证**：docs:252-261（2 内建标题照录）+ my-xhs `ZoneResolver.java`/`ServiceInstanceZoneResolver.java`（实证）
 
-### KP-06 现状核对（my-xhs：ZoneContextAutoConfiguration 装配对照 + 监听器族 [未找到] 影响）
+### KP-06 现状核对（my-xhs：ZoneContextAutoConfiguration 装配对照 + 监听器族实证/未找到）
 - **维度**：`[工程问题]` | **权重**：`[支撑]` | **深度**：🟢 | **优先级**：P2 | **过时**：`[时间无关模式]` | **置信度**：Medium
 - **前置**：KP-02~05
 - **来源**：my-xhs zone 包实证 + 架构师整合
 - **需求**：以事件链为尺——my-xhs zone 装配的生命周期对照
 - **自主实现**：若我设计——核对：装配（ZoneContextAutoConfiguration——有）/事件监听器族（无——docs 框架类 [未找到]）/元信息上报（未核）
-- **参考实现**（my-xhs 实证 + 发散）：**装配 ✅ 有**——`common/zone/ZoneContextAutoConfiguration.java` + `ZoneProperties.java` + `ZoneConstants.java`（07 篇 KP-06 实证——**AutoConfiguration 方案（docs 方案二）**）；**事件监听器族 ⚠️ 无对应**——`ZoneDiscoveryListener`/`ZoneAttachmentListener`/`ZoneInitializedListener`/`ZoneContextChangedListener` **`[未找到：my-xhs grep 无——docs 框架类本地均不存在（microsphere 生态重构前版本）]`**——**影响（发散）**——my-xhs 区域发现/上报靠 `ZoneContextAutoConfiguration`（配置 Bean 装配）而非事件链（**简化实现**）`[现状：装配简化——无事件化生命周期]`；**元信息上报 `[待验证：my-xhs 服务实例是否携带 zone metadata——Nacos 注册 metadata 未核]`**
+- **参考实现**（my-xhs 实证 + 发散）：**装配 ✅ 有**——`common/zone/ZoneContextAutoConfiguration.java` + `ZoneProperties.java` + `ZoneConstants.java`（07 篇 KP-06 实证——**AutoConfiguration 方案（docs 方案二）**）；**事件监听器族 ⚠️ 无对应**——my-xhs 无事件化监听器（`[现状：配置化装配简化]`——**注意：docs 框架类本地 multiactive 存在 6 个（四节实证），my-xhs 应用侧未采用**——ZoneAttachmentListener 等为 multiactive 框架实现非 my-xhs 实现）——**影响（发散）**——my-xhs 区域发现/上报靠 `ZoneContextAutoConfiguration`（配置 Bean 装配）而非事件链（**简化实现**）`[现状：装配简化——无事件化生命周期]`；**元信息上报 `[待验证：my-xhs 服务实例是否携带 zone metadata——Nacos 注册 metadata 未核]`**
 - **对比取舍**：**事件化生命周期（docs 框架——完整/可观测）vs 配置化装配（my-xhs——简单）**——完整编排 vs 够用简化——**单机场景简化合理（区域源为配置）**
-- **测试佐证**：my-xhs `common/zone/`（07 篇 KP-06 实证）+ `[未找到]/[待验证]` 标注
+- **测试佐证**：my-xhs `common/zone/`（07 篇 KP-06 实证）+ `[待验证]` 标注（监听器族见四节实证/未找到）
 
 ---
 
@@ -121,7 +121,7 @@
 
 - **本地源码可验证（源码优先，08）**：multiactive-spring（ZoneLocator supports/locate——:20/27）；spring-cloud-commons（AbstractAutoServiceRegistration/InstancePreRegisteredEvent/EnvironmentChangeEvent）；spring-boot（WebServerInitializedEvent）；my-xhs zone 包（ZoneContextAutoConfiguration/ZoneResolver/ServiceInstanceZoneResolver）
 - **关键实证**（本地 grep）：`ZoneLocator.java:20/27`（supports/locate）；`AbstractAutoServiceRegistration.java`/`InstancePreRegisteredEvent.java`（spring-cloud-commons——docs 源码块的 Spring 对应物）；`WebServerInitializedEvent.java`（spring-boot）
-- **诚实标注**：docs 为 **07 篇加餐（397 行）**——源码块 9 个照录核心；**docs 框架类 9 个 `[未找到：本地 microsphere 生态全无（ZoneDiscoveryListener/ZoneAttachmentHandler/ZoneAttachmentListener/ZoneInitializedListener/ZoneContextChangedListener/ZoneAutoConfiguration/CloudServerZoneResolver/EurekaInstanceInfoZoneResolver/OnceMainApplicationPreparedEventListener）——docs 早于本地仓库重构，类名待验证，机制照录]`**；`EurekaInstanceInfoZoneResolver`/`EurekaClientAutoConfiguration`（docs:236——@AutoConfigureAfter 顺序引用）为 Eureka 场景（非主体）；Netflix OSS 空节（docs:394-397——仅标题）
+- **诚实标注**：docs 为 **07 篇加餐（397 行）**——源码块 9 个照录核心；**docs 框架类 9 个——2026-08-12 修正（初稿误标 [未找到]，ls 目录实证）：6 个 `[本地实证]`（ZoneAttachmentHandler——multiactive-commons `zone/`；ZoneAttachmentListener——multiactive-spring-cloud `event/`（**签名不同：RegistrationPreRegisteredEvent vs docs InstancePreRegisteredEvent——本地为重构后版本**）；CloudServerZoneResolver——multiactive-spring-cloud `zone/spring/cloud/`；EurekaInstanceInfoZoneResolver——multiactive-netflix `zone/netflix/eureka/`；ZoneAutoConfiguration——multiactive-spring-boot `autoconfigure/`；ZoneContextChangedListener——multiactive-spring `zone/spring/event/`）；3 个仍未找到（ZoneDiscoveryListener/ZoneInitializedListener/OnceMainApplicationPreparedEventListener——`[未找到：本地 multiactive 各模块 ls 无此类——可能早期版本/microsphere-core]`）——**机制照录、类名以本地为准**`]`**；`EurekaInstanceInfoZoneResolver`/`EurekaClientAutoConfiguration`（docs:236——@AutoConfigureAfter 顺序引用）为 Eureka 场景（非主体）；Netflix OSS 空节（docs:394-397——仅标题）
 - **关联标注**：07 篇（AZ Locator 主体——本篇补充）；04 篇（EnvironmentChangeEvent/Rebinder——ZoneContextChangedListener 衔接）；05 篇（多注册——metadata 载体）；stage-3 07（注册生命周期）
 
 ---
