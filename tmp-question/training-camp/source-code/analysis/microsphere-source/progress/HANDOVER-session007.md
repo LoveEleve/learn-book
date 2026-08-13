@@ -84,7 +84,7 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 
 **依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud → multiactive → dynamic ✅（00 SOP §3.2 主线 + 应用层 2 仓走完）
 
-**剩余 24 仓库**（按依赖链 + stage-4 关联度建议；数字为**生产文件数**）：其余
+**剩余仓库决策（用户 2026-08-13）**：**全部移出提取队列**——sentinel（30）/alibaba-sentinel（30）/resilience4j（57）/dubbo（10）/tomcat/security（10）/netflix（8）为**官方生态封装**（知识本体在官方源码——另一 AI 系统性梳理）；etcd（8）/hibernate（15）/logging（33）/i18n（36）为**已提取模式同族重复**（08 configuration/07 ORM/11 observability 已覆盖模式）；bom/build/microsphere-test 非知识仓——**提取阶段结束（13/36 仓库，226 KP + 13 outline）**——进入收尾阶段（L2 聚合/L3 大纲/my-xhs 差距清单）
 > **决策（用户 2026-08-13）**：**microsphere-nacos（128 文件）移出本提取队列**——手写 Nacos OpenAPI 客户端（openapi 118 + discovery-spring-cloud 10）——**由另一 AI 系统性梳理 Nacos 源码**——本队列不提取（避免重复劳动）；其知识本体（HTTP 客户端骨架/鉴权/序列化）已在 02/08 覆盖——若后续需要对照可在 L2 聚合时引用历史 06-REQ（含 HttpMethod.DELETE 写 "GET" :58 缺陷线索）
 
 ---
