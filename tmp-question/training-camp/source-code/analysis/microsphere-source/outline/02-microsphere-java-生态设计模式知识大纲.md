@@ -1,6 +1,6 @@
 # Microsphere Java 生态设计模式知识大纲（microsphere-java 触发面）
 
-> 来源：`mapping/02-microsphere-java.md` 53 个 KP 的知识本体提炼
+> 来源：`mapping/02-microsphere-java.md` 53 KP + 深度 review 补提取（KP-120a/b/c 事件系统/IO 族/classloading 策略族）
 > 性质：**源码侧 outline（L1.5）**——mapping 是文件映射（过程），本大纲是知识本体（结果）
 > 组织：按知识维度，非按文件；每个知识点标注来源 KP + 六元元数据 + 现代替代
 > 用途：①自学/面试知识图谱 ②与课程 L1 合并成 L3 的源码侧素材 ③confucius outline 的姊妹篇
@@ -224,6 +224,24 @@
 > **方法论沉淀**：移植代码保留原作者版权头——**识别来源的实证手段**（写"是 XX 移植"前必须查 header）
 
 ---
+
+## 六、事件/IO/类加载策略补充维度（深度 review 补提取）[工程问题]
+
+### 6.1 事件系统（EventDispatcher 族）[🔴 P1] [时间无关模式]
+- **来源**：KP-120a（io.microsphere.event 10 文件全族）
+- **机制**：**分发策略化**（EventDispatcher extends Listenable :55 + dispatch :86 + **getExecutor 默认直调** :95——顺序默认）+ **ParallelEventDispatcher**（:33——**ForkJoinPool.commonPool 并行分发** :27——**03 仓库 parallel 主题的源头**）+ DirectEventDispatcher + **按事件类型分派缓存**（AbstractEventDispatcher :50——注册时类型索引）+ ConditionalEventListener 条件监听 + Event/GenericEvent 泛型载体
+- **对比**：Spring ApplicationEventMulticaster 的轻量 JDK 版（生态中立）
+- **my-xhs**：该用没用——Spring 事件覆盖；分发策略模式可借鉴
+
+### 6.2 IO 序列化与文件监听 [🔴 P2] [时间无关模式]
+- **来源**：KP-120b（io 族）
+- **机制**：**序列化 SPI**（Serializer\<S> :40——线程安全约束 :24 + **Serializers SPI 加载 + 优先级选优** :36——SPI 注册中心模式在 IO 域复用）+ **FastByteArray 流**（无 synchronized 字节流——性能取舍）+ **FileWatchService**（:54——JDK WatchService 封装——文件/目录变更监听）
+- **my-xhs**：已用（Jackson 覆盖序列化）/ Fast 字节流模式可借鉴
+
+### 6.3 classloading/filter/concurrent 族 [🟡 P2] [时间无关模式]
+- **来源**：KP-120c
+- **机制**：**URLClassPathHandle 版本分派策略族**（:30——implements Prioritized :35 + supports :50——Classic/Modern/NoOp/ServiceLoading 五实现——**按 JDK 版本选择实现**（实现类分派 vs MethodHandle API 探测——版本适配两种模式对照））；**Filter 泛型族**（ClassFilter/JarEntryFilter extends Filter\<T>——Predicate 语义领域化）；**ExecutorUtils**（shutdownOnExit :63——退出钩子关线程池）
+- **my-xhs**：不该用——URLClassPath 内部 API 无场景；Predicate 覆盖
 
 ## 覆盖核对（53/53）
 

@@ -367,3 +367,11 @@
 - **参考实现**：**GuiceInjectAnnotationBeanPostProcessor**（:31——**extends AnnotatedInjectionBeanPostProcessor**（KP-205 家族复用！——**注解注入后处理器的泛化**）+ `ANNOTATION_TYPE = Inject.class`（:33——**注解类型参数化**）+ **optional 属性支持**（:42-47——@Inject(optional=true) 语义——**determineRequiredStatus 覆写**（Spring 默认 required，Guice optional 语义桥接）））；EnableGuice + GuiceConfiguration（@Enable 装配）
 - **对比取舍**：**知识增量**：**跨容器注入桥**（Guice @Inject → Spring 注入）+ **注解注入后处理器泛化复用**（KP-205 的 AnnotatedInjectionBeanPostProcessor 被 Guice 复用——生态设计验证）；optional 语义差异（Guice 可空注入 vs Spring required）
 - **my-xhs**：**不该用**——my-xhs 用 Spring 不用 Guice；但**注解注入后处理器的泛化模式**（注解类型参数化）值得学
+
+---
+
+## 三、深度 review 核对注记（2026-08-13 轮）
+
+> **穷尽性核对（basename 级）**：323/323 生产文件——**168 个文件未提及 = 归组缺口（知识已覆盖但文件名未列全）**——铁律 #1"覆盖表声称 N/N 但正文缺"再犯（session005 交接"穷尽性"声称有水分）。
+> **未提及族分布**（知识归属）：web/metadata 13（→KP-2xx 端点元数据族）/ context/event 12（→KP-2xx 事件拦截链）/ beans/factory/support 11（→BeanFactory 监听族）/ web/util 9 + web/rule 8（→Web 层扩展族）/ test 族 20+（→测试基座归组）/ core/env 6 + config/context/annotation 6（→Environment 双钩 + @Import 族）/ 其余散族——**全部可在既有 KP 找到知识落点**（无真遗漏）。
+> **行动**：文件名级穷尽性未达成——后续提取归组必须列全文件名（铁律 #1 严格执行——本注记即为教训记录）。

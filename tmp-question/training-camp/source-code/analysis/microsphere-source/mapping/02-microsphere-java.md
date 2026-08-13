@@ -597,3 +597,37 @@
 - **需求**：各集合类型的专用判空/转换/首尾访问
 - **参考实现**：QueueUtils（EMPTY_DEQUE 常量 :52 + isQueue :70/isDeque :108 + emptyQueue/emptyDeque :127/:146）；SetUtils（ofSet 多形态 :125-234）；ListUtils（isList :73/:90 + first/last :111/:132——**Deque 场景用 peekFirst 语义**）
 - **my-xhs**：**不该用**——JDK/Spring 覆盖
+
+---
+
+## 三、深度 review 补充提取（2026-08-13 轮——穷尽性核对发现 160/342 未提及）
+
+> **核对方法**：basename 级 grep 全量核对（方法论铁律 #1 严格执行）——发现本仓库交接声称"穷尽性 323/323"与事实不符（342 文件 160 未提及）。
+> **甄别结论**：160 个未提及文件中——**知识已覆盖仅文件名未列**（Converter 家族 40+ 个 = 转换框架 KP 归组；URLStreamHandler/Artifact 等——归组未列全文件名——铁律 #1"覆盖表声称 N/N 但正文缺"再犯）；**知识真遗漏 7 族**（本补充提取）。
+
+### KP-120a `io.microsphere.event` 事件系统（10 文件全族补充）
+
+- **维度**：[工程问题]（事件系统）| **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：监听器模式、Executor 策略、泛型事件
+- **需求**：**自建事件分发系统**——EventDispatcher 接口 + 直接/并行两种分发策略 + 条件监听器（历史 02-06-event-system 主题——microsphere 事件体系源头）
+- **参考实现**：**分发契约**（EventDispatcher extends Listenable\<EventListener<?>> :55 + dispatch(Event) :86 + **getExecutor 默认直调**（:95——`default Executor——直接 invoke Runnable.run() 而非多线程`——**顺序语义默认**）；**并行分发器**（ParallelEventDispatcher :33——extends AbstractEventDispatcher + **ForkJoinPool.commonPool()**（:27/:30——JDK 公共池并行分发——**03 仓库 parallel 主题的源头**（历史 03-02 并行 Bean 初始化引用））；**直接分发器**（DirectEventDispatcher——顺序执行）；**抽象基座**（AbstractEventDispatcher——监听器注册/移除 + **按事件类型分派缓存**（:50——thread-safe 类型→监听器映射）+ 执行策略注入）；**事件载体**（Event/GenericEvent——泛型事件）；**条件监听器**（ConditionalEventListener——按条件接收）；**工厂**（EventDispatcher.newDefault()/parallel(executor) :31-40）
+- **对比取舍**：**知识增量**：①**事件分发策略化**（顺序/并行两实现 + Executor 注入——vs Spring ApplicationEventMulticaster 的 TaskExecutor 配置——**JDK 级轻量事件系统**（不依赖 Spring——02 仓库"生态中立"实证）；②**ForkJoinPool.commonPool 并行**（:27——公共池共享——注意：**阻塞任务会占公共池线程**（性能隐患））；③**按事件类型分派缓存**（:50——注册时按类型索引——O(1) 查找）
+- **my-xhs**：**该用没用（待实证）**——my-xhs 用 Spring 事件体系（ApplicationEvent）——JDK 级事件系统无场景；事件分发策略模式可借鉴
+
+### KP-120b `io.microsphere.io` IO 族（Serializer/Deserializer 序列化 SPI + FileWatchService 文件监听 + FastByteArray 字节流）
+
+- **维度**：[工程问题]（IO/序列化）| **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：SPI 加载（Serializers 用 SPI 加载 + Prioritized 选优——呼应 KP-1xx SPI 注册中心）、WatchService（JDK 文件监听）
+- **需求**：**序列化 SPI + 文件监听服务**——线程安全序列化器族（Serializer\<S> :40——serialize(S) :42）+ SPI 加载/优先级选优（Serializers :36——"load serializers via SPI + 最兼容 + 按优先级"——**SPI 注册中心模式的 IO 域应用**）+ 文件变更监听（FileWatchService :54——注册监听器到文件/目录）
+- **参考实现**：**序列化契约**（Serializer\<S> :40-42——泛型 + 线程安全约束（:24——"must be thread-safe"）+ Serializers SPI 加载（:36）+ StringSerializer/DefaultSerializer 等实现）；**反序列化族**（Deserializer/Deserializers/StringDeserializer/DefaultDeserializer）；**字节流**（FastByteArrayInputStream/OutputStream——**快速字节数组流**（无同步开销的自研流——对比 ByteArrayOutputStream synchronized 方法））；**文件监听**（FileWatchService :54——文件/目录变更监听接口 + StandardFileWatchService（JDK WatchService 实现））
+- **对比取舍**：**知识增量**：①**序列化 SPI + 优先级选优**（SPI 模式在 IO 域复用——生态中立序列化抽象）；②**Fast 字节流**（无 synchronized 字节流——**性能微优化**（vs ByteArrayOutputStream 全同步）——线程不安全换取性能的取舍）；③**文件监听抽象**（封装 JDK WatchService——目录/文件级变更通知）
+- **my-xhs**：**已用（部分实证）**——my-xhs 用 Jackson（对象序列化）+ Spring 无文件监听需求；Fast 字节流模式可借鉴（若高并发 IO）
+
+### KP-120c `classloading` + `filter` + `concurrent` 族（URLClassPathHandle 策略族 10 + ClassFilter/JarEntryFilter 6 + ExecutorUtils）
+
+- **维度**：[工程问题]（类加载/过滤/并发工具）| **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：URLClassPath（JDK 内部）、Prioritized 排序、Predicate 过滤
+- **需求**：**URLClassPath 操作策略 + 过滤接口 + 线程池工具**——classpath 索引的 URLClassPath 侧处理（历史 02-05-classpath-indexing 补全）
+- **参考实现**：**URLClassPath 策略族**（URLClassPathHandle :30——implements **Prioritized**（:35——**优先级排序的策略**）+ supports()（:50——支持性判定——Classic/Modern/NoOp/ServiceLoading/AbstractURLClassPathHandle 五实现——**JDK 版本分派的 classpath 处理**（Classic=旧 JDK/Modern=新 JDK/ServiceLoading=SPI 加载——**版本策略模式**））；**过滤接口族**（ClassFilter extends Filter\<Class<?>> :29 + JarEntryFilter extends Filter\<JarEntry> :29——泛型过滤 + 实现（PackageNameClassFilter/ClassNameFilter/TrueClassFilter 等））；**线程池工具**（ExecutorUtils :40——shutdown/shutdownOnExit（:63——**退出钩子关闭线程池**——资源清理工具族）
+- **对比取舍**：**知识增量**：①**版本分派策略**（URLClassPathHandle 族——同一能力按 JDK 版本选择实现——**Classic/Modern 分派模式**（呼应 02 MethodHandle 版本探测的另一个变体——实现类分派 vs API 探测））；②**Filter 泛型族**（Predicate 语义的领域化封装）
+- **my-xhs**：**不该用**——JDK URLClassPath 内部 API 无场景（--add-opens 时代）；Filter 泛型族被 Predicate 覆盖；shutdownOnExit 可借鉴

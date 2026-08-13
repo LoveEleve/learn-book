@@ -506,3 +506,10 @@
 - [x] **⑤b 引用目标核对**：JDK17 ResourceBundle.java:1517-1528/:244-250/:2518、ServiceLoader.java:87 javadoc——全部实测 ✓
 - [x] **⑥ 诚实标注**：KP-29 [待验证]、KP-34 Medium、测试缺口标注完整 ✓
 - [x] **⑦ 命名空间迁移**：JSR-305 独立标注 ✓
+
+---
+
+## 三、深度 review 核对注记（2026-08-13 轮）
+
+> **穷尽性核对（basename 级）**：38/38 生产文件——3 个常量类（PathConstants/ProtocolConstants/SeparatorConstants——`org.confucius.commons.lang.constants` 包）归组未列文件名——**常量族归组缺口**（知识无遗漏——常量无独立知识——补列完成）。
+> 真实源码路径：`/data/workspace/confucius-commons`（子模块 confucius-commons-lang/tools/util——包名 **org.confucius.commons**（非 io.microsphere）——与 MCP 索引 data-workspace-confucius-commons 一致——交接文档"confucius 在 source-code/code/microsphere/"路径已废弃（该路径源码为空））。
