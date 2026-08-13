@@ -68,11 +68,28 @@
 
 ---
 
-## 五、配套条件与工具 [工程问题]
+## 五、特性开关与服务工具 [工程问题]
 
-- **来源**：KP-407（Features 条件家族）/ KP-408（服务工具与事件）/ KP-409（常量/自动配置归组）/ KP-412（Specification 定制）/ KP-415（Feign 配套）
-- **机制**：Features 特性开关条件（ConditionalOnFeaturesAvailable/Enabled）、ServiceInstancesChangedEvent（实例变更通知）、Specification 定制（NamedContextFactory 子上下文规格）
-- **my-xhs**：不该用——官方覆盖/无独立知识
+### 5.1 Features 特性开关条件 [🟡 P3] [时间无关模式]
+- **来源**：KP-407（ConditionalOnFeaturesAvailable/Enabled + FeaturesProperties/FeaturesUtils + NamedFeatureComparator）
+- **机制**：**特性门控**（按 features 配置启停——@ConditionalOnFeaturesAvailable/@ConditionalOnFeaturesEnabled 条件 + FeaturesProperties 配置载体 + NamedFeatureComparator 排序）
+- **对比**：Spring Cloud 无内建特性开关——功能门控（Feature Toggle）模式
+- **my-xhs**：该用没用——特性开关（灰度/功能门控）
+
+### 5.2 服务工具与实例变更事件 [🟢 P3] [时间无关模式]
+- **来源**：KP-408（ServiceInstanceUtils/DiscoveryUtils/RegistrationMetaData/ServiceInstancesChangedEvent/RegistrationCustomizer）
+- **机制**：**实例变更通知**（ServiceInstancesChangedEvent——实例上下线事件）+ 服务实例工具（ServiceInstanceUtils/DiscoveryUtils）+ 注册元数据（RegistrationMetaData）+ 注册定制器（RegistrationCustomizer——注册信息定制）
+- **my-xhs**：该用没用——实例变更监听（服务上下线感知）
+
+### 5.3 Specification 定制（子上下文规格）[🟡 P3] [时间无关模式]
+- **来源**：KP-412（SpecificationCustomizer/SpecificationAutoConfiguration/SpecificationBeanPostProcessor + ConditionalOnLoadBalancerEnabled/ConditionalOnUtilEnabled）
+- **机制**：**NamedContextFactory 子上下文规格定制**（SpecificationCustomizer + BeanPostProcessor——Feign/LoadBalancer 子上下文的配置对象定制）
+- **my-xhs**：该用没用——子上下文定制；官方 NamedContextFactory 覆盖
+
+### 5.4 配套归组（常量/自动配置/Feign 配套）[🟢 P3] [时间无关模式]
+- **来源**：KP-409（*Constants 4 + *AutoConfiguration 8 + 条件变体）/ KP-415（FeignAutoConfiguration/ConditionalOnOpenFeign*）
+- **机制**：常量（ServiceRegistryConstants/DiscoveryClientConstants 等）+ 自动配置家族（ServiceRegistry/Web/WebMvc/WebFlux 变体）+ Feign 条件与自动配置
+- **my-xhs**：不该用——配置类/常量无独立知识
 
 ---
 
