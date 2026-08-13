@@ -101,3 +101,20 @@
 
 **汇总**：已用 1 / 该用没用 2。
 **核心结论**：my-xhs 用官方 sentinel（Web 层覆盖）——**SQL/Redis 命令级限流是官方空白**（microsphere 5 类独有适配器的落地价值点）；模板 API 免样板可借鉴。
+
+### 深度 review 补充（问题域对照轮——历史 07 分析正文 8 部分）
+
+#### KP-1304 问题域补充（三种交互模式 + 高基数风险 + ThreadLocal 风险）
+
+- **维度**：[分布式问题]（限流落地细节）| **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：SentinelContext 传递、ThreadLocal、框架属性（exchange/context）
+- **需求**：**适配器的上下文传递与资源命名问题域**——历史 07 分析 :1025-1060/:1160-1175
+- **参考实现**：**三种交互模式（历史 07 分析——适配器分类）**：**模式一——直接 begin/end 同步包装**（MyBatis ExecutorFilter——doInSentinel 包装（SentinelMyBatisExecutorFilter :63/:68/:73——**同步链内直接包裹**——无上下文传递问题）；**模式二——pre/post + ThreadLocal**（分离开的钩子——ThreadLocal 传递 SentinelContext——**风险：异步执行时 ThreadLocal 丢失**（历史 :1032——**与 08-redis DynamicRedisConnectionFactory 同问题——跨仓库同族**（线程池场景上下文丢失））；**模式三——双阶段 + 框架属性**（Redis/Spring Web——beforeExecute 存框架属性（setSentinelContext）+ afterExecute 从属性取（:1040-1046——**不依赖 ThreadLocal——异步安全**）；**资源命名策略（高基数风险——历史 :1160-1175）**：P6Spy 用**裸 SQL 字符串**（SentinelJdbcEventListener :93——`statementInformation.getSql()`——**每条 SQL 一个资源**（Dashboard 可见具体 SQL——优点）vs **高基数风险**（动态拼接 SQL 资源爆炸）——**缓解**：isEligibleStatement 只允许 PreparedStatementInformation（:105——`?` 占位符 SQL 基数可控——但同 SQL 多 Mapper 共享资源无法区分来源）；**命名粒度对照**（MyBatis Mapper 方法级 `com.example.mapper.UserMapper.selectUser` vs P6Spy SQL 文本级 `SELECT ... WHERE id = ?`——历史 :1170 表）
+- **对比取舍**：**知识增量**：①**三种上下文传递模式**（直接/ThreadLocal/框架属性——**适配器的上下文传递选型**（同步链直接包装/异步场景用框架属性——ThreadLocal 的异步缺陷）；②**高基数资源命名**（:93——**裸 SQL 资源名的取舍**（精确 vs 基数爆炸——PreparedStatement 过滤缓解——**资源命名策略的基数控制**）；③**ThreadLocal 异步丢失家族**（本仓库 + 08-redis——**跨仓库同族问题**（线程池/虚拟线程场景）
+- **my-xhs**：**该用没用（实证）**——my-xhs 官方 sentinel webmvc 适配器（无 SQL 级限流——无高基数问题）；**资源命名基数控制直接适用**（若 my-xhs 自写限流资源命名）
+
+### 包总结（问题域补充）
+
+- **核心命题**：**"上下文传递三模式 + 资源命名基数"**——历史 07 分析正文 8 部分全映射
+- **验证成果**：P6Spy 裸 SQL（:93）/:105 PreparedStatement 过滤/MyBatis 模式一（:63）全部源码实证
+- **跨仓库同族**：ThreadLocal 异步丢失（+08-redis）——第三种跨仓库同族问题

@@ -58,7 +58,7 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 
 ---
 
-## 三、已完成状态（14/36 仓库，229 KP + 14 outline——含 02 补提取 3 KP + 08-13 问题域补 10 KP）
+## 三、已完成状态（14/36 仓库，230 KP + 14 outline——含 02 补提取 3 KP + 08-14 问题域补 11 KP）
 
 | # | 仓库 | 生产文件 | KP | 关键知识点 | outline |
 |---|------|:---:|:---:|-----------|:---:|
@@ -75,7 +75,7 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 | 11 | **microsphere-observability** | **39** | **5** | **InMemoryAppender 启动缓冲 + P1 时序 bug（时序铁律）、SkipList 去重副作用、Filter 桥接、Micrometer 补全、问题域（P2 @ConditionalOnBean 语义陷阱 + 静默失效家族）** | ✅ |
 | 12 | **microsphere-mybatis** | **54** | **6** | **ExecutorFilter 过滤链（10/15 方法覆盖）、Interceptor 桥接、双 Enable 注解、测试解析器族（29 文件过半）、MP 生态对照、问题域（P1-P6 已证清单——P6 二级缓存短路/拼写第 7 例 Defintion）** | ✅ |
 | 13 | **microsphere-alibaba-druid** | **19** | **4** | **官方 Filter 491 方法三层收敛、三源装配、P2 switch fallthrough、问题域（P1 双开关冗余/P3 空壳/P4 占位符 + buildResourceName SQL AST + P2 根源跨仓库对照）** | ✅ |
-| 14 | **microsphere-sentinel** | **30** | **3** | **模板 API（免样板）+ 插件 SPI（五元组）+ JMX 插件仓库、6 适配器统一模式（插件+框架扩展点双实现——5 类独有：MyBatis/Druid/Redis/P6Spy/Hibernate——官方无）、四重条件装配（跨仓库条件消费）** | ✅ |
+| 14 | **microsphere-sentinel** | **30** | **4** | **模板 API + 插件 SPI（五元组）+ JMX 插件仓库、6 适配器统一模式（5 类独有）、四重条件装配、问题域（三种上下文传递模式——ThreadLocal 异步丢失+08-redis 同族/高基数资源命名——裸 SQL vs PreparedStatement 过滤）** | ✅ |
 | 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
 | 08 | **microsphere-configuration** | **11** | **5** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 双模式、Apollo 克隆替换热更新、自研 Nacos OpenAPI 客户端、三层层级抽象、历史 4 缺陷证实（D1-D4）** | ✅ |
 | 09 | **microsphere-gateway** | **28** | **7** | **we:// 端点粒度动态路由、Filter 链缓存+事件重建、心跳禁用（G1 断链根源）、双栈、metadata 协议链路（G11/G12 根源）、演进史重构损失、G1-G15 缺陷表 15/15 全部证实** | ✅ |
@@ -83,7 +83,7 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 | 11 | **microsphere-observability** | **39** | **5** | **InMemoryAppender 启动缓冲 + P1 时序 bug（时序铁律）、SkipList 去重副作用、Filter 桥接、Micrometer 补全、问题域（P2 @ConditionalOnBean 语义陷阱 + 静默失效家族）** | ✅ |
 | 12 | **microsphere-mybatis** | **54** | **6** | **ExecutorFilter 过滤链（10/15 方法覆盖）、Interceptor 桥接、双 Enable 注解、测试解析器族（29 文件过半）、MP 生态对照、问题域（P1-P6 已证清单——P6 二级缓存短路/拼写第 7 例 Defintion）** | ✅ |
 | 13 | **microsphere-alibaba-druid** | **19** | **4** | **官方 Filter 491 方法三层收敛、三源装配、P2 switch fallthrough、问题域（P1 双开关冗余/P3 空壳/P4 占位符 + buildResourceName SQL AST + P2 根源跨仓库对照）** | ✅ |
-| 14 | **microsphere-sentinel** | **30** | **3** | **模板 API（免样板）+ 插件 SPI（五元组）+ JMX 插件仓库、6 适配器统一模式（插件+框架扩展点双实现——5 类独有：MyBatis/Druid/Redis/P6Spy/Hibernate——官方无）、四重条件装配（跨仓库条件消费）** | ✅ |
+| 14 | **microsphere-sentinel** | **30** | **4** | **模板 API + 插件 SPI（五元组）+ JMX 插件仓库、6 适配器统一模式（5 类独有）、四重条件装配、问题域（三种上下文传递模式——ThreadLocal 异步丢失+08-redis 同族/高基数资源命名——裸 SQL vs PreparedStatement 过滤）** | ✅ |
 
 **依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud → multiactive → dynamic ✅（00 SOP §3.2 主线 + 应用层 2 仓走完）
 
