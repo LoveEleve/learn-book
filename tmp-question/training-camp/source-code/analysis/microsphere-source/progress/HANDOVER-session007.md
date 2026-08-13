@@ -56,8 +56,9 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 | 05 | microsphere-spring-cloud | 78 | 15 | Union 多注册（短路 vs 全量）、注册四态事件、Feign 配置热更新、平滑加权轮询 | ✅ |
 | 06 | **microsphere-multiactive** | **31** | **16** | **Zone 自动发现 SPI（supports/locate）、ZoneContext 全局单例+双事件桥接、三重保护区域路由、云元数据探测、注册元数据闭环、Ribbon/Eureka 适配** | ✅ |
 | 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
+| 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
 
-**依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud → multiactive ✅（00 SOP §3.2 主线 + 首个应用层仓库走完）
+**依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud → multiactive → dynamic ✅（00 SOP §3.2 主线 + 应用层 2 仓走完）
 
 **剩余 28 仓库**（按依赖链 + stage-4 关联度建议；数字为**生产文件数**）：configuration（11 小仓快）→ gateway（28）→ nacos（128）→ redis（86）→ 其余
 
@@ -100,6 +101,10 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 | R2 | ORIGINAL_ZONE 运行期二次回退失效（revertOriginalZone → Composite 缓存命中不重新探测） | ZoneContextChangedListener:183-192 + CompositeZoneLocator:51 | High |
 | R3 | Ec2 supports 恒 true → 非 AWS 环境启动 +3s（IMDS 超时） | Ec2AvailabilityZoneEndpointZoneLocator:35-36 | High |
 | X1 | **⑤b 引用目标修正**：本地无 spring-cloud-loadbalancer 源码/jar（find 全盘实证）——官方类断言（"官方仅按 zone 过滤"）降置信度 Medium + 标注 | — | — |
+| R4 | dynamic **启动忙等轮询无超时**（awaitTermination 循环——死锁永久挂起） | DynamicJdbcContextApplicationListener:140-150 | Medium |
+| R5 | dynamic **config 原地清空副作用**（dynamic 分支清空 datasource/ha/sharding 字段——重建时从环境重读有补救） | DynamicJdbcContextProcessor:112-119 | Medium |
+| R6 | dynamic **zone 属性名字符串硬编码**（"zone".equals——未用常量——改名静默失效） | PropagatingDynamicJdbcConfigChangedEventListener:91 | High |
+| X2 | **两种动态数据源架构实证**：my-xhs DynamicDataSource（403 行）预建池切换（Map<zone,DataSource> + 连接计数等待 30s）vs microsphere 子上下文重建（delegate 交换 + 延迟关闭）——同名不同架构 | my-xhs zone/datasource/DynamicDataSource.java | High |
 
 ### 4.4 my-xhs 判定（2026-08-13 实证修正——本会话最大教训）
 
