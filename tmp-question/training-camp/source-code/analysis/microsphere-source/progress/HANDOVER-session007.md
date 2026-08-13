@@ -47,7 +47,7 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 
 ---
 
-## 三、已完成状态（8/36 仓库，195 KP + 8 outline——含 02 深度 review 补提取 3 KP）
+## 三、已完成状态（8/36 仓库，197 KP + 8 outline——含 02 补提取 3 KP + 08 问题域补 2 KP）
 
 | # | 仓库 | 生产文件 | KP | 关键知识点 | outline |
 |---|------|:---:|:---:|-----------|:---:|
@@ -58,9 +58,9 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 | 05 | microsphere-spring-cloud | 78 | 15 | Union 多注册（短路 vs 全量）、注册四态事件、Feign 配置热更新、平滑加权轮询 | ✅ |
 | 06 | **microsphere-multiactive** | **31** | **16** | **Zone 自动发现 SPI（supports/locate）、ZoneContext 全局单例+双事件桥接、三重保护区域路由、云元数据探测、注册元数据闭环、Ribbon/Eureka 适配** | ✅ |
 | 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
-| 08 | **microsphere-configuration** | **11** | **3** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 两种扩展模式并存、Apollo PropertySource 克隆替换热更新、自研 Nacos OpenAPI 客户端、拼写错误第 4/5 例（Porperty/Cient）** | ✅ |
+| 08 | **microsphere-configuration** | **11** | **5** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 双模式、Apollo 克隆替换热更新、自研 Nacos OpenAPI 客户端、三层层级抽象、历史 4 缺陷证实（D1-D4：HashMap 缓存/单 dataId/强转/contains vs containsKey）** | ✅ |
 | 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
-| 08 | **microsphere-configuration** | **11** | **3** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 两种扩展模式并存、Apollo PropertySource 克隆替换热更新、自研 Nacos OpenAPI 客户端、拼写错误第 4/5 例（Porperty/Cient）** | ✅ |
+| 08 | **microsphere-configuration** | **11** | **5** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 双模式、Apollo 克隆替换热更新、自研 Nacos OpenAPI 客户端、三层层级抽象、历史 4 缺陷证实（D1-D4：HashMap 缓存/单 dataId/强转/contains vs containsKey）** | ✅ |
 
 **依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud → multiactive → dynamic ✅（00 SOP §3.2 主线 + 应用层 2 仓走完）
 

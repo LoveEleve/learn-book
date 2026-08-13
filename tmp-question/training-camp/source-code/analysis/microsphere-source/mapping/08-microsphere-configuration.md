@@ -118,3 +118,34 @@
 
 **汇总**：该用没用 2 / 不该用 1。
 **核心结论**：my-xhs 配置中心 = Nacos 官方 Starter（@NacosPropertySource 官方注解）——**官方覆盖注解化需求**；microsphere 自研价值在**多配置中心统一抽象**（my-xhs 单配置中心无需求）；**热更新粒度对照**（属性级克隆替换 vs Bean 级子上下文重建）为跨仓库知识增量。
+
+### 深度 review 补充（问题域对照轮——历史 15 篇分析）
+
+#### KP-704 三层层级抽象 + 与原生 SDK 对照（问题域知识——历史 15-01/15-02 提炼）
+
+- **维度**：[工程问题]（抽象层级）| **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：03 仓库 @PropertySource 扩展基座
+- **需求**：**配置中心注解化的三层层级**——@PropertySourceExtension 元注解（第 1 层）→ PropertySourceExtensionLoader 模板方法（第 2 层）→ PropertySourcesChangedEvent 事件体系（第 3 层）——历史 15-02 核心抽象（:14）
+- **参考实现**：**三层层级**（历史 15-02 :39/:136/:249——①第 1 层 @PropertySourceExtension 元注解（10 属性——03 仓库 KP-3.1 的源头——first/before/after 排序控制）②第 2 层 PropertySourceExtensionLoader 模板方法（resolveResources 抽象——本仓库四中心实现）③第 3 层 PropertySourcesChangedEvent 事件体系（03 仓库 KP-213——配置变更事件——dynamic 仓库消费方实证））；**与原生 SDK 对照**（历史 15-01 :101 + 15-03 :344-360 表——自研 OpenApiNacosClient vs 官方 nacos-client：**gRPC 长连接/双向流推送/故障转移（官方）vs HTTP REST 短连接/长轮询/静态 serverAddress（自研）**——依赖 ~10MB vs ≈0——**自研收益零依赖、代价无故障转移**（+ API 升级手动适配））
+- **对比取舍**：**知识增量**：①**三层层级的职责划分**（元注解声明 → 模板方法加载 → 事件通知——**配置中心抽象的分层架构**）；②**自研 vs 官方 SDK 的选型维度**（连接模型/推送机制/故障转移/依赖大小/版本适配——**基础设施自研的决策框架**）
+- **my-xhs**：**该用没用（实证修正）**——my-xhs-analytics 等模块 pom 实证 `spring-cloud-starter-alibaba-nacos-config`（:58）——**官方 Starter**（非自研）——三层层级抽象无场景（单配置中心）；**决策框架可借鉴**
+
+#### KP-705 历史缺陷交叉验证（15-03/15-04 工程问题——4 项全证实）
+
+- **维度**：[工程问题]（缺陷验证）| **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式] | **置信度**：High
+- **需求**：历史 15 篇工程问题分析的源码验证（待验证假设库流程）
+- **验证结果**（全部 grep 实证）：
+| # | 历史缺陷断言 | 验证 | 实证 |
+|---|-------------|------|------|
+| D1 | configCientCache 用 HashMap 非 ConcurrentHashMap（并发线程安全） | ✅ 证实（NacosPropertySourceLoader:53 `new HashMap<>()`） | KP-701 |
+| D2 | 单 dataId 限制（resolveResources 只返回 Resource[1]） | ✅ 证实（:77 `new Resource[1]`——多配置需多个注解） | KP-701 |
+| D3 | ShutdownHook 强转风险（((OpenApiTemplateClient) value)——非子类实现抛 ClassCastException） | ✅ 证实（:60 强转） | KP-701 |
+| D4 | setSystemProperty 用 contains(key) 应 containsKey（Hashtable.contains 检查值非键——"不覆盖"防御无效） | ✅ 证实（ApolloPropertySourceBeanDefinitionRegistrar:198 `systemProperties.contains(key)`） | KP-702 |
+- **对比取舍**：**知识增量**：①**Hashtable.contains vs containsKey 语义陷阱**（:198——contains 检查**值**存在（Hashtable 继承）——"按键查重"意图用错 API——**API 语义铁证**（同 06 仓库 ZonePreferenceFilter 就绪率除法——运算符/API 语义细节）；②**Apollo 执行顺序保证**（历史 15-04 :330——PropertySourcesProcessor 是 BeanDefinitionRegistryPostProcessor(PriorityOrdered) 先于本 Registrar 的 BeanFactoryPostProcessor——**Spring 两阶段后处理器顺序保证**——知识增量（非缺陷））；③**MODIFIED 事件快照精度**（历史 15-04 :355——oldPropertySource 是完整快照非具体 key 旧值——事件消费者无法定位旧值——知识增量）
+- **my-xhs**：**不该用**——缺陷验证知识无落地（Nacos 官方 Starter 无此实现）
+
+### 包总结（问题域补充）
+
+- **核心命题**：**"三层级抽象 + 自研选型框架 + 4 缺陷实证"**——历史 15 篇分析全部映射
+- **验证成果**：15-01~07 全部证实（含 4 项工程缺陷 D1-D4）——无证伪项
+- **缺陷模式呼应**：D4（contains vs containsKey）与 06 仓库 FILER 拼写、07 仓库 zone 硬编码同类——**API 语义细节错误家族**
