@@ -48,7 +48,7 @@
 - **参考实现**：**拦截 SPI**（RedisCommandInterceptor——beforeExecute/afterExecute/onError 三回调覆盖命令生命周期——REQ-001 产出 + **RedisConnectionInterceptor**（连接级拦截——拦截 SPI 的连接变体——同族））；**事件发布拦截器**（EventPublishingRedisCommandInterceptor :56——implements RedisCommandInterceptor + ApplicationEventPublisherAware——afterExecute（:87——成功才发布（failure 分支 :87-92）→ publishRedisCommandEvent（:97-99——**Spring 事件发布**（RedisCommandEvent——命令可观测）））；**事件载体**（RedisCommandEvent/RedisOperationEvent/RedisConfigurationPropertyChangedEvent :event 包 3 文件）
 - **对比取舍**：**知识增量**：①**命令生命周期三回调**（before/after/error——**SPI 拦截的完整契约**）；②**成功才发布**（:87——afterExecute 的 failure 判断——**事件语义**（失败不发成功事件——vs 06 仓库 @After finally 缺陷的对照——本实现语义正确）；③**my-xhs 同名移植实证**（my-xhs zone/redis/EventPublishingRedisCommandInterceptor + RedisCommandEvent——**同名同结构**——跨仓库对应物）
 - **测试佐证**：interceptor 测试族（[补扫]）
-- **my-xhs**：**已用（实证）**——`my-xhs-common/.../zone/redis/` 7 文件（EventPublishingRedisCommandInterceptor/RedisCommandEvent/RedisMethodContext/RedisMethodInterceptor/InterceptingRedisConnectionInvocationHandler/RedisTemplateWrapper/RedisInterceptorAutoConfiguration——**microsphere redis 拦截族的 my-xhs 移植版**——06 仓库对照节已列）——**拦截机制同名同构实证**
+- **my-xhs**：**已用（实证 diff）**——`my-xhs-common/.../zone/redis/` 7 文件——**同构移植（接口名微调）**：diff 实证 my-xhs `implements RedisMethodInterceptor`（微球 RedisCommandInterceptor——**接口名重命名**）+ BEAN_NAME 前缀 myxhs（微球 microsphere:——**命名空间化**）+ @Slf4j 改写——**结构同构（afterExecute 成功才发布模式一致）非逐字同名**
 
 #### KP-903 连接工厂代理 + Template 包装（RedisConnectionFactoryProxyBeanPostProcessor:74-90 + RedisTemplateWrapperBeanPostProcessor:23-45 + HoldingValue 包装处理器 2 + WrapperProcessor SPI）
 
@@ -119,7 +119,21 @@
 | D09 | ValueHolder 双向缓存 RawValue identity equals 永久失效 | ⬜ 待验证（HoldingValueRedisSerializerWrapper——批 1 未深读） | KP-901 |
 | 定位修正 | 拦截点基于 SDR RedisConnection 代理（非 Redisson） | ✅ 证实（RedisConnectionFactoryProxyBeanPostProcessor:74 AOP 代理） | KP-903 |
 
-**进度**：3/5 证实；待验证 2（REQ-003 监控/D09 ValueHolder 缓存）
+**D01-D09 缺陷表验证（深度 review 轮）**：
+
+| # | 历史断言 | 验证 | 实证 |
+|---|---------|------|------|
+| D01 | 拦截范围仅 SDR，Redisson 不可见 | ✅ 证实（源码无 Redisson 引用——grep 空） | KP-903 |
+| D02 | Kafka 消费者无幂等/乱序/重试保障 | ⬜ 部分（架构事实——Kafka at-least-once 原生语义；消费者实现细节待深读） | KP-904 |
+| D03 | 事件序列化单字节长度前缀 >255 截断 | ⬜ 部分（BoundarySerializer 用 **4 字节 Integer 长度前缀**（:59）——单字节前缀位置未找到——**历史断言位置待确认**） | KP-901 |
+| D04 | 单参数命令 write 误判 | ⬜ 部分（isWrite 基于 MethodInfo :320——判定逻辑深读不足） | KP-905 |
+| D05 | ThreadLocal 永远不清理 | ❌ **部分证伪**（clearTarget() :177 存在 `beanNameHolder.remove()`——**有清理 API 但非自动**（依赖调用方显式调用——无 finally 自动清理）——历史"永远不清理"过强） | KP-907 |
+| D06 | 等值事件 equals/hashCode 契约违反 | ✅ 证实（:312 `Arrays.deepEquals(args)` vs :319 `Arrays.hashCode(args)`——**多维数组不对称**——deepEquals 相等但 hashCode 可不同——契约违反） | KP-902 |
+| D07 | 异常传播被 NPE 覆盖 | ✅ 证实（:141 `throw e.getCause()`——cause null 时抛 NPE 吞原异常） | KP-902 |
+| D08 | 元数据强依赖静态 YAML | ✅ 证实（main/resources/META-INF/spring-data-redis-metadata.yaml 存在——运行时 SnakeYAML 加载；doclet 生成器并存） | KP-905 |
+| D09 | ValueHolder 双向缓存永久失效 | ❌ **历史自证伪**（v3 修正——record RawValue Arrays.equals 内容比较非 identity） | — |
+
+**进度**：REQ-001/002 ✅ + D 表 4 证实（D01/D06/D07/D08）/ 3 部分（D02/D03/D04）/ 2 证伪（D05 部分/D09 历史自证伪）；REQ-003 监控待验证
 
 ---
 
