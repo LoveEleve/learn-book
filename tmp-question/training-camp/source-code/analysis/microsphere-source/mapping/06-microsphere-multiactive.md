@@ -15,7 +15,7 @@
 ## 前置条件清单
 
 读者需先掌握：1. 前五仓库全部知识点 2. Spring Cloud LoadBalancer（ZonePreferenceServiceInstanceListSupplier——官方对照）3. Ribbon ServerListFilter（netflix 集成对照）4. stage-4 课程（多活——本仓库是其源码侧）
-未达前置者，先补：前五仓库 outline + spring-cloud-loadbalancer 源码（本地有）
+未达前置者，先补：前五仓库 outline + Spring Cloud LoadBalancer 知识（**本地无 spring-cloud-loadbalancer 源码——官方对照断言基于 API 语义，置信度 Medium**）
 
 ## 掌握度
 
@@ -56,7 +56,7 @@
 - **需求**：**同区实例优先 + 跨区回退**，且带精细保护策略——禁用区/就绪率/同区最小可用数（历史 REQ-003 的 commons 泛型抽象）
 - **自主实现**：若我来做——过滤链：启用开关 → 偏好开关 → zone 有效性 → 禁用区剔除 → 同区筛选 → 就绪率/最小可用阈值回退；注意返回**原列表引用 vs 新列表**语义要明确（本实现 disabled 分支返回新 LinkedList，其余返回原引用）
 - **参考实现**：**过滤流程**（filter :36-127——七级保护）：①null/空/单元素直接返回（:38-43）；②zoneContext 未启用返回原列表（:46-50）；③preference 未启用返回（:52-56——**默认关闭，需显式启用**）；④isIgnored（:59-63——blank 或 defaultZone **大小写不敏感** :182-184——Eureka 默认区名不参与偏好）；⑤**禁用区过滤**（:67-81——filterDisabledZone :133-151 按逗号拆分禁用区集合 :136，过滤后 **≤1 个回退原列表**（:74-77——避免全量被剔除））；⑥**上游就绪率保护**（:102-107——`zoneCount*100/entitiesSize` 整数百分比 :165，**低于阈值整体回退**——zoneCount 只统计 resolveZone != null 的 :93-94——zone 元数据缺失的上游视为不ready）；⑦**同区最小可用数保护**（:111-118——同区数 < 阈值回退全量）；命中返回 sameZoneEntities（:121），未命中返回 targetEntities（:126）
-- **对比取舍**：**知识增量**：①**区域优先路由的多级保护链**（vs 官方 SCL ZonePreferenceServiceInstanceListSupplier 仅按 zone 过滤——microsphere 叠加禁用区/就绪率/最小可用三重保护——REQ 表"微球 vs SCL"实证）；②**"全量剔除预防"设计**（disabled 过滤后 ≤1 回退——防故障区剔光导致无实例）；③**就绪率整数除法**（:165——`zoneCount*100/entitiesSize`——整数截断（如 2/3=66%）——低实例数时保护更激进）；④**返回引用语义不统一**（disabled 分支新列表 vs 其余原引用——调用方不可假设可变性）；⑤**null 元素防御**（:174——entity null 时 zone=null 不计数）
+- **对比取舍**：**知识增量**：①**区域优先路由的多级保护链**（vs 官方 SCL ZonePreferenceServiceInstanceListSupplier 仅按 zone 过滤——microsphere 叠加禁用区/就绪率/最小可用三重保护——REQ 表"微球 vs SCL"实证）；②**"全量剔除预防"设计**（disabled 过滤后 ≤1 回退——防故障区剔光导致无实例）；③**就绪率整数除法**（:165——`zoneCount*100/entitiesSize`——整数截断（如 2/3=66%）——低实例数时保护更激进）；④**返回引用语义不统一**（disabled 分支新列表 vs 其余原引用——调用方不可假设可变性）；⑤**null 元素防御**（:174——entity null 时 zone=null 不计数）——**注**：官方对照断言（"官方仅按 zone 过滤"）基于 API 语义——本地无 SCL 源码（见 review ⑤b）——置信度 Medium
 - **测试佐证**：ZonePreferenceFilterTest 15 断言——null/空/单元素（:65-77）、disabled/preference 关闭（:84-99）、defaultZone 大小写不敏感忽略（:102-122）、同区命中（:125-133）、无同区回退全量（:137）、**就绪率不达标回退**（:149-158）、**最小可用阈值回退**（:164）、**禁用区过滤**（:180-204）、**禁用区剔光回退**（:208）、null 实体（:228-251）
 - **my-xhs**：**该用没用**——同区优先路由（多活/同城双活场景）；官方 SCL 覆盖基础版（无三重保护）
 
@@ -124,7 +124,7 @@
 - **前置**：SmartApplicationListener（supportsEventType）、java.beans.PropertyChangeEvent、Consumer 策略表、ClassLoader resolveClass（无编译依赖探测）
 - **需求**：**配置变更 → ZoneContext 属性更新 → Spring 事件通知**——Spring 属性（EnvironmentChangeEvent/ApplicationStartedEvent/ContextRefreshedEvent 触发）→ 更新 ZoneContext（JavaBeans 事件）→ 汇总发布 ZoneContextChangedEvent（Spring 事件）——**双事件系统桥接**（历史 REQ-002"事件机制：PropertyChangeSupport（Java 标准）"）
 - **参考实现**：**容器探测**（:67-82——**类名探测无编译依赖**：`resolveClass("org.springframework.cloud.context.environment.EnvironmentChangeEvent")`——Cloud 环境 → 监听 EnvironmentChangeEvent + ApplicationStartedEvent；Boot 环境 → ApplicationStartedEvent；纯 Spring → ContextRefreshedEvent（supportsEventType :109-118 三分支——**按运行时容器选择监听事件**——spring 模块不依赖 boot/cloud 却能感知））；**属性→处理器策略表**（:84-92 7 属性名列表 + :94/:125-133 `Map<String, Consumer<String>>`——属性名映射处理函数——**策略映射表**）；**临时监听器收集变更**（:139-165——**addPropertyChangeListener 临时注册**（:147）→ 逐属性执行 handler → **finally remove**（:157）→ 收集到的 propertyChangeEvents 非空才 publish（:160-164）——**利用 ZoneContext"值变才 fire"语义只上报真实变化**——JavaBeans 事件 → Spring 事件桥接）；**ORIGINAL_ZONE 回退**（:172-192——配置值="originalZone" 时**重新调用 zoneLocator 定位**（revertOriginalZone :183-192——**探测恢复**（如从手动改回自动发现）））；**ZoneContext 作为 Bean 注入**（:242——`context.getBean(ZoneContext.class)`——**单例类被注册为 Spring Bean**（boot 批 ZoneAutoConfiguration 实证））；**getProperty 默认值处理**（:228-237——属性缺失/删除 → 默认值回写（**删除属性也能触发重置**））
-- **对比取舍**：**知识增量**：①**类名探测的多容器适配**（spring 模块无 boot/cloud 依赖却支持三者——**无编译依赖的可选集成探测**（类加载探测 + 静态标志））；②**双事件桥接**（JavaBeans PropertyChangeSupport ↔ Spring ApplicationEvent——**两套事件模型的适配**——ZoneContext 保持非 Spring 纯净，Spring 侧桥接）；③**临时监听器 + finally 移除**（收集式变更探测——不污染常驻监听器）；④**属性删除语义**（:230-232——缺失即回默认——**配置删除 = 重置**）；⑤**缺陷**：`context.getBean(ZoneContext.class)` 硬依赖 ZoneContext Bean 存在（:242——无 Bean 则启动失败——由 boot 自动配置保证）；⑥**缺陷**：EnvironmentChangeEvent 分支下启动事件用 ApplicationStartedEvent（:112——Cloud 环境 Boot 启动后触发一次全量同步——启动期无 PropertySource 变更也要全量刷一遍——测试断言值）
+- **对比取舍**：**知识增量**：①**类名探测的多容器适配**（spring 模块无 boot/cloud 依赖却支持三者——**无编译依赖的可选集成探测**（类加载探测 + 静态标志））；②**双事件桥接**（JavaBeans PropertyChangeSupport ↔ Spring ApplicationEvent——**两套事件模型的适配**——ZoneContext 保持非 Spring 纯净，Spring 侧桥接）；③**临时监听器 + finally 移除**（收集式变更探测——不污染常驻监听器）；④**属性删除语义**（:230-232——缺失即回默认——**配置删除 = 重置**）；⑤**缺陷**：`context.getBean(ZoneContext.class)` 硬依赖 ZoneContext Bean 存在（:242——无 Bean 则启动失败——由 boot 自动配置保证）；⑥**缺陷（深度 review 实证）——ORIGINAL_ZONE 运行期二次回退失效**：revertOriginalZone（:183-192）调 `zoneLocator.locate(environment)`（:186）——但 CompositeZoneLocator.locate 有 **volatile 缓存**（CompositeZoneLocator :51——hasText(zone) 直接返回缓存值）——**首次定位后，运行期配置再改回 "originalZone" 时 revert 拿到的是缓存值而非重新探测**——"回退到自动发现"语义只在首次（缓存未建立时）生效——运行期动态改回 originalZone 不重新定位（且系统属性 CURRENT_ZONE_PROPERTY_NAME 也保持旧值——:98 只在 locate 成功时更新）；⑦**缺陷**：EnvironmentChangeEvent 分支下启动事件用 ApplicationStartedEvent（:112——Cloud 环境 Boot 启动后触发一次全量同步——启动期无 PropertySource 变更也要全量刷一遍——测试断言值）
 - **测试佐证**：ZoneContextChangedListenerTest——supportsEventType 三分支（:83-88）、ContextRefreshed 触发属性同步（:92-97 zone 从属性、:102-107 enabled、:112-117 preferenceEnabled、:122-127 filterOrder=42）
 - **my-xhs**：**该用没用**——配置变更事件桥接（my-xhs 若用 Nacos 动态配置改路由策略）；官方 @RefreshScope/@ConfigurationProperties + EnvironmentChangeEvent 覆盖 Spring 侧，JavaBeans 桥接无官方
 
@@ -182,8 +182,8 @@
 - **前置**：ServiceInstanceListSupplier.builder（官方装饰链）、DelegatingServiceInstanceListSupplier、@LoadBalancerClients(defaultConfiguration)、子上下文属性（LoadBalancerEnvironmentPropertyUtils）、Reactive/Blocking 双栈
 - **需求**：**微球版 Zone 优先路由**——SCL 官方 Supplier 只按 zone 过滤，微球版集成 ZoneContext 精细策略（禁用区/就绪率/最小可用——KP-503）（历史 REQ-003 落地）——**默认不启用**（`microsphere.spring.cloud.loadbalancer.customized=true` 才装配）
 - **参考实现**：**总开关**（CustomizedLoadBalancerAutoConfiguration :15——@ConditionalOnProperty("microsphere.spring.cloud.loadbalancer.customized", havingValue="true")——**默认关闭**（不干扰官方 LoadBalancer）+ @ConditionalOnClass(LoadBalancerClient) + **@LoadBalancerClients(defaultConfiguration=CustomizedLoadBalancerClientConfiguration)**（:19——**子上下文默认配置注册**）；**子上下文双栈配置**（CustomizedLoadBalancerClientConfiguration :54-86——ReactiveConfiguration（@ConditionalOnReactiveDiscoveryEnabled + @Order(193827465) :54-55）/ BlockingConfiguration（@ConditionalOnBlockingDiscoveryEnabled + @Order(193827466) :71-72）——**响应式/阻塞双栈各自的 Supplier 装配**；**装饰链构建**（:64-67/:81-84——`ServiceInstanceListSupplier.builder().withDiscoveryClient().withCaching().with((ctx, delegate) -> new ZonePreferenceServiceInstanceListSupplier(delegate, filter))`——**官方 builder 链 + 自定义装饰器**（Discovery → Caching → Zone 过滤））；**子上下文级条件**（OptimizedZoneConfigurationCondition :93-101——`LoadBalancerEnvironmentPropertyUtils.equalToForClientOrDefault("configurations", "optimized-zone-preference")`——**按客户端配置名匹配**（`spring.cloud.loadbalancer.configurations=optimized-zone-preference` 才生效））；**过滤器 Bean**（:88-91——ZonePreferenceFilter\<ServiceInstance> + CloudServerZoneResolver——KP-503 + KP-515 组装）；**Supplier 装饰器**（ZonePreferenceServiceInstanceListSupplier :34-52——extends **DelegatingServiceInstanceListSupplier**（官方装饰基类 :34）——get() → delegate.get().map(filteredByZone)（:45-47——**Flux.map 过滤**——响应式装饰器）
-- **对比取舍**：**知识增量**：①**官方 Supplier 的同名重写**（:34——与官方 `org.springframework.cloud.loadbalancer.core.ZonePreferenceServiceInstanceListSupplier` **同名**（历史 REQ 缺陷表实证——**IDE import 易混淆**（微球包 io.microsphere... vs 官方 org.springframework...——**命名空间冲突的 API 风险**）——但包名不同可共存）；②**builder 装饰链**（官方 with() 扩展点——**自定义 Supplier 的标准接入方式**（与官方 ZonePreference 同构））；③**子上下文级条件匹配**（LoadBalancerEnvironmentPropertyUtils.equalToForClientOrDefault——**客户端级配置名条件**（per-client））；④**双栈装配**（Reactive/Blocking @Order 不同——**响应式/阻塞双栈并行**（呼应 05 仓库双栈模式））；⑤**默认关闭策略**（customized=true 才启用——**不影响官方行为的保守集成**）
-- **my-xhs**：**该用没用**——同区优先路由（多活/同城双活）；官方 SCL ZonePreferenceServiceInstanceListSupplier 覆盖基础版（无精细策略）——**官方版 + zone 元数据即可起步**
+- **对比取舍**：**知识增量**：①**官方 Supplier 的同名重写**（:34——与官方 `org.springframework.cloud.loadbalancer.core.ZonePreferenceServiceInstanceListSupplier` **同名**（历史 REQ 缺陷表实证——**IDE import 易混淆**（微球包 io.microsphere... vs 官方 org.springframework...——**命名空间冲突的 API 风险**）——但包名不同可共存）；②**builder 装饰链**（官方 with() 扩展点——**自定义 Supplier 的标准接入方式**（与官方 ZonePreference 同构））；③**子上下文级条件匹配**（LoadBalancerEnvironmentPropertyUtils.equalToForClientOrDefault——**客户端级配置名条件**（per-client））；④**双栈装配**（Reactive/Blocking @Order 不同——**响应式/阻塞双栈并行**（呼应 05 仓库双栈模式））；⑤**默认关闭策略**（customized=true 才启用——**不影响官方行为的保守集成**）；⑥**缺陷（深度 review 实证）——Reactive 分支条件矛盾**：ReactiveConfiguration 类级 `@ConditionalOnReactiveDiscoveryEnabled`（:54——响应式发现可用）但 bean 级 `@ConditionalOnBean(DiscoveryClient.class)`（:59——**DiscoveryClient 是阻塞接口**）+ builder 用 `withDiscoveryClient()`（:64——阻塞构建）——**纯响应式应用（仅 ReactiveDiscoveryClient 无 DiscoveryClient）→ bean 条件不匹配 → 优化版 Supplier 不装配**——类级注解与实现语义矛盾（官方 Reactive 配置应依赖 ReactiveDiscoveryClient——本地无 SCL 源码对照，凭 API 语义判定——**置信度 Medium**）
+- **my-xhs**：**该用没用**——同区优先路由（多活/同城双活）；官方 SCL ZonePreferenceServiceInstanceListSupplier 覆盖基础版（无精细策略）——**官方版 + zone 元数据即可起步**（注意：官方类引用目标本地无源码——spring-cloud-loadbalancer 未下载——行为断言置信度 Medium）
 
 ### 包总结（boot + cloud 批 3）
 
@@ -199,7 +199,7 @@
 - **前置**：AWS EC2 Instance Metadata Service（IMDS 169.254.169.254 链路本地地址）、ECS 环境变量注入（ECS_CONTAINER_METADATA_FILE/URI_V4）、Jackson ObjectMapper
 - **需求**：**从云元数据自动发现 Zone**——部署环境自动注入区域信息，运维不手写（历史 REQ-001"3 个内置实现：AWS EC2 metadata、AWS ECS task metadata V4、自定义"）
 - **参考实现**：**三种探测源**：①**EC2 metadata endpoint**（Ec2AvailabilityZoneEndpointZoneLocator——supports 恒 true :36 + 默认 URI `http://169.254.169.254/latest/meta-data/placement/availability-zone`（:24——**IMDS 链路本地地址**（无需公网）+ 属性可覆盖 EC2_AVAILABILITY_ZONE_ENDPOINT_URI :22）+ HttpUtils.doGet（:45——KP-506 消费）+ timeout 从 Environment 注入（:63-65））；②**ECS metadata 文件**（EcsContainerMetadataFileZoneLocator——supports = **环境变量存在探测**（:45——`environment.containsProperty(ECS_CONTAINER_METADATA_FILE)`——**属性存在性即支持性**）+ FileInputStream 读 JSON（:53-58）+ `AvailabilityZone` 字段取值（:37/:59-60））；③**ECS task metadata V4**（EcsTaskMetadataEndpointV4ZoneLocator——supports = ECS_CONTAINER_METADATA_URI_V4 存在 :46 + **URI + "/task" 拼接**（:54）+ HttpUtils.doGet + JSON 解析 :56-60）；**order 链**（ECS File=5 :35 → ECS V4=10 :34 → EC2=15 :26 → Default=20（KP-509）——**探测优先级链**（容器内环境变量优先于 EC2 IMDS）
-- **对比取舍**：**知识增量**：①**云元数据服务探测模式**（IMDS 链路本地地址 + 环境变量注入——**K8s/AWS 平台注入 vs 应用自发现**（K8s Downward API 同族））；②**supports 用 containsProperty**（:45/:46——**环境变量存在性 = 平台环境判定**（在 ECS 上才 support——探测链自动跳过非 ECS 环境））；③**JSON 解析 ObjectMapper 每次新建**（:57——new ObjectMapper() per call——可复用单例（性能细节）；④**catch Throwable 降级**（:63-64/:48-49——云 endpoint 不可达返回 null——Composite 继续下一探测源）
+- **对比取舍**：**知识增量**：①**云元数据服务探测模式**（IMDS 链路本地地址 + 环境变量注入——**K8s/AWS 平台注入 vs 应用自发现**（K8s Downward API 同族））；②**supports 用 containsProperty**（:45/:46——**环境变量存在性 = 平台环境判定**（在 ECS 上才 support——探测链自动跳过非 ECS 环境））；③**JSON 解析 ObjectMapper 每次新建**（:57——new ObjectMapper() per call——可复用单例（性能细节）；④**catch Throwable 降级**（:63-64/:48-49——云 endpoint 不可达返回 null——Composite 继续下一探测源）；⑤**缺陷（深度 review 实证）——Ec2 supports 恒 true 导致非 AWS 环境启动延迟**：Ec2AvailabilityZoneEndpointZoneLocator.supports 恒 true（:35-36）且 order=15 排在 Default(20) 前——**非 AWS 环境（无 IMDS）每次定位都会先请求 169.254.169.254（默认 3 秒超时）失败后才到 Default**——启动 +3 秒延迟（imds 不可达时 doGet 阻塞至超时）——正确应像 ECS 定位器一样用环境变量/属性探测 supports（AWS EC2 专属标识）
 - **测试佐证**：无 aws 测试（文件级穷尽自检：aws 模块 0 测试文件——集成风险点：IMDS 不可达路径无测试覆盖）
 - **my-xhs**：**该用没用**——云环境 Zone 自动发现（K8s Downward API/节点标签替代 AWS IMDS——国内云厂商 metadata 同族）；官方 SCL 无自动发现
 
@@ -238,29 +238,38 @@
 ## 三、深度 review 七项报告（批 1-4 合并）
 
 > 2026-08-13 批判性 review：穷尽性核对先行——31/31 生产文件全覆盖（commons 6 + aws 3 + netflix 6 + spring 7 + boot 3 + cloud 6）。
+> **深度 review 轮（方法论 §3 六项自查逐条执行）**：测试断言行号全量 grep 实证 + 3 处新缺陷发现 + 1 处引用目标修正（见下）。
 
-- [x] **① 源码行号精确核对**：KP-501:34/:195-204/:233、KP-503:165（zoneCount*100/entitiesSize）、KP-505:108（FILER 拼写）、KP-508:98/:105、KP-510:72-76/:109-118/:139-165、KP-512:47、KP-514:26-53、KP-516:34/:98、KP-517:24/:45/:54——全部 grep 实证 ✓
+- [x] **① 源码行号精确核对**：KP-501:34/:195-204/:233、KP-503:165（zoneCount*100/entitiesSize）、KP-505:108（FILER 拼写）、KP-508:98/:105、KP-510:72-76/:109-118/:139-165/:183-192、KP-512:47、KP-514:26-53、KP-516:34/:54/:59/:64/:93-101、KP-517:24/:35-36/:45/:54——全部 grep 实证 ✓
 - [x] **② 穷尽性**：31/31 生产文件全覆盖（脚本核对 basename 逐文件 grep 文档）✓
 - [x] **③ 空节标注**：aws/netflix 无测试文件——测试盲区已标注（KP-517/KP-518）✓
 - [x] **④ 过时三级**：16 KP 全部标注（KP-506 过时→HttpClient、KP-518 netflix 整体过时→LoadBalancer）✓
 - [x] **⑤ 重复内容**：ZoneAttachmentHandler 三处消费（ZoneAttachmentListener/KP-514、ZoneAttachmentPreRegistrationHandler/KP-518、attachZone 本体 KP-504）；ZonePreferenceFilter 两处集成（Ribbon Filter KP-518 + SCL Supplier KP-516）；同名类两处（KP-516 SCL Supplier / KP-518 Ribbon Filter）✓
-- [x] **⑤b 引用目标核对**：SCL ZonePreferenceServiceInstanceListSupplier（spring-cloud-loadbalancer 本地源码）、Ribbon ServerListFilter、Eureka PreRegistrationHandler、LoadBalancerEnvironmentPropertyUtils 存在 ✓
-- [x] **⑥ 诚实标注**：KP-505/506 深读完成；无未读断言；aws/netflix 无测试已如实标注 ✓
+- [x] **⑤b 引用目标核对（深度 review 修正）**：`DelegatingServiceInstanceListSupplier`/`LoadBalancerEnvironmentPropertyUtils`/`ServiceInstanceListSupplier.builder()`——**本地 spring-cloud-loadbalancer 无源码无 jar（find 实证全盘无）**——官方类行为断言（"官方仅按 zone 过滤"等）基于 API 语义判定——**KP-503/KP-516 官方对照断言置信度降为 Medium 并已标注**；JDK11 HttpClient 替代物实证存在（openjdk11u 源码）✓；EurekaClientConfigBean#DEFAULT_ZONE（spring-cloud-netflix 本地有）✓
+- [x] **⑥ 诚实标注**：KP-505/506 深读完成；官方 SCL 断言降置信度已标注；aws/netflix 无测试已如实标注 ✓
 - [x] **⑦ 命名空间迁移**：N/A ✓
+
+### 深度 review 新发现（逻辑证伪轮，方法论 §3.2）
+
+| # | 发现 | 源码实证 | 落点 | 置信度 |
+|---|------|---------|------|--------|
+| R1 | **Reactive 分支条件矛盾**：ReactiveConfiguration 类级 @ConditionalOnReactiveDiscoveryEnabled vs bean 级 @ConditionalOnBean(DiscoveryClient.class)（阻塞接口）+ withDiscoveryClient()——纯响应式应用（无 DiscoveryClient Bean）优化版 Supplier 不装配 | CustomizedLoadBalancerClientConfiguration:54/:59/:64 | KP-516 | Medium |
+| R2 | **ORIGINAL_ZONE 运行期二次回退失效**：revertOriginalZone → zoneLocator.locate() → Composite 缓存命中（:51）——首次定位后改回 originalZone 不重新探测 | ZoneContextChangedListener:183-192 + CompositeZoneLocator:51 | KP-510 | High |
+| R3 | **Ec2 supports 恒 true → 非 AWS 启动 +3s**：order=15 在 Default(20) 前 + IMDS 默认 3 秒超时——非 AWS 环境每次定位先等 IMDS 超时 | Ec2AvailabilityZoneEndpointZoneLocator:35-36/:24 + DefaultZoneLocator:17 | KP-517 | High |
 
 ### 测试扫描记录（02 §2.1，全部 14 个测试文件）
 
 | 测试文件 | 验证了 | 结论 |
 |---------|--------|------|
-| ZoneContextTest | 单例、7 默认值、同值不触发事件、trim、逗号拆分 | KP-501 ✓ |
-| ZonePreferenceFilterTest | 15 场景全断言（双开关/大小写忽略/就绪率/最小可用/禁用区/null 防御） | KP-503 ✓ |
-| ZoneResolverTest | apply 委托 resolve、null 实体 | KP-502 ✓ |
+| ZoneContextTest | 单例（:45-47）、7 默认值（:51-58）、同值不触发事件（:71-77）、trim（:88-90）、逗号拆分（:136-138）——行号 grep 实证 | KP-501 ✓ |
+| ZonePreferenceFilterTest | 15 场景全断言（null/空/单元素 :65-77、双开关 :84-99、大小写忽略 :116、就绪率 :149、最小可用 :164、禁用区 :208、null 实体 :228）——行号 grep 实证 | KP-503 ✓ |
+| ZoneResolverTest | apply 委托 resolve（:14-18）、null 实体 | KP-502 ✓ |
 | ZoneAttachmentHandlerTest | 有效/空白/默认/不可变 Map 四断言（:35-67） | KP-504 ✓ |
-| HttpUtilsTest | 自建 HTTP Server 端到端、非 HTTP 协议 null | KP-506 ✓ |
+| HttpUtilsTest | null/空/blank（:22-36）、非 HTTP 协议（:40-48）、自建 HTTP Server 端到端（:52-69）——行号 grep 实证 | KP-506 ✓ |
 | ZoneConstantsTest | 常量完整性全断言（:69-115） | KP-505 ✓ |
-| CompositeZoneLocatorTest | 缓存/fast-fail/异常降级/空列表全断言 | KP-508 ✓ |
-| ZoneContextChangedListenerTest | supportsEventType 分支 + 属性同步 | KP-510 ✓ |
-| ZoneUtilsTest / DefaultZoneLocatorTest / ZoneContextChangedEventTest | 工具/兜底/事件载体 | KP-511/509 [已扫] |
+| CompositeZoneLocatorTest | null 构造（:112-113）、缓存（:142-150）、fast-fail null（:172-176）、异常降级（:188-194）——行号 grep 实证 | KP-508 ✓ |
+| ZoneContextChangedListenerTest | supportsEventType 分支 + 属性同步（:83-127） | KP-510 ✓ |
+| ZoneUtilsTest / DefaultZoneLocatorTest / ZoneContextChangedEventTest | 工具/兜底/事件载体 | KP-511/509 ✓ |
 | ZoneAutoConfigurationTest | 条件双路径（存在/缺失类） | KP-512 ✓ |
 | ZoneCloudAutoConfigurationTest / IntegrationTest | 条件双路径 + 全链路装配注入（:44-83） | KP-514 ✓ |
 

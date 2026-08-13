@@ -86,7 +86,18 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 - session006：05-cloud + 04-boot 共 22 项历史缺陷——**21 证实 + 1 证伪**（D11）
 - **session007：06-multiactive——REQ-001~004 全部证实 + 9 篇分析中 2 项缺陷证实 + 1 项证伪**（17-07 声称 "ZoneContextChangedListener 只实现 PropertyChangeListener 不实现 ApplicationListener"——**源码实证 :56 implements SmartApplicationListener**（extends ApplicationListener）——历史又一处结论需源码实证的案例；其"自消费"动机分析合理但实现路径断言错误）
 
-### 4.3 my-xhs 判定
+### 4.3 深度 review 新增发现（session007 深度轮——方法论 §3 六项自查）
+
+**测试断言行号全量 grep 实证** + **3 处新缺陷**（非历史来源，本会话源码逻辑证伪发现）+ **1 处引用目标修正**：
+
+| # | 发现 | 实证 | 置信度 |
+|---|------|------|--------|
+| R1 | Reactive 分支条件矛盾（类级响应式 @ConditionalOnReactiveDiscoveryEnabled vs bean 级 @ConditionalOnBean(DiscoveryClient.class) 阻塞接口）——纯响应式应用优化版 Supplier 不装配 | CustomizedLoadBalancerClientConfiguration:54/:59/:64 | Medium |
+| R2 | ORIGINAL_ZONE 运行期二次回退失效（revertOriginalZone → Composite 缓存命中不重新探测） | ZoneContextChangedListener:183-192 + CompositeZoneLocator:51 | High |
+| R3 | Ec2 supports 恒 true → 非 AWS 环境启动 +3s（IMDS 超时） | Ec2AvailabilityZoneEndpointZoneLocator:35-36 | High |
+| X1 | **⑤b 引用目标修正**：本地无 spring-cloud-loadbalancer 源码/jar（find 全盘实证）——官方类断言（"官方仅按 zone 过滤"）降置信度 Medium + 标注 | — | — |
+
+### 4.4 my-xhs 判定
 
 每 KP 保留 my-xhs 判定（用户明确要求，勿删勿瘦身）。判定三分法：已用（链接）/该用没用（差距清单）/不该用（理由）。
 本会话汇总：multiactive 16 KP = **该用没用 13 / 已用 1（KP-515 服务 metadata 读 zone）/ 不该用 4**——核心差距 **my-xhs 多活/区域路由**（官方 SCL ZonePreference 覆盖基础版）。
