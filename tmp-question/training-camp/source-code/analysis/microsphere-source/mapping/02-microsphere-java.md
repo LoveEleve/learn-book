@@ -1,8 +1,8 @@
 # microsphere-java 知识点提取
 
 > 源码：`/data/workspace/java-training-camp/cloud-native-code/share/microsphere-java`（依赖链第 2 站，confucius-commons 之后）
-> 提取时间：2026-08-12（批 1：annotations 8；批 2：constants 8 + beans 4；批 3：collection 32；批 4：convert 核心机制——52 文件按机制归组）
-> 状态：批 1-4 已提取；MCP 索引已建（13165 节点/49189 边）
+> 提取时间：2026-08-12（批 1：annotations 8；批 2：constants 8 + beans 4；批 3：collection 32；批 4：convert 52；批 5：reflect 21）
+> 状态：批 1-5 已提取；MCP 索引已建（13165 节点/49189 边）
 > 关联：与 confucius-commons 同作者（mercyblitz）——工具类主题重叠时交叉引用（06 纪律）
 
 ## 一、仓库定位
@@ -155,7 +155,8 @@
 | collection 测试（批 3a） | EmptyIteratorTest（hasNext false/next 抛 NoSuchElement/remove 抛 IllegalState :29-39——**remove 抛 IllegalStateException 非 Unsupported**）、ReadOnlyIteratorTest（:45-59）、DelegatingIteratorTest（:57-71）、ImmutableEntryTest（setValue 抛 UnsupportedOperation :56 + equals/hashCode :61-63）、SingletonIteratorTest（**继承 ReadOnlyIteratorTest 复用测试** :30-35）、EmptyQueueTest（引用 CollectionUtils.emptyQueue :26——**EmptyQueue 在 CollectionUtils 内部非独立类**） | KP-110~114 ✓ |
 | CollectionUtilsTest（批 3b） | 判空/工厂断言 + **equals 跨类型相等实证**（List vs Set vs Queue 空集相等 :196-198 + null 对称 :192-195） | KP-116 ✓ |
 | ListsTest/MapsTest/MapUtilsTest/SetUtilsTest/ListUtilsTest/QueueUtilsTest | of 工厂 + equals + 专用方法 | KP-117~120 ✓ |
-| ConvertersTest / Converter 家族测试 | SPI 加载 + 转换断言 | KP-121~124 ✓ |
+| ConvertersTest / Converter 家族测试 | SPI 加载 + 转换断言（:40-50——**convertIfPossible Date 返回 null 实证**） | KP-121~124 ✓ |
+| reflect 测试（批 5） | JavaTypeTest/TypeUtilsTest/MethodUtilsTest 等 | KP-125~129 [待补扫断言] |
 
 ### 深度 review 七项
 
@@ -303,6 +304,54 @@
 - **参考实现**：**字符串枢纽**——`StringConverter<T> extends Converter<String,T>`（StringConverter.java:26——**String 是转换中枢**，几乎可转所有类型）；**集合转换家族**（multiple/MultiValueConverter :36-85——**accept(sourceType, multiValueType) 双类型判定** :45 + SPI 加载 :73-80 + sorted 优先级 :77）；StringTo*Converter 14 个（Queue/Deque/BlockingQueue/Set/SortedSet/NavigableSet/List/Collection/Iterable/Array）
 - **对比取舍**：**String 枢纽设计**（String 作中间表示——CSV/JSON 通吃）vs Spring 的 `ConversionService`（直接 S→T 图）；**multiValue 双类型 accept**（源 + 集合类型双匹配）是集合转换的精确判定
 - **my-xhs**：**该用没用**——若 my-xhs 做配置格式转换（String→任意）可参考 String 枢纽；Spring `DefaultFormattingConversionService` 覆盖
+
+### 包: `io.microsphere.reflect`（批 5：21 文件/8356 行）
+
+> 主题：**反射工具 + 泛型类型模型**——README Features 明示 "Reflection Utilities"。核心三支柱：JavaType 类型模型 + TypeUtils 解析 + 定义类家族（*Definition）。
+
+#### KP-125 `JavaType` 泛型类型模型（JavaType.java:92-1329）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（类型模型设计） | **置信度**：High
+- **前置**：泛型类型系统（Type/ParameterizedType/TypeVariable/WildcardType/GenericArrayType）、JDK 反射 Type 层次
+- **需求**：**JDK 反射 Type 的面向对象封装**——把 `java.lang.reflect.Type` 5 种形态（Class/ParameterizedType/TypeVariable/WildcardType/GenericArrayType）统一为可操作的对象模型
+- **参考实现**：**Kind 枚举五分类**（:212-216 javadoc 实证——CLASS/PARAMETERIZED_TYPE/TYPE_VARIABLE/WILDCARD_TYPE/GENERIC_ARRAY_TYPE + UNKNOWN :110）；**缓存设计**（interfaces 懒解析缓存 :342-348 volatile + getSuperType :311）；**常用实例预置**（OBJECT_JAVA_TYPE :104 / NULL_JAVA_TYPE :110）；**转换方法**（as(Class) :455 / toClass :488）
+- **对比取舍**：**知识增量：Type 的 5 形态模型**——JDK 反射 Type 体系的教学封装（TypeUtils 的谓词过滤器 :78-88 是配套——NON_OBJECT_TYPE_FILTER/TYPE_VARIABLE_FILTER 等 5 个 Predicate）；**与 Spring 对照**：Spring 用 `ResolvableType`（功能更全含 AnnotatedType），microsphere 是轻量自研
+- **my-xhs**：**该用没用**——若 my-xhs 做泛型工具（如泛型 DAO 基类）可参考；Spring `ResolvableType` 是替代
+
+#### KP-126 `TypeUtils` 类型解析（TypeUtils.java:78-493 等）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（泛型解析） | **置信度**：High
+- **前置**：泛型擦除、Type 层次遍历、缓存
+- **需求**：**泛型解析家族**——判断（isParameterizedType 等）、raw 类型提取、**实际类型实参解析**（convert 包 KP-121 依赖的 `resolveActualTypeArgumentClass`）
+- **参考实现**：**配置化缓存**（RESOLVED_GENERIC_TYPES_CACHE_SIZE :93-114——系统属性 + 默认 256 三层）；**实际实参解析链**（resolveActualTypeArguments :448 → resolveActualTypeArgument :476 → 类版本 :493）
+- **对比取舍**：**resolveActualTypeArgument 是 convert 泛型推断的地基**（KP-121 的 `getSourceType()` 最终调它）——**本包与 convert 包的依赖链实证**；与 Spring `GenericTypeResolver.resolveTypeArgument` 同功能
+- **my-xhs**：**该用没用**——Spring `GenericTypeResolver` 覆盖；但**泛型擦除与实参解析机制**是必懂知识
+
+#### KP-127 定义类家族（MemberDefinition/ReflectiveDefinition/ClassDefinition/FieldDefinition/MethodDefinition/ConstructorDefinition/ExecutableDefinition + generics 子包）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式]（元数据模型） | **置信度**：High
+- **前置**：反射 Member 层次（Member/Field/Method/Constructor）
+- **需求**：**反射成员的对象化元数据**——since/deprecation/声明类等信息的不可变模型（@Immutable :76）
+- **参考实现**：继承体系——`ReflectiveDefinition`（基座）→ `MemberDefinition<M extends Member>`（:77——name + 声明类 + since/deprecation :80-101）→ Field/Method/ConstructorDefinition；**泛型限定** `M extends Member` 保证类型安全
+- **对比取舍**：**元数据模型 vs 直接反射**——定义类提供声明式访问（Spring `ReflectionUtils` 无此层，直接操作 Member）；自研轻量级
+- **my-xhs**：**不该用**——Spring ReflectionUtils + JDK 直接反射覆盖
+
+#### KP-128 `MethodUtils`/`FieldUtils`/`ConstructorUtils` 反射工具（MethodUtils.java:91-365 等 + FieldUtils.java + ConstructorUtils.java + AccessibleObjectUtils.java）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式]（反射工具设计） | **置信度**：High
+- **前置**：反射 API、Predicate 组合、模块化 setAccessible
+- **需求**：**方法/字段/构造器的查找与过滤**——Predicate 体系 + 禁用名单 + setAccessible 封装
+- **参考实现**：**MethodUtils 三层设计**：①**命名常量**（GET/SET/IS 前缀 :91-101——Bean 方法识别）；②**Predicate 工厂**（OBJECT_METHOD_PREDICATE/PUBLIC/STATIC/FINAL 等 :132-157——组合过滤）；③**禁用名单**（banned-methods 系统属性 :113 + banMethod :252——**配置化排除反射干扰方法**）；**AccessibleObjectUtils 的模块化处理**（trySetAccessible :97——**JDK8 及以前传统 setAccessible + JDK9+ 异常提示 --add-opens**（错误消息解析 :200-204 实证——**自动提取包名并提示 add-opens 命令**））
+- **对比取舍**：**知识增量：banned-methods 禁用名单**（排除 Object 特殊方法/框架干扰——Spring 用 `findAllMethods` + 过滤器，microsphere 是配置化名单）；**AccessibleObjectUtils 的 --add-opens 错误提示**是开发体验设计（JDK9+ 反射失败的友好诊断）
+- **my-xhs**：**该用没用**——Spring `ReflectionUtils` 覆盖主要场景；**--add-opens 错误提示模式**值得借鉴（诊断友好性）
+
+#### KP-129 `ProxyUtils`/`Modifier` 辅助（ProxyUtils.java:41-103 + Modifier.java）
+
+- **维度**：[工程问题] | **权重**：[边缘] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium
+- **前置**：JDK 动态代理、修饰符位运算
+- **需求**：动态代理创建 + 修饰符判断工具
+- **参考实现**：ProxyUtils（:41——基于 Predicate 过滤方法集后生成代理，与 MethodUtils 联动）；Modifier（修饰符判断封装）
+- **my-xhs**：**不该用**——JDK Proxy/Spring AOP 覆盖
 
 #### KP-120 `QueueUtils`/`SetUtils`/`ListUtils` 专用工具（QueueUtils.java:52-146 + SetUtils.java:74-890 + ListUtils.java:73-738）
 
