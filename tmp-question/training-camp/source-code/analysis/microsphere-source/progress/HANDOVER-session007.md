@@ -45,7 +45,7 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 
 ---
 
-## 三、已完成状态（7/36 仓库，189 KP + 7 outline）
+## 三、已完成状态（7/36 仓库，192 KP + 7 outline——含 02 深度 review 补提取 3 KP）
 
 | # | 仓库 | 生产文件 | KP | 关键知识点 | outline |
 |---|------|:---:|:---:|-----------|:---:|
@@ -74,6 +74,7 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 4. **outline 必产**——每仓库完成后**必须**产 outline（曾漏 boot/cloud 两个，已补）
 5. **outline 粒度**——每 KP 独立条目（或 2-3 同主题合并且各自列出），覆盖表声称 N/N 必须正文有对应条目（曾两次"覆盖表 53/53 但正文缺 25 条"）
 6. **my-xhs 判定实证先行（session007 新增铁律）**——"已用"判定必须先查 my-xhs 代码（MCP data-workspace-my-xhs 索引 + 文件清单 + diff 对照）再写，禁止凭印象（曾 16 KP 判定错 12 个——my-xhs 已整体移植 zone 机制却标"该用没用"）
+7. **穷尽性核对用 basename 级 grep（session007 新增铁律）**——"清单总数 = 已提取数"必须逐文件 basename grep 文档实证——**session005/006 交接声称 02/03"穷尽"被证伪**：02 342 文件 160 未提及（46.8%）、03 323 文件 168 未提及（52%）——多为归组未列全文件名（铁律 #1"覆盖表声称 N/N 但正文缺"规模化再犯），02 有 7 族**真遗漏**（event 10/io 序列化+文件监听/URLClassPathHandle 10/ClassFilter 6/ExecutorUtils/FastByteArray——已补 KP-120a/b/c）——**每仓库提取完成必须跑 basename 核对脚本**（本次补核对：01 缺 3 常量类已补列、04 缺 1、05 全齐）
 
 ### 4.2 历史 REQ 交叉验证（重大价值——本会话最大发现）
 
