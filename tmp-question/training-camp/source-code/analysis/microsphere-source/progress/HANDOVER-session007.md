@@ -68,7 +68,8 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 
 **依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud → multiactive → dynamic ✅（00 SOP §3.2 主线 + 应用层 2 仓走完）
 
-**剩余 26 仓库**（按依赖链 + stage-4 关联度建议；数字为**生产文件数**）：nacos（128）→ redis（86）→ 其余
+**剩余 25 仓库**（按依赖链 + stage-4 关联度建议；数字为**生产文件数**）：redis（86）→ 其余
+> **决策（用户 2026-08-13）**：**microsphere-nacos（128 文件）移出本提取队列**——手写 Nacos OpenAPI 客户端（openapi 118 + discovery-spring-cloud 10）——**由另一 AI 系统性梳理 Nacos 源码**——本队列不提取（避免重复劳动）；其知识本体（HTTP 客户端骨架/鉴权/序列化）已在 02/08 覆盖——若后续需要对照可在 L2 聚合时引用历史 06-REQ（含 HttpMethod.DELETE 写 "GET" :58 缺陷线索）
 
 ---
 
