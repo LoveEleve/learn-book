@@ -1,8 +1,8 @@
 # microsphere-spring 知识点提取
 
 > 源码：`/data/workspace/java-training-camp/cloud-native-code/share/microsphere-spring`（依赖链第 3 站，microsphere-java 之后）
-> 提取时间：2026-08-12（批 1-5：context 161 + web 58；批 6：webmvc 35 + webflux 24 + jdbc 7 + guice 3——**microsphere-spring 288 生产文件全部完成**）
-> 状态：**仓库提取完成（288/288）**；MCP 索引已建（8605 节点/30925 边）
+> 提取时间：2026-08-12（批 1-5：context 161 + web 58；批 6：webmvc 35 + webflux 24 + jdbc 7 + guice 3——**microsphere-spring 288 生产文件全部完成**；**拆提修正：KP-211→4 / KP-216→3 / KP-223→2 / KP-227→webflux 核心 / +KP-228 guice——27→33 KP**；深度 review：占位符解析/isEnabled/ImportOptional/Guice 实证 + 补 AnnotatedBeanDefinitionRegistryUtils/AutoRegistrationBeanInitializer 2 文件）
+> 状态：**仓库提取完成（288/288，33 KP，穷尽性复核通过）**；MCP 索引已建（8605 节点/30925 边）
 > 关联：microsphere-java 是纯 JDK 工具；**本仓库是 Spring 扩展机制**——知识本体在 Spring 内部机制（BeanFactory/事件/配置），触发面完全不同
 
 ## 一、仓库定位
@@ -154,12 +154,41 @@
 
 ### 包: `io.microsphere.spring.context.annotation`（批 2 续：14 文件）
 
-#### KP-211 上下文注解扩展（14 文件归组）
+#### KP-211 `AnnotatedBeanCapableImportSelector` 注解驱动 Import 模板（AnnotatedBeanCapableImportSelector.java:69-116 + AnnotatedBeanCapableImportCandidate.java:97-154 + AnnotatedBeanCapableImportBeanDefinitionRegistrar）
 
-- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium（未深读）
-- **前置**：@Import/@EnableXxx、配置类处理
-- **需求**：**@Enable 风格注解扩展**——模块化启用（EnableEventExtension 等——批 2 已见 EnableEventExtension 在 event 包）
-- **参考实现**：context/annotation 14 文件——@Enable 风格 + Registrar/Importer（EventExtensionRegistrar :event 包实证——**@Import + ImportBeanDefinitionRegistrar 模式**）
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（@Import 模板） | **置信度**：High
+- **前置**：ImportSelector/ImportBeanDefinitionRegistrar、@Import 机制、泛型注解类型、ResolvableType
+- **需求**：**注解驱动 @Import 的通用模板**——读注解属性 → 决定导入哪些类（@EnableXxx 的通用基座）
+- **参考实现**：**继承链三层**（AnnotatedBeanCapableImportCandidate（:97——**泛型注解类型解析**（resolveAnnotationType :105-107——`resolveGeneric(AnnotatedBeanCapableImportCandidate.class, 0)` :109-113——**ResolvableType 泛型实参解析**（同 KP-125 泛型推断））+ **isEnabled 环境开关**（:115-117 + :180-184——`microsphere.xxx.enabled` 属性控制——**注解能力的环境开关**））→ AnnotatedBeanCapableImportSelector（:69——implements ImportSelector + **final selectImports 模板**（:72-77——子类只实现抽象 selectImports(metadata, attributes, imports) :113-115））→ 各具体 ImportSelector；**AnnotationAttributes 占位符解析**（getAnnotationAttributes :141-143——**ResolvablePlaceholderAnnotationAttributes**（:core/annotation——**注解属性支持 ${placeholder} 占位符**——Spring 官方 AnnotationAttributes 不支持！））
+- **对比取舍**：**知识增量**：①**@Import 模板化**（ImportSelector 的模板方法——Spring 官方每个 @Enable 手写 selectImports，microsphere 统一基座）；②**ResolvablePlaceholderAnnotationAttributes**（注解属性占位符解析——Spring 官方缺失，microsphere 自研）；③**isEnabled 环境开关**（注解能力可配置启停）；④泛型注解类型 + ResolvableType 解析（生态复用 KP-125 模式）
+- **my-xhs**：**该用没用**——自定义 @EnableXxx 的模板基座参考
+
+#### KP-211b `@OverrideAnnotationAttributes` 策略化覆盖（OverrideAnnotationAttributes.java:75-89 + OverrideAnnotationAttributesStrategy + ConfigurationPropertyOverrideAnnotationAttributesStrategy）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（注解覆盖） | **置信度**：High
+- **前置**：@AliasFor、元注解、注解属性合并语义
+- **需求**：**注解属性覆盖**——组合注解时子注解属性覆盖元注解默认值（Spring @AliasFor 的补充）
+- **参考实现**：**策略 SPI**（:79 注解 + :89 `strategy()` 默认 ConfigurationPropertyOverrideAnnotationAttributesStrategy——**覆盖行为可插拔**）；**使用链**（BeanCapableImportCandidate/ImportOptional/EnableWebMvcExtension 等）
+- **对比取舍**：**知识增量**：Spring @AliasFor 是**固定合并**（别名语义），microsphere 是**策略化覆盖**（可插拔覆盖逻辑）——注解属性处理的两种范式
+- **my-xhs**：该用没用——组合注解属性覆盖的扩展参考
+
+#### KP-211c `@ImportOptional` 可选导入（ImportOptional.java:46-59 + ImportOptionalSelector）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（可选导入） | **置信度**：High
+- **前置**：@Import 失败语义、类存在性探测
+- **需求**：**可选 @Import**——导入的类可能不存在（如可选依赖），不存在时不失败
+- **参考实现**：`@ImportOptional`（:50 `@Import(ImportOptionalSelector.class)` + :49 `@OverrideAnnotationAttributes`——**组合元注解**）；ImportOptionalSelector——**探测类存在性，不存在则跳过**（区别于 Spring @Import 硬失败）
+- **对比取舍**：**知识增量：可选导入解决"可选依赖"问题**——Spring 官方 @Import 类不存在直接启动失败；microsphere 的 ImportOptional 是**容错导入**（按 classpath 探测）
+- **my-xhs**：**该用没用**——可选依赖场景（如"若存在 X 则启用 Y"）
+
+#### KP-211d `ExposingClassPathBeanDefinitionScanner` + `EnableAutoRegistrationBean` + 注册工具（扫描器暴露 + 自动注册 + 注册工具）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式]（扫描器扩展） | **置信度**：High
+- **前置**：ClassPathBeanDefinitionScanner、doScan/checkCandidate 受保护方法、BeanDefinitionRegistry
+- **需求**：**扫描器受保护方法暴露**——doScan/checkCandidate 是 protected，扩展需要公开访问
+- **参考实现**：**ExposingClassPathBeanDefinitionScanner**（:63——extends ClassPathBeanDefinitionScanner + **覆写暴露**（doScan :73/checkCandidate :78——改为 public）+ **额外能力**（getSingletonBeanRegistry :82/registerBeanDefinition :86/registerSingleton :90——**直接注册能力暴露**））；**EnableAutoRegistrationBean**（:47-61——@Import(AutoRegistrationBeanRegistrar) + **@ConfigurationProperty 注解属性**（:57-60——**KP-101 注解体系的落地应用**——自动注册开关配置化））；**AnnotatedBeanDefinitionRegistryUtils**（:43——**幂等注册工具**（:68 isPresentBean / :99-101 javadoc "ensures idempotent registration"——**先查重再注册**））；**AutoRegistrationBeanInitializer**（:38——extends ConfigurableApplicationContextInitializer（**KP-208 家族**）+ initialize 注册 Config 类 :41-42）
+- **对比取舍**：**知识增量**：①**protected → public 暴露模式**（扩展 Spring 官方类时"打开"受保护能力）；②**扫描器 + 注册器组合**（doScan 后手动注册单例）；③**幂等注册工具**（isPresentBean 查重——防止重复注册）
+- **my-xhs**：该用没用——自定义组件扫描参考
 - **my-xhs**：**该用没用**——@Enable 注解模式参考（Spring 官方同款）
 
 ### 包: `io.microsphere.spring.config` + `core.env`（批 3：config 24 + core/env 9）
@@ -201,12 +230,30 @@
 
 ### 包: `io.microsphere.spring.core`（批 3 续：core 23 文件剩余）
 
-#### KP-216 core 归组（core/convert + core/io + core/annotation + beans/BeanUtils 等）
+#### KP-216 `SpringConverterAdapter` 跨生态转换桥（SpringConverterAdapter.java:41-67 + EnableSpringConverterAdapter + ConversionServiceResolver）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（适配器桥） | **置信度**：High
+- **前置**：Spring ConversionService（GenericConverter/ConditionalGenericConverter/ConvertiblePair）、microsphere-java Converter SPI（KP-121）、SPI
+- **需求**：**microsphere Converter → Spring Converter 的桥**——生态复用：自家转换器无缝接入 Spring ConversionService
+- **参考实现**：**适配器**（implements `ConditionalGenericConverter` :41——**Spring 条件泛型转换器**）；**单例 + SPI 预载**（INSTANCE :46 + convertersMap 静态加载 :50-63——**SPI 加载全部 microsphere Converter 建 ConvertiblePair 映射**（:54-63——双键键映射））；**ConvertiblePair 构建**（:66-67——用泛型推断的 source/target 类型建 Spring 键）；**启用注解**（EnableSpringConverterAdapter + Registrar——@Enable 装配）；**ConversionServiceResolver**（:57-65——**ConversionService 解析 + 注册**（"resolved-" bean 名 :47））
+- **对比取舍**：**知识增量：跨生态转换桥**——microsphere-java 的 Converter SPI（KP-121）通过适配器**无缝接入 Spring**（生态整合范式）；ConvertiblePair 双键映射（复用 KP-123 双键缓存模式）
+- **my-xhs**：**该用没用**——自定义 Converter 接入 Spring ConversionService 的参考
+
+#### KP-216b `ResolvablePlaceholderAnnotationAttributes` 占位符注解属性（ResolvablePlaceholderAnnotationAttributes.java:44 + GenericAnnotationAttributes + AnnotationUtils）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（注解属性解析） | **置信度**：High
+- **前置**：AnnotationAttributes、占位符解析（PropertyPlaceholderHelper）、泛型注解
+- **需求**：**注解属性支持 ${placeholder}**——Spring 官方 AnnotationAttributes 不做占位符解析
+- **参考实现**：**泛型注解属性类**（`ResolvablePlaceholderAnnotationAttributes<A extends Annotation>`——**注解类型泛型化** + extends GenericAnnotationAttributes（:44——**自研基座**（非 Spring 官方 AnnotationAttributes）））；**占位符解析能力**（属性值经 Environment 解析）
+- **对比取舍**：**知识增量**：Spring 官方 @Value 才能用占位符，**注解属性本身不支持**——microsphere 的 ResolvablePlaceholderAnnotationAttributes 补此能力（KP-211 使用链实证）
+- **my-xhs**：该用没用——注解属性占位符化参考
+
+#### KP-216c core/io + SpringVersion（core/io 5 + SpringVersion + MethodParameterUtils + core/annotation 剩余）
 
 - **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium（未深读）
-- **前置**：Spring 转换服务、资源加载
-- **需求**：Spring 增强工具——转换（core/convert）/资源（core/io）/注解（core/annotation）
-- **参考实现**：core 23 文件——convert（Spring ConversionService 增强）/io（资源加载支持）/annotation（Spring 注解工具）
+- **前置**：资源加载、版本判断
+- **需求**：资源工具（ResourceLoaderUtils/ResourceUtils/PropertiesUtils/SpringFactoriesLoaderUtils——**KP-202 加载器实现地**）+ 版本判断（SpringVersion）
+- **参考实现**：SpringVersion（:193——**枚举 CURRENT**——`org.springframework.core.SpringVersion.getVersion()` 封装 + 版本比较（配 KP-133 Compatible））；ResourceUtils/ResourceLoaderUtils（资源加载增强）
 - **my-xhs**：**不该用**——Spring 官方覆盖
 
 ### 包: `io.microsphere.spring.cache` + `net` + `context/lifecycle` + `context/config`（批 4：24 文件）
@@ -302,9 +349,28 @@
 - **对比取舍**：**知识增量**：①**泛型 BPP 适配器**（GenericBeanPostProcessorAdapter\<T>——类型化后处理器：构造解析泛型实参（:47）→ 只对匹配类型 Bean 生效——**类型过滤内建**）；②**@Import 多类装配 + URL 协议集成**（跨模块复用）；③P6Spy vs Druid/MyBatis SQL 日志（同功能不同代理层）
 - **my-xhs**：**该用没用**——SQL 日志/慢 SQL（my-xhs 可用 P6Spy 或 Druid 自带）
 
-#### KP-227 guice 集成 + webflux 配套（guice 3 + webflux 剩余）
+#### KP-223 web 事件与注解配套（web/event 3 + web/annotation 2 + web/util 13）
 
-- **维度**：[工程问题] | **权重**：[边缘] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium（未深读）
-- **前置**：Guice 容器、@Inject
-- **需求**：**Guice 注入桥接**（EnableGuice + GuiceInjectAnnotationBeanPostProcessor——**@Inject 注解处理**）
-- **my-xhs**：**不该用**——my-xhs 用 Spring 不用 Guice
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium（部分深读）
+- **前置**：Web 请求事件、@Enable 元注解
+- **需求**：web 事件（HandlerMethodArgumentsResolvedEvent/WebEndpointMappingsReadyEvent——**方法参数解析完成/端点映射就绪事件**）+ 发布器（WebEventPublisher）+ @EnableWebExtension（:58-63——**KP-224 两级 Import 链的上层元注解**）+ util（HttpUtils/MediaTypeUtils/RequestContextStrategy/WebScope/WebType 等）
+- **参考实现**：**事件**（HandlerMethodArgumentsResolvedEvent——参数解析事件 / WebEndpointMappingsReadyEvent——端点映射就绪——**配合 KP-222 端点元数据**）；**@EnableWebExtension**（EnableWebExtension.java:58-63——@Import(WebExtensionBeanDefinitionRegistrar)——**KP-224 引用链实证**）；**RequestContextStrategy**（请求上下文策略——MVC/WebFlux 抽象）
+- **my-xhs**：**该用没用**——web 请求生命周期事件（埋点）；Spring 官方 WebRequest 覆盖基础
+
+#### KP-227 webflux 核心（webflux 24 文件——批 2 提）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（reactive 扩展） | **置信度**：High
+- **前置**：WebFlux/WebFilter/HandlerMethod/请求上下文
+- **需求**：**WebFlux 增强**——过滤器链（CompositeWebFilter/DelegatingWebFilter）、端点映射工厂（HandlerMapping/HandlerMetadata/RequestMappingMetadata 三工厂）、请求处理（InterceptingHandlerMethodProcessor/StoringRequestBody 拦截器）、事件（ServerRequestHandledEvent）
+- **参考实现**：**过滤器组合**（CompositeWebFilter + DelegatingWebFilter——**WebFilter 组合/委托**）；**端点映射三工厂**（HandlerMappingWebEndpointMappingFactory/HandlerMetadataWebEndpointMappingFactory/RequestMappingMetadataWebEndpointMappingFactory——**KP-222 端点元数据的 WebFlux 落地**）；**请求上下文**（RequestContextWebFilter——**上下文传播 Filter**）；**ServerWebRequest**（自研封装）；WebServerScope/WebServerUtils（web 服务器作用域枚举 :35）
+- **对比取舍**：**知识增量**：WebFlux 的端点元数据化（三工厂——reactive 侧对称 KP-222）；**WebFilter 组合模式**（reactive 过滤器链）
+- **my-xhs**：**该用没用**——WebFlux 端点发现参考（若 my-xhs 用 reactive）
+
+#### KP-228 Guice 注入桥接（guice 3 文件）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式]（容器桥接） | **置信度**：High
+- **前置**：Guice 容器、@Inject、Spring 注入处理
+- **需求**：**Guice @Inject 注入 Spring Bean**——Spring 容器中处理 Guice 风格注入
+- **参考实现**：**GuiceInjectAnnotationBeanPostProcessor**（:31——**extends AnnotatedInjectionBeanPostProcessor**（KP-205 家族复用！——**注解注入后处理器的泛化**）+ `ANNOTATION_TYPE = Inject.class`（:33——**注解类型参数化**）+ **optional 属性支持**（:42-47——@Inject(optional=true) 语义——**determineRequiredStatus 覆写**（Spring 默认 required，Guice optional 语义桥接）））；EnableGuice + GuiceConfiguration（@Enable 装配）
+- **对比取舍**：**知识增量**：**跨容器注入桥**（Guice @Inject → Spring 注入）+ **注解注入后处理器泛化复用**（KP-205 的 AnnotatedInjectionBeanPostProcessor 被 Guice 复用——生态设计验证）；optional 语义差异（Guice 可空注入 vs Spring required）
+- **my-xhs**：**不该用**——my-xhs 用 Spring 不用 Guice；但**注解注入后处理器的泛化模式**（注解类型参数化）值得学
