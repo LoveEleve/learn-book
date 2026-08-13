@@ -51,7 +51,7 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 
 ---
 
-## 三、已完成状态（10/36 仓库，210 KP + 10 outline——含 02 补提取 3 KP + 08/09 问题域补 4 KP）
+## 三、已完成状态（10/36 仓库，211 KP + 10 outline——含 02 补提取 3 KP + 08/09/10 问题域补 5 KP）
 
 | # | 仓库 | 生产文件 | KP | 关键知识点 | outline |
 |---|------|:---:|:---:|-----------|:---:|
@@ -64,11 +64,11 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 | 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
 | 08 | **microsphere-configuration** | **11** | **5** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 双模式、Apollo 克隆替换热更新、自研 Nacos OpenAPI 客户端、三层层级抽象、历史 4 缺陷证实（D1-D4）** | ✅ |
 | 09 | **microsphere-gateway** | **28** | **7** | **we:// 端点粒度动态路由、Filter 链缓存+事件重建、心跳禁用（G1 断链根源）、双栈、metadata 协议链路（G11/G12 根源）、演进史重构损失、G1-G15 缺陷表 15/15 全部证实** | ✅ |
-| 10 | **microsphere-redis** | **86** | **6** | **命令拦截三回调+事件化（my-xhs zone/redis/ 族上游实证）、跨实例 Kafka 逻辑复制、定长序列化家族（自校验）、命令元数据仓库+Doclet 编译期生成、连接工厂 AOP 代理、拼写错误第 6 例（Comand）** | ✅ |
+| 10 | **microsphere-redis** | **86** | **7** | **命令拦截三回调+事件化（my-xhs zone/redis/ 族上游实证）、Kafka 逻辑复制、定长序列化家族、命令元数据+Doclet 生成、连接工厂 AOP 代理、问题域三主题（ThreadLocal 路由代价/双层代理观察者非守卫/复制三陷阱 + V0/V1 版本化——与 gateway G12 正反例）** | ✅ |
 | 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
 | 08 | **microsphere-configuration** | **11** | **5** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 双模式、Apollo 克隆替换热更新、自研 Nacos OpenAPI 客户端、三层层级抽象、历史 4 缺陷证实（D1-D4）** | ✅ |
 | 09 | **microsphere-gateway** | **28** | **7** | **we:// 端点粒度动态路由、Filter 链缓存+事件重建、心跳禁用（G1 断链根源）、双栈、metadata 协议链路（G11/G12 根源）、演进史重构损失、G1-G15 缺陷表 15/15 全部证实** | ✅ |
-| 10 | **microsphere-redis** | **86** | **6** | **命令拦截三回调+事件化（my-xhs zone/redis/ 族上游实证）、跨实例 Kafka 逻辑复制、定长序列化家族（自校验）、命令元数据仓库+Doclet 编译期生成、连接工厂 AOP 代理、拼写错误第 6 例（Comand）** | ✅ |
+| 10 | **microsphere-redis** | **86** | **7** | **命令拦截三回调+事件化（my-xhs zone/redis/ 族上游实证）、Kafka 逻辑复制、定长序列化家族、命令元数据+Doclet 生成、连接工厂 AOP 代理、问题域三主题（ThreadLocal 路由代价/双层代理观察者非守卫/复制三陷阱 + V0/V1 版本化——与 gateway G12 正反例）** | ✅ |
 
 **依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud → multiactive → dynamic ✅（00 SOP §3.2 主线 + 应用层 2 仓走完）
 
