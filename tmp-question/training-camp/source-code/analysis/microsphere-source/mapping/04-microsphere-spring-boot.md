@@ -230,7 +230,7 @@
 |---|---------|------|------|
 | D01 | OnPropertyPrefixCondition 前缀边界 | ✅ 证实（:78 startsWith 无分隔符边界——`microsphere.` 误匹配 `microsphere2.`） | KP-301 |
 | D02 | MonitoredThreadPoolTaskScheduler 标准调度路径未监控 | ✅ 证实（:102-104 仅外部路径；@Scheduled 内部路径漏掉） | KP-316 |
-| D03 | SpringBootVersion 低版本 profile 编译修复 | ⬜ 构建期问题 | [待验证] |
-| D04 | WebEndpoints 聚合端点健壮性 | ⬜ | [待验证] |
+| D03 | SpringBootVersion 低版本 profile 编译修复 | ✅ 证实（:238——`ofVersion(org.springframework.boot.SpringBootVersion.class)` 依赖 Boot 3.5 类——低版本编译失败） | KP-309 |
+| D04 | WebEndpoints 聚合端点健壮性 | ✅ 证实（:62 串行遍历 + 无异常隔离——单端点异常中断全部） | KP-312 |
 | D05 | BannedArtifactClassLoadingListener 继承弃用 RunListenerAdapter | ✅ 证实（:45 extends 弃用类） | KP-309 |
 | D06 | ConfigurationPropertiesBeanContext 浅拷贝/deepEquals 深度 | ✅ 证实（:393/:432 Cloneable 浅拷贝） | KP-309 |

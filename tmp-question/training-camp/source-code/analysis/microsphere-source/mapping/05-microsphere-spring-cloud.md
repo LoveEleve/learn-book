@@ -185,15 +185,15 @@
 | D02 | FeignClientConfigurationChangedListener 无子属性崩溃 | ✅ 证实（:82 substring(0,-1)） | KP-413 |
 | D03 | CompositedRequestInterceptor.refresh() NPE | ✅ 证实（:129 config.get null） | KP-413 |
 | D04 | UnionDiscoveryClient.getInstances 实例去重 | ✅ 证实（:88-98 addAll 无去重） | KP-401 |
-| D05 | AbstractServiceRegistrationEndpoint static running | ✅ 证实（:48 static） | KP-406 [待补] |
-| D06 | MultipleRegistration 同类型覆盖 | ✅ 证实（:53 put 覆盖） | KP-404 [待补] |
+| D05 | AbstractServiceRegistrationEndpoint static running | ✅ 证实（:48 static） | KP-406 |
+| D06 | MultipleRegistration 同类型覆盖 | ✅ 证实（:53 put 覆盖） | KP-404 |
 | D07 | WeightedRoundRobin 不完整（无 select） | ✅ 证实（:98-166 仅两操作） | KP-410 |
 | D08 | DiscoveryUtils.setProperties 参数颠倒 | ✅ 证实（:76 + 签名颠倒） | KP-408 |
-| D09 | MultipleServiceRegistry fallback 映射错误 | ⬜ 描述详细（loadFactoryNames 误用 → ClassCastException） | [待验证] |
-| D10 | Feign 组件热刷新对默认组件退化 | ⬜ | [待验证] |
-| D11 | DecoratedErrorDecoder fallback 抽象类 | ⬜ 描述详细（instantiateClass(ErrorDecoder.Default) 抽象类 → InstantiationException） | [待验证] |
+| D09 | MultipleServiceRegistry fallback 映射错误 | ✅ 证实（:193-215——**双路径**：泛型推断为主（:194-198），SPI fallback 仅在推断失败时（:199-204）；**fallback 传 serviceRegistryClass 当 factoryType 语义存疑**——缺陷存在但影响小） | KP-404 |
+| D10 | Feign 组件热刷新对默认组件退化 | ✅ 证实（:75-81——configComponentMappings 映射表 + 空白 config 返回 null——默认组件未映射时刷新退化） | KP-413 |
+| D11 | DecoratedErrorDecoder fallback 抽象类 | ❌ **证伪**（Feign 源码实证 ErrorDecoder.Default extends DefaultErrorDecoder——**具体类非抽象**（feign/core:82）——历史断言错误） | KP-414 |
 | D12 | EventPublishingRegistrationAspect @After 语义错误 | ✅ 证实（@After finally 语义 → 注册失败发成功事件） | KP-405 |
-| D13 | ReactiveDiscoveryClientAdapter 阻塞事件循环 | ⬜ 设计权衡（toFuture().get()——阻塞语义是有意的适配，但事件循环场景危险） | [待验证] |
-| D14 | TomcatDynamicConfigurationListener source 依赖 | ⬜ | [待验证] |
-| D15 | endpoints.properties 入侵性默认关闭 SC 端点 | ⬜ 描述详细（jar 内属性文件） | [待验证] |
-| D16 | 双重注册风险（Multiple + Nacos 原生并存） | ⬜ 条件创建 @Primary 与原生并存风险 | [待验证] |
+| D13 | ReactiveDiscoveryClientAdapter 阻塞事件循环 | ✅ 部分证实（:138-143——**有 isInNonBlockingThread 防御**（:141）但 `toFuture().get()` 在事件循环上**仍阻塞等待**（:142）——防御存在、本质仍阻塞） | KP-402 |
+| D14 | TomcatDynamicConfigurationListener source 依赖 | ✅ 证实（:144——`context.equals(event.getSource())`——仅 /actuator/refresh 生效，EnvironmentManager 路径失效） | KP-411 |
+| D15 | endpoints.properties 入侵性默认关闭 SC 端点 | ✅ 证实（resources/META-INF/config/default/endpoints.properties——`management.endpoint.serviceregistry.enabled=false`——jar 内属性默认关闭） | KP-403 |
+| D16 | 双重注册风险（Multiple + Nacos 原生并存） | ✅ 部分证实（ServiceRegistryAutoConfiguration:62-79——**有条件**（@ConditionalOnMultipleRegistrationEnabled + @ConditionalOnBean）但启用时 @Primary :76 与原生并存 → 风险真实） | KP-404 |
