@@ -96,3 +96,79 @@
 - **前置**：服务实例工具、实例变更事件
 - **需求**：服务实例工具 + 实例变更事件（ServiceInstancesChangedEvent——**实例变化通知**）+ 注册定制器（RegistrationCustomizer）
 - **my-xhs**：**该用没用**
+### 包: `io.microsphere.spring.cloud.fault`（批 2a：5 文件）
+
+#### KP-410 `WeightedRoundRobin` 加权轮询（WeightedRoundRobin.java:12-118 + LoadBalancerUtils + TomcatFaultToleranceAutoConfiguration）
+
+- **维度**：[分布式问题]（负载均衡）| **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（加权算法） | **置信度**：High
+- **前置**：加权轮询算法（平滑加权）、LongAdder、Nacos 权重模型
+- **需求**：**平滑加权轮询的权重载体**——权重可动态调整的轮询节点（Nacos 权重负载均衡的配套）
+- **参考实现**：**LongAdder 计数器**（:18——**高并发计数**（无 CAS 竞争））；**权重调整重置**（setWeight :79-82——**改权重重置计数器**）；**核心算法**（increaseCurrent :98-101——**当前值加权重**；sel :117-118——**总权重的减法**（平滑加权轮询的调度语义））
+- **对比取舍**：**知识增量**：①**平滑加权轮询数据结构**（current + weight 双字段——Nginx 平滑加权算法）；②**LongAdder 高并发**（vs AtomicLong——竞争优化）；③**动态权重**（setWeight 重置——动态调权）
+- **my-xhs**：**该用没用**——加权负载均衡（my-xhs 若做权重路由）；Spring Cloud LoadBalancer 有 Weighted 实现
+
+#### KP-411 Tomcat 容错（TomcatFaultToleranceAutoConfiguration:56-90 + TomcatDynamicConfigurationListener + FaultTolerancePropertyConstants）
+
+- **维度**：[性能优化]（容器容错）| **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：TomcatWebServer、嵌入式服务器定制、动态配置
+- **需求**：**Tomcat 容错配置**——`microsphere.spring.cloud.fault-tolerance.tomcat.enabled` 开关（:65）+ **动态配置监听**（TomcatDynamicConfigurationListener——配置变更调整 Tomcat）
+- **参考实现**：**条件装配**（@ConditionalOnClass 三官方类 :56-58——Tomcat/Boot/Cloud API + @AutoConfigureAfter :59）；**动态配置**（:90——从 webServer 调整）
+- **my-xhs**：**该用没用**——Tomcat 参数动态调优；Boot 官方配置覆盖静态场景
+
+### 包: `io.microsphere.spring.cloud.commons` + `context` + `loadbalancer`（批 2b：7 文件）
+
+#### KP-412 条件与上下文配套（ConditionalOnLoadBalancerEnabled/ConditionalOnUtilEnabled/SpecificationCustomizer/SpecificationAutoConfiguration/SpecificationBeanPostProcessor + 常量 2）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium
+- **前置**：NamedContextFactory（Spring Cloud 子上下文）、@ConditionalOnProperty
+- **需求**：**Specification 定制**（SpecificationCustomizer/BeanPostProcessor——**Feign 子上下文规格定制**——NamedContextFactory 的配置对象定制）+ 条件（@ConditionalOnLoadBalancerEnabled 等）+ 常量
+- **my-xhs**：**该用没用**——子上下文定制；Spring Cloud 官方 NamedContextFactory 覆盖
+
+### 模块: `microsphere-spring-cloud-openfeign`（批 2c：20 文件）
+
+#### KP-413 Feign 客户端自动刷新（FeignClientAutoRefreshAutoConfiguration:31-68 + autorefresh 家族 6 文件）
+
+- **维度**：[分布式问题]（配置热更新）| **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（子上下文重建） | **置信度**：High
+- **前置**：FeignClientFactoryBean/NamedContextFactory/FeignClientSpecification（Spring Cloud OpenFeign）、ApplicationReadyEvent、配置变更
+- **需求**：**Feign 客户端配置热更新**——Feign 配置变更（如负载均衡规则）自动重建客户端（官方 @RefreshScope 外的完整刷新方案）
+- **参考实现**：**触发链**（@ConditionalOnOpenFeignAvailable + @ConditionalOnClass 双类 + @ConditionalOnBean(Marker) :31-36——**条件装配**；@AutoConfigureAfter 官方 Feign + microsphere Specification :37-40；**ApplicationReadyEvent 注册监听**（:49-55——**启动后注册配置变更监听器**））；**自动刷新家族**（autorefresh 6 文件——AutoRefreshCapability/AutoRefreshCapabilityCustomizer/EnableFeignAutoRefresh/FeignClientConfigurationChangedListener/**FeignComponentRegistry**（:67——**组件注册表**（FeignClientProperties.getDefaultConfig + beanFactory——**按配置名管理 Feign 组件**）））
+- **对比取舍**：**知识增量**：①**Feign 配置热更新的完整方案**（Spring Cloud 官方 @RefreshScope 只能刷新属性，Feign 组件重建需子上下文——microsphere 用注册表 + 变更监听）；②**组件注册表模式**（FeignComponentRegistry——按配置名管理组件实例）
+- **my-xhs**：**该用没用**——Feign 配置热更新（my-xhs 负载均衡策略动态调整）；官方 @RefreshScope 覆盖属性级
+
+#### KP-414 装饰组件家族（DecoratedFeignComponent:23-68 + Decorated 7 变体 + Refreshable + CompositedRequestInterceptor）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（装饰器 + 刷新） | **置信度**：High
+- **前置**：装饰器模式、Feign 组件（Contract/Encoder/Decoder/Retryer/QueryMapEncoder/ErrorDecoder）
+- **需求**：**Feign 组件可刷新装饰**——装饰器包装 + 重建时替换 delegate（热更新基础设施）
+- **参考实现**：**装饰基座**（DecoratedFeignComponent<T> :23——implements Refreshable + **volatile delegate**（:33——**可变委托**（刷新时替换）；构造注入 NamedContextFactory + contextId + clientProperties :49-54——**子上下文绑定**）；**delegate 访问**（:67-68——volatile 读取）；**7 变体**（DecoratedContract/DecoratedDecoder/DecoratedEncoder/DecoratedErrorDecoder/DecoratedQueryMapEncoder/DecoratedRetryer——**Feign 组件全覆盖** + DecoratedFeignComponent）；**Refreshable 接口**（刷新契约）+ **CompositedRequestInterceptor**（拦截器组合）
+- **对比取舍**：**知识增量**：①**可刷新装饰器**（volatile delegate + Refreshable——**装饰器模式 + 热替换**的组合）；②**Feign 组件全覆盖装饰**（官方组件都可装饰刷新）
+- **my-xhs**：**该用没用**——组件热替换模式（配置变更重建）；官方无
+
+#### KP-415 Feign 配套（FeignAutoConfiguration/ConditionalOnOpenFeignAvailable/ConditionalOnOpenFeignEnabled/FeignConstants/NoOpRequestInterceptor + CommonsPropertyConstants/SpringCloudPropertyConstants）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium
+- **前置**：Feign 自动配置、条件、常量
+- **my-xhs**：**不该用**——官方覆盖
+
+---
+
+## 三、深度 review 七项报告（批 1-2）
+
+> 2026-08-12 批判性 review：穷尽性核对先行（每批写完立即核对）——client 46/46、全部 78/78 达成。
+
+- [x] **① 源码行号精确核对**：KP-401:54-120、KP-402:38-105、KP-404:24-73/:47-56、KP-405:41-59/:45-108、KP-410:12-118、KP-413:31-68、KP-414:23-68——全部 grep 实证 ✓
+- [x] **② 穷尽性**：78/78 生产文件全覆盖（client 46 + fault 5 + loadbalancer 1 + commons/context 7 + openfeign 20）✓
+- [x] **③ 空节标注**：N/A ✓
+- [x] **④ 过时三级**：15 KP 全部标注 ✓
+- [x] **⑤ 重复内容**：UnionDiscoveryClient（session005 交接 [未找到] → 实证）；注册事件 ↔ microsphere-spring KP-214 双钩模式 ✓
+- [x] **⑤b 引用目标核对**：Spring Cloud 官方类（DiscoveryClient/ServiceRegistry/Registration/NamedContextFactory/FeignClientProperties）存在 ✓
+- [x] **⑥ 诚实标注**：KP-403/408/412/415 Medium（部分深读）✓
+- [x] **⑦ 命名空间迁移**：N/A ✓
+
+### 测试扫描记录（02 §2.1）
+
+| 测试文件 | 验证了 | 结论 |
+|---------|--------|------|
+| UnionDiscoveryClient 相关测试 | 多注册中心合并 | KP-401 [待补扫] |
+| WeightedRoundRobin 相关测试 | 加权轮询算法 | KP-410 [待补扫] |
+| Feign 自动刷新相关测试 | 组件重建 | KP-413 [待补扫] |
