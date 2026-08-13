@@ -1,8 +1,8 @@
 # microsphere-spring 知识点提取
 
 > 源码：`/data/workspace/java-training-camp/cloud-native-code/share/microsphere-spring`（依赖链第 3 站，microsphere-java 之后）
-> 提取时间：2026-08-12（批 1：beans/factory 40 核心；批 2：context/event 30 + context/annotation 14；批 3：config 24 + core/env 9 + core 14；批 4：cache 8 + net 10 + lifecycle 2 + config 4——**context 模块 161 文件完成**；后续：web 58 / webmvc 35 / webflux 24 / jdbc 7 / guice 3）
-> 状态：批 1-4 已提取；MCP 索引已建（8605 节点/30925 边）
+> 提取时间：2026-08-12（批 1：beans/factory 40 核心；批 2：context/event 30 + context/annotation 14；批 3：config 24 + core/env 9 + core 14；批 4：cache 8 + net 10 + lifecycle 2 + config 4；批 5：web 58；后续：webmvc 35 / webflux 24 / jdbc 7 / guice 3）
+> 状态：批 1-5 已提取；MCP 索引已建（8605 节点/30925 边）
 > 关联：microsphere-java 是纯 JDK 工具；**本仓库是 Spring 扩展机制**——知识本体在 Spring 内部机制（BeanFactory/事件/配置），触发面完全不同
 
 ## 一、仓库定位
@@ -101,6 +101,8 @@
 | EnvironmentListenerTest / ProfileListenerTest / PropertyResolverListenerTest 等（core/env 7 测试） | 双钩监听器 | KP-214 ✓ |
 | TTLContextTest / EnableTTLCachingTest / TTLCacheableTest（cache 测试） | TTL 上下文 + 组合注解 | KP-217 ✓ |
 | SpringProfilesURLConnectionAdapterTest / SpringPropertySourcesURLConnectionAdapterTest 等（net 测试） | URL 连接适配器 | KP-219 ✓ |
+| rule 17 测试（每规则一测试——WebRequestMethodsRuleTest/ParamsRuleTest/CompositeWebRequestRuleTest 等） | 请求匹配各规则 | KP-221 ✓ |
+| metadata 19 测试（WebEndpointMappingTest/Composite/Filtering 注册中心/工厂家族） | 端点映射元数据 + 注册体系 | KP-222 ✓ |
 
 ### 包: `io.microsphere.spring.context.event`（批 2：30 文件）
 
@@ -239,4 +241,33 @@
 - **前置**：SmartLifecycle、ConfigurationBeanBinder
 - **需求**：**生命周期日志**（LoggingSmartLifecycle）+ 配置 Bean 绑定（ConfigurationBeanBinder）
 - **参考实现**：AbstractSmartLifecycle（基座）+ LoggingSmartLifecycle（日志版）；**ConfigurationBeanBinder**（:DefaultConfigurationBeanBinder——**配置类 Bean 绑定**（与 KP-212 注解体系配合——@ConfigurationProperties 风格绑定））
+- **my-xhs**：**不该用**——Spring 官方覆盖
+
+### 模块: `microsphere-spring-web`（批 5：58 文件）
+
+> 主题：**Web 请求匹配规则 + 端点映射元数据**——Spring MVC/WebFlux 的 RequestCondition 家族的**框架无关重实现**（不依赖 servlet/reactive 具体实现）。
+
+#### KP-221 `WebRequestRule` 请求匹配规则 SPI（WebRequestRule.java:30-34 + AbstractWebRequestRule + CompositeWebRequestRule.java:36-50）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（请求匹配） | **置信度**：High
+- **前置**：Spring RequestCondition 家族（RequestMethodsRequestCondition 等）、NativeWebRequest、@RequestMapping 语义
+- **需求**：**请求匹配规则的框架无关抽象**——方法/参数/头/媒体类型/路径的匹配判定（Spring MVC 与 WebFlux 共用）
+- **参考实现**：**SPI 接口**（`boolean matches(NativeWebRequest)` :33——单一匹配方法）；**泛型模板基座**（AbstractWebRequestRule\<T>——**六大规则全部 extends 基座**：WebRequestMethodsRule extends AbstractWebRequestRule\<String>（:48）/Params extends AbstractWebRequestRule\<WebRequestParamExpression>（:48）/Headers\<WebRequestHeaderExpression>（:44）/Consumes\<ConsumeMediaTypeExpression>（:50）/Produces\<ProduceMediaTypeExpression>（:56）/Pattens\<String>（:58）——**表达式类型参数化**）；**组合实现**（CompositeWebRequestRule :36-50——**AND 语义**（逐个匹配失败即 false :46-49）——对照 Spring `CompositeRequestCondition` :32 javadoc 实证）
+- **对比取舍**：**知识增量：Spring RequestCondition 家族解耦重实现**——Spring MVC 的 RequestMethodsRequestCondition（servlet 包）/WebFlux 的 RequestMethodsRequestCondition（reactive 包）**重复定义两套**（javadoc :44-45 双 @see 实证），microsphere 用 NativeWebRequest 抽象**一套通用**——**解决 Spring 的 MVC/WebFlux 条件重复问题**；**泛型表达式模板**（AbstractWebRequestRule\<T>）是统一实现；**拼写细节**：WebRequest**Pattens**Rule（Pattens 拼错——StacKTrace 后第二例，API 稳定约束）
+- **my-xhs**：**该用没用**——若 my-xhs 做网关/过滤器需要框架无关请求匹配可参考；Spring 官方条件已覆盖 MVC 场景
+
+#### KP-222 `WebEndpointMapping` 端点映射元数据（WebEndpointMapping.java:135-170 等）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（端点元数据） | **置信度**：High
+- **前置**：HandlerMethod、@RequestMapping、端点注册、Builder 模式
+- **需求**：**Web 端点映射的元数据模型**——HTTP 方法/媒体类型/路径 + HandlerMethod 的完整描述（网关/监控用）
+- **参考实现**：**十字段模型实证**（:139-165——kind/endpoint/id/**patterns/methods/params/headers/consumes/produces/negated**——**@RequestMapping 八条件全覆盖 + negated 否定标志 + UNKNOWN_SOURCE 哨兵 :135 + hashCode 缓存 :170**）；**Builder 模式**（:210 内部 Builder + :1230 build——**不可变对象构建**）；**工厂体系**（WebEndpointMappingFactory + AbstractWebEndpointMappingFactory + ServletRegistration/FilterRegistration/Jackson2 工厂——多来源端点发现）；**注册体系**（WebEndpointMappingRegistry + Composite/Filtering/Simple 注册中心）
+- **对比取舍**：**知识增量：端点映射元数据化**——把 MVC 的 HandlerMapping 内部端点信息**外部化为元数据模型**（网关路由发现/监控/文档生成的基础）；**negated 否定匹配**（@RequestMapping 的 ! 前缀语义）；Builder + 不可变 + hashCode 缓存是值对象完整设计
+- **my-xhs**：**该用没用**——网关路由自动发现（my-xhs 网关动态路由参考——从服务端点元数据生成路由）
+
+#### KP-223 web 配套（event 3 + annotation 2 + util 13 + constants 1）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium（未深读）
+- **前置**：Web 请求事件、注解
+- **需求**：web 事件（请求生命周期）/注解/工具
 - **my-xhs**：**不该用**——Spring 官方覆盖
