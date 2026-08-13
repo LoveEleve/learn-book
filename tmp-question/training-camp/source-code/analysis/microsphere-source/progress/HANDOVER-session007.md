@@ -35,7 +35,8 @@ microsphere-source/
 │   ├── 08-microsphere-configuration.md  3 KP ✅
 │   ├── 09-microsphere-gateway.md        5 KP ✅
 │   ├── 10-microsphere-redis.md          6 KP ✅
-│   └── 11-microsphere-observability.md   4 KP ✅（本会话）
+│   ├── 11-microsphere-observability.md   4 KP ✅
+│   └── 12-microsphere-mybatis.md         6 KP ✅（本会话）
 └── outline/                            ← 源码侧知识大纲（L1.5，每仓库必产）
     ├── 01-confucius-commons-jdk知识大纲.md       7 维度 35 KP ✅
     ├── 02-microsphere-java-生态设计模式知识大纲.md 9 维度 53 KP ✅
@@ -47,13 +48,14 @@ microsphere-source/
     ├── 08-microsphere-configuration-配置中心注解化知识大纲.md 2 维度 3 KP ✅
     ├── 09-microsphere-gateway-动态端点路由知识大纲.md 5 维度 7 KP ✅
     ├── 10-microsphere-redis-基础设施增强知识大纲.md 4 维度 6 KP ✅
-    └── 11-microsphere-observability-可观测性增强知识大纲.md 3 维度 4 KP ✅（本会话）
+    ├── 11-microsphere-observability-可观测性增强知识大纲.md 3 维度 4 KP ✅
+    └── 12-microsphere-mybatis-executor增强知识大纲.md 4 维度 6 KP ✅（本会话）
 progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 ```
 
 ---
 
-## 三、已完成状态（11/36 仓库，216 KP + 11 outline——含 02 补提取 3 KP + 08/09/10/11 问题域补 6 KP）
+## 三、已完成状态（12/36 仓库，222 KP + 12 outline——含 02 补提取 3 KP + 08-12 问题域补 9 KP）
 
 | # | 仓库 | 生产文件 | KP | 关键知识点 | outline |
 |---|------|:---:|:---:|-----------|:---:|
@@ -67,12 +69,14 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 | 08 | **microsphere-configuration** | **11** | **5** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 双模式、Apollo 克隆替换热更新、自研 Nacos OpenAPI 客户端、三层层级抽象、历史 4 缺陷证实（D1-D4）** | ✅ |
 | 09 | **microsphere-gateway** | **28** | **7** | **we:// 端点粒度动态路由、Filter 链缓存+事件重建、心跳禁用（G1 断链根源）、双栈、metadata 协议链路（G11/G12 根源）、演进史重构损失、G1-G15 缺陷表 15/15 全部证实** | ✅ |
 | 10 | **microsphere-redis** | **86** | **7** | **命令拦截三回调+事件化（my-xhs zone/redis/ 族上游实证）、Kafka 逻辑复制、定长序列化家族、命令元数据+Doclet 生成、连接工厂 AOP 代理、问题域三主题（ThreadLocal 代价/双层代理/复制三陷阱 + V0/V1 版本化）** | ✅ |
-| 11 | **microsphere-observability** | **39** | **5** | **InMemoryAppender 启动缓冲 + P1 时序 bug（时序铁律）、SkipList 去重副作用、Filter 桥接、Micrometer 补全、问题域（P2 @ConditionalOnBean name/value 语义陷阱——官方 micrometerClock 实证 + 静默失效家族 P1/P2/G15 + 死代码清单 MBean 骨架/CompositeFilter TODO）** | ✅ |
+| 11 | **microsphere-observability** | **39** | **5** | **InMemoryAppender 启动缓冲 + P1 时序 bug（时序铁律）、SkipList 去重副作用、Filter 桥接、Micrometer 补全、问题域（P2 @ConditionalOnBean 语义陷阱 + 静默失效家族）** | ✅ |
+| 12 | **microsphere-mybatis** | **54** | **6** | **ExecutorFilter 过滤链（10/15 方法覆盖）、Interceptor 桥接、双 Enable 注解、测试解析器族（29 文件过半）、MP 生态对照、问题域（P1-P6 已证清单——P6 二级缓存短路/拼写第 7 例 Defintion）** | ✅ |
 | 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
 | 08 | **microsphere-configuration** | **11** | **5** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 双模式、Apollo 克隆替换热更新、自研 Nacos OpenAPI 客户端、三层层级抽象、历史 4 缺陷证实（D1-D4）** | ✅ |
 | 09 | **microsphere-gateway** | **28** | **7** | **we:// 端点粒度动态路由、Filter 链缓存+事件重建、心跳禁用（G1 断链根源）、双栈、metadata 协议链路（G11/G12 根源）、演进史重构损失、G1-G15 缺陷表 15/15 全部证实** | ✅ |
 | 10 | **microsphere-redis** | **86** | **7** | **命令拦截三回调+事件化（my-xhs zone/redis/ 族上游实证）、Kafka 逻辑复制、定长序列化家族、命令元数据+Doclet 生成、连接工厂 AOP 代理、问题域三主题（ThreadLocal 代价/双层代理/复制三陷阱 + V0/V1 版本化）** | ✅ |
-| 11 | **microsphere-observability** | **39** | **5** | **InMemoryAppender 启动缓冲 + P1 时序 bug（时序铁律）、SkipList 去重副作用、Filter 桥接、Micrometer 补全、问题域（P2 @ConditionalOnBean name/value 语义陷阱——官方 micrometerClock 实证 + 静默失效家族 P1/P2/G15 + 死代码清单 MBean 骨架/CompositeFilter TODO）** | ✅ |
+| 11 | **microsphere-observability** | **39** | **5** | **InMemoryAppender 启动缓冲 + P1 时序 bug（时序铁律）、SkipList 去重副作用、Filter 桥接、Micrometer 补全、问题域（P2 @ConditionalOnBean 语义陷阱 + 静默失效家族）** | ✅ |
+| 12 | **microsphere-mybatis** | **54** | **6** | **ExecutorFilter 过滤链（10/15 方法覆盖）、Interceptor 桥接、双 Enable 注解、测试解析器族（29 文件过半）、MP 生态对照、问题域（P1-P6 已证清单——P6 二级缓存短路/拼写第 7 例 Defintion）** | ✅ |
 
 **依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud → multiactive → dynamic ✅（00 SOP §3.2 主线 + 应用层 2 仓走完）
 
@@ -208,6 +212,6 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 
 1. **必读**：本文 + `method/01-现代实现映射与自主落地.md`（方法论）+ `discussion/2026-08-12-方向规划.md`（方向）
 2. **流程**（每仓库）：建 MCP 索引（index_repository）→ 读上下文（README/pom/包结构）→ 分批提取（≤10 文件/批，穷尽性核对先行）→ 测试扫描 → 历史 REQ 缺陷交叉验证 → 七项 review 报告 → outline → 提交推送
-3. **参考**：`mapping/01-06` 的格式与粒度（KP 编号：01 仓库 KP-01~35 / 02 仓库 KP-101~120（含子编号） / 03 仓库 KP-201~228 / 04 仓库 KP-301~317 / 05 仓库 KP-401~415 / 06~10 仓库 KP-501~906 / 11 仓库 KP-1001~1004——**下个仓库从 1101 开始**）
+3. **参考**：`mapping/01-06` 的格式与粒度（KP 编号：01 仓库 KP-01~35 / 02 仓库 KP-101~120（含子编号） / 03 仓库 KP-201~228 / 04 仓库 KP-301~317 / 05 仓库 KP-401~415 / 06~10 仓库 KP-501~906 / 11 仓库 KP-1001~1004 / 12 仓库 KP-1101~1106——**下个仓库从 1201 开始**）
 4. **工具**：MCP 索引已建（confucius/java/spring/boot/cloud + multiactive + 历史仓库等）
 5. **源码位置**：confucius 在 `source-code/code/microsphere/`；java/spring/boot 在 `cloud-native-code/share/`；spring-cloud/multiactive/configuration/dynamic/gateway/redis 在 `cloud-native-code/stage-4/`（注意：实际完整路径前缀是 `/data/workspace/java-training-camp/cloud-native-code/`）
