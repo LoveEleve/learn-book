@@ -29,10 +29,10 @@
 
 - **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（条件注解） | **置信度**：High
 - **前置**：Spring Boot 条件机制（@Conditional/SpringBootCondition/ConditionOutcome）、占位符注解属性（microsphere-spring KP-216b）
-- **需求**：**按属性前缀启停 Bean**——`@ConditionalOnPropertyPrefix("microsphere.xxx")`：Environment 中存在该前缀的属性才启用（官方 @ConditionalOnProperty 是按**单属性名**，本注解按**前缀**批量匹配）
-- **参考实现**：**条件注解标准模式**（@Conditional(OnPropertyPrefixCondition.class) :54——**注解 ↔ Condition 配对**）；**SpringBootCondition 扩展**（OnPropertyPrefixCondition extends SpringBootCondition :43 + `getMatchOutcome` :66——**Boot 条件标准生命周期**）；**前缀匹配**（:74-85——`propertyName.startsWith(prefix)` :78——**批量前缀匹配** + 无匹配返回 noMatch :85）；**占位符属性复用**（ResolvablePlaceholderAnnotationAttributes :72——**microsphere-spring KP-216b 的 Boot 级落地**）
-- **对比取舍**：**知识增量**：①**@ConditionalOnProperty 单属性 vs 本注解前缀批量**——官方缺"前缀族"条件（需逐个写），microsphere 补；②**条件注解标准写法**（注解 + Condition + getMatchOutcome 三件套——Spring Boot 自定义条件的完整范式）
-- **my-xhs**：**该用没用**——按前缀批量启停（my-xhs 模块化配置开关）；官方 @ConditionalOnProperty 覆盖单属性场景
+- **需求**：**按属性前缀启停 Bean**——`@ConditionalOnPropertyPrefix("microsphere.xxx")`：Environment 中存在该前缀的属性才启用
+- **参考实现**：**条件注解标准模式**（@Conditional(OnPropertyPrefixCondition.class) :54——**注解 ↔ Condition 配对**）；**SpringBootCondition 扩展**（OnPropertyPrefixCondition extends SpringBootCondition :43 + `getMatchOutcome` :66——**Boot 条件标准生命周期**）；**前缀匹配**（:74-85——`propertyName.startsWith(prefix)` :78——**前缀匹配**（对每个已存在属性名做前缀判断）+ 无匹配返回 noMatch :85）；**占位符属性复用**（ResolvablePlaceholderAnnotationAttributes :72——**microsphere-spring KP-216b 的 Boot 级落地**）
+- **对比取舍**：**知识增量**：①**差异精确定位**——官方 `@ConditionalOnProperty` 的 name 是 `String[]` 数组（官方源码 ConditionalOnProperty.java:128 实证——**支持多属性名**），但**只做精确属性名匹配**（官方 OnPropertyCondition.java:157-160——逐 name `getProperty` 精确取）；microsphere 是**前缀 startsWith 匹配**（:78——**属性族/命名空间匹配**，如 `microsphere.` 前缀下所有属性）——**差异在"前缀 vs 精确名"，不在数量**（修正前断言"官方单属性"错误）；②**条件注解标准写法**（注解 + Condition + getMatchOutcome 三件套——Spring Boot 自定义条件的完整范式）
+- **my-xhs**：**该用没用**——按前缀批量启停（my-xhs 模块化配置开关——命名空间级）；官方 @ConditionalOnProperty 覆盖精确名场景
 
 ### 包: `io.microsphere.spring.boot.context`（批 1b：22 文件）
 
@@ -211,3 +211,12 @@
 - **需求**：**自动配置测试基座**——测试自动配置的基类（加载指定自动配置断言）
 - **参考实现**：AutoConfigurationTest（基类——自动配置加载测试）+ AbstractAutoConfigurationTest/WebAutoConfigurationTest/ReactiveWebAutoConfigurationTest 变体
 - **my-xhs**：**该用没用**——自动配置测试参考；Boot 官方 @SpringBootTest 覆盖
+
+### 测试扫描记录（02 §2.1）
+
+| 测试文件 | 验证了 | 结论 |
+|---------|--------|------|
+| AutoConfigurationTest（boot-test 生产基类） | `abstract class AutoConfigurationTest<A> extends AbstractAutoConfigurationTest<A, ApplicationContextRunner>`（:33——**ApplicationContextRunner 泛型化**——Boot 测试上下文运行器） | KP-317 ✓ |
+| OnPropertyPrefixConditionTest | `assertEquals(matched, outcome.isMatch())`（:86——**前缀匹配结果断言**） | KP-301 ✓ |
+| ListenableConfigurationPropertiesBindHandlerAdvisorTest | MyBindListener 三回调（onStart :65/onSuccess :69——**绑定三阶段回调实证**）+ 多监听器注册（:42-44） | KP-303 ✓ |
+| LoggingOnceApplicationPreparedEventListenerTest | 一次性监听 | KP-302 ✓ |
