@@ -1,8 +1,8 @@
 # microsphere-spring 知识点提取
 
 > 源码：`/data/workspace/java-training-camp/cloud-native-code/share/microsphere-spring`（依赖链第 3 站，microsphere-java 之后）
-> 提取时间：2026-08-12（批 1：beans/factory 40 核心；批 2：context/event 30 + context/annotation 14；后续：config 24 / context 8 / core 23 / cache 8 / net 10 + web 58 / webmvc 35 / webflux 24 / jdbc 7）
-> 状态：批 1-2 已提取；MCP 索引已建（8605 节点/30925 边）
+> 提取时间：2026-08-12（批 1：beans/factory 40 核心；批 2：context/event 30 + context/annotation 14；批 3：config 24 + core/env 9 + core 14；批 4：cache 8 + net 10 + lifecycle 2 + config 4——**context 模块 161 文件完成**；后续：web 58 / webmvc 35 / webflux 24 / jdbc 7 / guice 3）
+> 状态：批 1-4 已提取；MCP 索引已建（8605 节点/30925 边）
 > 关联：microsphere-java 是纯 JDK 工具；**本仓库是 Spring 扩展机制**——知识本体在 Spring 内部机制（BeanFactory/事件/配置），触发面完全不同
 
 ## 一、仓库定位
@@ -96,6 +96,11 @@
 | EnableEventExtensionTest / EventExtensionRegistrarTest | @Enable 注册器 | KP-211 ✓ |
 | DependencyAnalysisBeanFactoryListenerTest / ParallelPreInstantiation 测试 | BeanFactory 监听器应用 | KP-208/209 ✓ |
 | EventPublishingBeanInitializerTest / GenericApplicationListenerAdapterTest 等 | 事件扩展配套 | KP-210 ✓ |
+| PropertySourceExtensionAttributesTest / DefaultPropertiesPropertySourceLoaderTest 等（config 6 测试） | 配置源加载 | KP-215 ✓ |
+| PropertySourceChangedEventTest / PropertySourcesChangedEventTest | 事件两级粒度 | KP-213 ✓ |
+| EnvironmentListenerTest / ProfileListenerTest / PropertyResolverListenerTest 等（core/env 7 测试） | 双钩监听器 | KP-214 ✓ |
+| TTLContextTest / EnableTTLCachingTest / TTLCacheableTest（cache 测试） | TTL 上下文 + 组合注解 | KP-217 ✓ |
+| SpringProfilesURLConnectionAdapterTest / SpringPropertySourcesURLConnectionAdapterTest 等（net 测试） | URL 连接适配器 | KP-219 ✓ |
 
 ### 包: `io.microsphere.spring.context.event`（批 2：30 文件）
 
@@ -152,3 +157,86 @@
 - **需求**：**@Enable 风格注解扩展**——模块化启用（EnableEventExtension 等——批 2 已见 EnableEventExtension 在 event 包）
 - **参考实现**：context/annotation 14 文件——@Enable 风格 + Registrar/Importer（EventExtensionRegistrar :event 包实证——**@Import + ImportBeanDefinitionRegistrar 模式**）
 - **my-xhs**：**该用没用**——@Enable 注解模式参考（Spring 官方同款）
+
+### 包: `io.microsphere.spring.config` + `core.env`（批 3：config 24 + core/env 9）
+
+#### KP-212 `PropertySourceExtension` @PropertySource 元注解扩展（PropertySourceExtension.java:144-246）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（元注解设计） | **置信度**：High
+- **前置**：Spring @PropertySource、元注解（@Target(ANNOTATION_TYPE)）、PropertySource 排序语义
+- **需求**：**@PropertySource 的增强元注解**——补齐官方注解的短板：**排序控制/编码/资源比较器/自动刷新**
+- **参考实现**：**10 属性元注解**（:144-246 逐个实证）：**排序三件**（first :172——置顶 / before :183——某源之前 / after :194——某源之后——**PropertySource 顺序编排**——官方 @PropertySource 无法控制顺序）；**资源控制**（resourceComparator :221——自定义资源比较器 / ignoreResourceNotFound :229 / encoding :235——**默认 ${file.encoding:UTF-8}**——占位符默认值语法）；**自动刷新**（autoRefreshed :164——**配置变更自动重载**——配合 KP-213 事件）；name :156 / value :206 / factory :245（自定义 PropertySourceFactory）
+- **对比取舍**：**知识增量：元注解扩展官方注解**（@Target(ANNOTATION_TYPE) :144——**组合注解模式**：用户自定义注解可再标注本注解获得增强）；**before/after/first 排序 DSL**——Spring 官方 `@PropertySource` 无排序（顺序=声明序），microsphere 补**显式编排**；**autoRefreshed + 事件**是配置热更新基础
+- **my-xhs**：**该用没用**——配置源排序编排（my-xhs 多配置源优先级控制）；Spring Cloud 用 bootstrap/优先级属性，本设计是注解式替代
+
+#### KP-213 `PropertySourcesChangedEvent` 配置变更事件（PropertySourcesChangedEvent.java:43-73 + PropertySourceChangedEvent）
+
+- **维度**：[分布式问题]（配置管理）| **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（配置变更通知） | **置信度**：High
+- **前置**：ApplicationContextEvent、配置热更新、事件驱动
+- **需求**：**配置变更通知**——PropertySources 变化时发事件（微服务配置热更新的地基）
+- **参考实现**：**事件家族**（PropertySourceChangedEvent 单源 + PropertySourcesChangedEvent 整体 :73——**两级粒度**：单个源 vs 全部源）；extends ApplicationContextEvent（:73——**Spring 事件体系集成**）
+- **对比取舍**：**知识增量**：配置变更事件化 vs Spring 官方——Spring 无内建 PropertySource 变更事件（@RefreshScope 是 Cloud 层）；microsphere 在**核心层**补事件——**分层设计对照**（Spring 官方把配置刷新放 Cloud，microsphere 沉到底层）；配合 autoRefreshed（KP-212）形成**配置热更新闭环**
+- **my-xhs**：**该用没用**——配置热更新（对接 Nacos 配置中心变更通知）；Nacos 自带 publishConfig 事件可映射
+
+#### KP-214 `EnvironmentListener` Environment 生命周期监听（EnvironmentListener.java:40-108）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（生命周期扩展点） | **置信度**：High
+- **前置**：ConfigurableEnvironment、MutablePropertySources、系统属性/环境变量
+- **需求**：**Environment 操作监听**——propertySources/systemProperties/systemEnvironment/merge 操作前后钩子
+- **参考实现**：**四组 before/after 双钩**（:47-108 实证——beforeGetPropertySources :47 / afterGetPropertySources :56 / beforeGetSystemProperties :64 / afterGetSystemProperties :73 / beforeGetSystemEnvironment :81 / afterGetSystemEnvironment :90 / **beforeMerge :99 / afterMerge :108**——**propertySources/systemProperties/systemEnvironment/merge 四数据面全覆盖**）；extends ProfileListener + PropertyResolverListener（:40——**监听器组合继承**）
+- **对比取舍**：**知识增量：Environment 级 AOP 化**（Spring 官方无此监听器——直接操作 Environment）；**before/after 双钩模式**（与 KP-208 的 BeanFactory 三时点呼应——**生命周期监听是 microsphere 的生态主题**）
+- **my-xhs**：**该用没用**——Environment 操作审计/埋点；Spring 少用扩展点
+
+#### KP-215 配置源家族（PropertySourceExtensionLoader/ResourcePropertySource/Yaml/Json/ImmutableMapPropertySource + 工厂）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式]（配置源加载） | **置信度**：High
+- **前置**：PropertySource/PropertySourceFactory、YAML/JSON 解析、资源加载
+- **需求**：**配置源加载家族**——注解驱动加载（Loader SPI）+ YAML/JSON/Properties 多格式 + 资源比较
+- **参考实现**：**Loader 抽象**（PropertySourceExtensionLoader :72——**注解→PropertySource 加载模板**：loadPropertySource 链 :105/:169）；**多格式支持**（JsonPropertySourceFactory/YamlPropertySourceFactory :support——**@JsonPropertySource/@YamlPropertySource 注解**（annotation :16/:25——**格式注解化**）；ImmutableMapPropertySource（不可变 Map 源）；DefaultResourceComparator（资源排序——配合 KP-212）
+- **my-xhs**：**该用没用**——多格式配置源（YAML/JSON 注解式）；Spring Boot 已支持多格式（properties/yaml），本设计是注解化变体
+
+### 包: `io.microsphere.spring.core`（批 3 续：core 23 文件剩余）
+
+#### KP-216 core 归组（core/convert + core/io + core/annotation + beans/BeanUtils 等）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium（未深读）
+- **前置**：Spring 转换服务、资源加载
+- **需求**：Spring 增强工具——转换（core/convert）/资源（core/io）/注解（core/annotation）
+- **参考实现**：core 23 文件——convert（Spring ConversionService 增强）/io（资源加载支持）/annotation（Spring 注解工具）
+- **my-xhs**：**不该用**——Spring 官方覆盖
+
+### 包: `io.microsphere.spring.cache` + `net` + `context/lifecycle` + `context/config`（批 4：24 文件）
+
+#### KP-217 TTL 缓存体系（TTLContext.java:53-104 + EnableTTLCaching.java:68-109 + TTLCacheable.java:60-166 + TTLCacheResolver）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（TTL 设计） | **置信度**：High
+- **前置**：Spring 缓存抽象（@Cacheable/@CachePut）、ThreadLocal、@EnableCaching、@AliasFor、CacheResolver
+- **需求**：**TTL 缓存（带过期时间）**——Spring 官方 @Cacheable 无 TTL 概念（由缓存实现决定），microsphere 补**声明式 TTL**
+- **参考实现**：**四层设计**：①**TTLContext ThreadLocal**（:55——**当前线程 TTL 上下文** + `doWithTTL(function, defaultTTL)` 模板（:72-104——**执行函数 + 自动清理**（finally clearTTL :103——**ThreadLocal 泄漏防护**））；②**@EnableTTLCaching 组合注解**（:71 `@EnableCaching` + :72 `@Import(TTLCachingConfiguration.class)`——**@AliasFor 透传**（:86-108——proxyTargetClass/mode/order 三属性别名到官方注解））；③**@TTLCacheable 注解**（:64 **`@Cacheable(cacheResolver = BEAN_NAME)`**——**关键设计：cacheResolver 指定自定义解析器**（BEAN_NAME 静态导入自 TTLCacheResolver :30）+ @AliasFor 透传全部官方属性（value/cacheNames/key/keyGenerator/condition/unless :70-166）——**TTL 注入机制 = 自定义 CacheResolver**）；④**TTLCachingConfiguration**（:30-34——`@Bean(name = BEAN_NAME)` 注册 TTLCacheResolver——**注解→配置类→Resolver Bean 装配链**）
+- **对比取舍**：**知识增量**：①**ThreadLocal TTL 上下文 + finally 清理**（泄漏防护标准）；②**@AliasFor 组合注解透传**（注解继承替代方案——可覆盖默认值）；③**cacheResolver 注入点**（@Cacheable 的 cacheResolver 属性是官方预留扩展点——microsphere 用它挂 TTL——**官方扩展点利用**）；测试实证（TTLCacheableTest/EnableTTLCachingTest 存在）
+- **my-xhs**：**该用没用**——声明式 TTL 缓存（my-xhs Redis 缓存过期控制）；Spring Cache + 自定义 CacheResolver 是官方路径
+
+#### KP-218 `TTLRedisCacheWriterWrapper` 死代码（TTLRedisCacheWriterWrapper.java:21-91）
+
+- **维度**：[工程问题] | **权重**：[边缘] | **深度**：🟢 | **优先级**：P3 | **过时**：[过时→死代码（整文件注释）] | **置信度**：High
+- **前置**：RedisCacheWriter（Spring Data Redis）
+- **需求**：Redis TTL 写入包装——**本文件意图**
+- **参考实现**：**实证：整文件被注释**（grep 实证 99 行注释 / 0 行代码——:21-91 全部 `//`——类声明/构造/方法全注释——**"看起来在做≠真的实现"案例**：意图是包装 RedisCacheWriter 加 TTL，但**实现被注释掉**（可能 API 变更后放弃）——**死代码**
+- **my-xhs**：**不该用**——死代码；Spring Data Redis 原生 TTL 配置
+
+#### KP-219 Spring 资源 URL 协议（net 10 文件：SpringProtocolURLStreamHandler/SpringResourceURLConnection/工厂家族）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式]（URL 协议 + 资源桥） | **置信度**：High
+- **前置**：URLStreamHandler（microsphere-java KP-143）、Spring Resource、Environment
+- **需求**：**自定义 `spring://` URL 协议**——URL 访问 Spring 资源/环境/配置（`spring:bean:xxx`/`spring:env:xxx`）
+- **参考实现**：**协议处理器**（SpringProtocolURLStreamHandler——协议入口）；**连接类型体系**（SpringResourceURLConnection :resource 访问 / SpringEnvironmentURLConnectionFactory :environment 访问 / SpringPropertySourcesURLConnectionAdapter :propertySources 访问 / SpringProfilesURLConnectionAdapter :profile 访问 / SpringDelegatingBeanProtocolURLConnectionFactory :bean 访问——**URL 协议承载 Spring 对象访问**）；AbstractSpringResourceURLConnection 基座 + 工厂家族
+- **对比取舍**：**知识增量**：**URL 协议访问框架对象**（`spring:` 协议 = Spring 对象访问 DSL）——microsphere-java KP-143 的**Spring 生态应用**（URL 协议扩展系列第二处）；**连接适配器**（Adapter 模式多实现）
+- **my-xhs**：**不该用**——无场景；Spring Environment/Resource 直接 API 覆盖
+
+#### KP-220 生命周期与配置绑定（context/lifecycle 2 + context/config 4）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium
+- **前置**：SmartLifecycle、ConfigurationBeanBinder
+- **需求**：**生命周期日志**（LoggingSmartLifecycle）+ 配置 Bean 绑定（ConfigurationBeanBinder）
+- **参考实现**：AbstractSmartLifecycle（基座）+ LoggingSmartLifecycle（日志版）；**ConfigurationBeanBinder**（:DefaultConfigurationBeanBinder——**配置类 Bean 绑定**（与 KP-212 注解体系配合——@ConfigurationProperties 风格绑定））
+- **my-xhs**：**不该用**——Spring 官方覆盖
