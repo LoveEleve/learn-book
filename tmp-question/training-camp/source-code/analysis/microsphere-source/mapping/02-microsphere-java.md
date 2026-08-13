@@ -2,7 +2,7 @@
 
 > 源码：`/data/workspace/java-training-camp/cloud-native-code/share/microsphere-java`（依赖链第 2 站，confucius-commons 之后）
 > 提取时间：2026-08-12（批 1-7：core 主要包；批 8：classloading 16 + lang 8 + net 13 + management 4 + metadata 9 + json 8 + concurrent 4 + invoke 2 + misc/nio/security/text 4 + filter 9）
-> 状态：批 1-8 已提取（core 294 生产文件全部覆盖）；MCP 索引已建
+> 状态：批 1-8 已提取 + 拆提修正（KP-124→4 方向族 / KP-145→3 / KP-146→3——46→53 KP）；MCP 索引已建（13165 节点/49189 边）
 > 关联：与 confucius-commons 同作者（mercyblitz）——工具类主题重叠时交叉引用（06 纪律）
 
 ## 一、仓库定位
@@ -299,14 +299,41 @@
 - **对比取舍**：**知识增量：双键缓存（Entry 键）+ 懒过滤**——"启动分组 + 懒补充"双层缓存策略；与 Spring `ConversionService` 的 `ConverterRegistry`（注册式）对照——microsphere 是 **SPI 自动发现式**（无需注册，classpath 扫描）；**生态演进实证**：confucius KP-32 的 loadServicesList 无缓存（每次重新加载），本仓库**加了缓存开关**（ServiceLoaderUtils:140 `servicesCache` + :438/:468 重载 + `microsphere.service-loader.cached` 系统属性 :112）——**同主题两代实现的演进**
 - **my-xhs**：**该用没用**——SPI 自动发现转换器是自定义协议转换层的参考；Spring ConversionService 是替代
 
-#### KP-124 转换器实现家族（38 个具体类 + multiple 14 个）
+#### KP-124a 数值转换族（NumberToByte/Short/Integer/Long/Float/Double/Character 7 个）
 
-- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式]（转换逻辑） | **置信度**：High
-- **前置**：各类型转换语义（Number/String/Array/Collection）
-- **需求**：具体类型转换——Number↔各类型（NumberToInteger 等 7 个）、Object→X（ObjectToBoolean 等 10 个）、String→X（StringToBoolean 等）、String→Collection（multiple 14 个）
-- **参考实现**：**字符串枢纽**——`StringConverter<T> extends Converter<String,T>`（StringConverter.java:26——**String 是转换中枢**，几乎可转所有类型）；**集合转换家族**（multiple/MultiValueConverter :36-85——**accept(sourceType, multiValueType) 双类型判定** :45 + SPI 加载 :73-80 + sorted 优先级 :77）；StringTo*Converter 14 个（Queue/Deque/BlockingQueue/Set/SortedSet/NavigableSet/List/Collection/Iterable/Array）
-- **对比取舍**：**String 枢纽设计**（String 作中间表示——CSV/JSON 通吃）vs Spring 的 `ConversionService`（直接 S→T 图）；**multiValue 双类型 accept**（源 + 集合类型双匹配）是集合转换的精确判定
-- **my-xhs**：**该用没用**——若 my-xhs 做配置格式转换（String→任意）可参考 String 枢纽；Spring `DefaultFormattingConversionService` 覆盖
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：Number 类型层级、数值转换语义
+- **需求**：**Number → 各数值类型**——数值间的类型转换（宽化/窄化语义）
+- **参考实现**：**统一模板**（NumberToIntegerConverter :28——`extends AbstractConverter<Number, Integer>` + doConvert :36——**每个转换器 = 模板 + 单例**；7 个实现同构（extends AbstractConverter<Number, X>））
+- **对比取舍**：**知识增量**：数值转换族的**模板复用**（7 文件同构——"一个模板多实现"）；Spring `NumberUtils`/`ConversionService` 覆盖
+- **my-xhs**：**不该用**——Spring NumberUtils 覆盖
+
+#### KP-124b 字符串转换族（StringTo* 17 个：Boolean/Byte/Short/Integer/Long/Float/Double/Character/CharArray/Class/Duration/InputStream/String）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：StringConverter 枢纽（StringConverter.java:26）、JDK8 类型（Duration/InputStream）
+- **需求**：**String → 各类型**——配置/协议解析的核心（"字符串是传输格式"）
+- **参考实现**：**StringConverter 接口族**（StringConverter.java:26——`extends Converter<String,T>`——**String 枢纽标记**）；**JDK8 类型支持**（StringToDurationConverter :29——**Duration 转换**（JDK8 类型））；**INSTANCE 单例模式**（:34——每个转换器单例）；StringToInputStream（字节流转换）
+- **对比取舍**：**知识增量**：String 枢纽设计（String 作中间表示——配置/CSV/JSON 通吃）vs Spring ConversionService 直接 S→T 图；**JDK8 类型转换器**（Duration/InputStream——Spring 需自定义）
+- **my-xhs**：**该用没用**——配置格式转换（String→任意）；Spring DefaultFormattingConversionService 覆盖
+
+#### KP-124c Object 转换族 + 特殊族（ObjectTo* 10 个 + ByteArrayToObject/ObjectToByteArray/MapToProperties/PropertiesToString）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：Object 泛化转换、Optional/字节数组
+- **需求**：**Object → 各类型**（宽泛入口）+ 特殊双向转换（字节数组/Map↔Properties）
+- **参考实现**：**Object 入口族**（ObjectToBoolean/Byte/Character/Double/Float/Integer/Long/Short/Optional/String 10 个——**宽泛源类型**（接收任意 Object））；**ObjectToOptional**（:28——`implements Converter<Object, Optional>`——**非 AbstractConverter**（直接实现 + 单例 :33/:36——特殊实现模式））；**互转族**（MapToProperties :28——Map→Properties；PropertiesToString——序列化）；ByteArrayToObject/ObjectToByteArray（字节序列化）
+- **对比取舍**：**知识增量**：Object 宽入口 vs String 枢纽（KP-124b）——**两条转换路径**（宽泛 vs 字符串）；ObjectToOptional 的特殊实现（Optional 包装语义）
+- **my-xhs**：**不该用**——Spring 覆盖
+
+#### KP-124d 集合转换族（multiple 14 个：MultiValueConverter + StringTo*Collection 13 个）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：MultiValueConverter SPI（multiple/MultiValueConverter.java:36-85）、集合类型层级
+- **需求**：**String → 集合类型**——分隔字符串转 List/Set/Queue/Deque/BlockingQueue 等
+- **参考实现**：**MultiValueConverter SPI**（:36——`accept(sourceType, multiValueType)` **双类型判定** :45 + SPI 加载 :73-80 + sorted 优先级 :77——**与 KP-123 Converters 同模式**）；**继承树**（StringToCollectionConverter extends StringToIterableConverter<Collection> :27——**模板继承链**：Iterable → Collection → List/Set/Queue/Deque/SortedSet/NavigableSet/BlockingQueue/TransferQueue 13 个变体）；StringToMultiValueConverter（桥接入口）
+- **对比取舍**：**知识增量**：集合转换的**继承树**（Iterable 基座 → 13 变体——**模板方法 + 继承**而非 13 个独立类）；双类型 accept（源 + 集合类型双匹配——精确判定）
+- **my-xhs**：**该用没用**——分隔字符串转集合（配置解析）；Spring ConversionService 部分覆盖
 
 ### 包: `io.microsphere.reflect`（批 5：21 文件/8356 行）
 
@@ -510,25 +537,58 @@
 
 ### 包: `io.microsphere.json` / `concurrent` / `invoke` / `misc` / `nio` / `security` / `text` / `filter`（批 8d：小包归组）
 
-#### KP-145 小包归组（json 8 + concurrent 4 + invoke 2 + misc/nio/security/text 4 + filter 9 = 27 文件）
+#### KP-145a JSON 包（Android 移植 8 文件：JSONObject/JSONArray/JSONTokener/JSONStringer/JSONException/JSON/JSONUtils）
 
-- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟢 | **优先级**：P3 | **过时**：[过时→Jackson（json 包——**Android JSON 库移植**）] | **置信度**：High
-- **前置**：JSON 语法（json 包）、线程工厂、Executor 委托
-- **需求**：小工具集合——JSON 解析（json 包）、线程工厂（concurrent）、MethodHandle 查找（invoke）、过滤（filter——confucius KP-13~18 同主题）
-- **参考实现**：json 包（JSONObject/JSONArray/JSONTokener/JSONStringer）——**来源实证：Android OpenJDK 移植**（JSONObject.java 头部版权 "Copyright (C) 2010 The Android Open Source Project" 实证——**与 KP-35 Base64（Josh Bloch）、KP-103（JCIP）同移植模式**：第三方/平台代码复制保版权头）；concurrent（CustomizedThreadFactory/DelegatingScheduledExecutorService/DelegatingBlockingQueue/ExecutorUtils）；invoke（MethodHandlesLookupUtils——**KP-117 MethodHandle 探测的实现地**）；filter（9 文件——confucius KP-13~18 同主题扩展）
-- **对比取舍**：json 包是**重造轮子**（Android 老版 JSON 实现——Jackson 是标准）；concurrent/invoke 是配套工具；filter 与 confucius 交叉引用（KP-13~18）
-- **my-xhs**：**不该用**——Jackson + Spring 覆盖
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[过时→Jackson（Android JSON 库移植）] | **置信度**：High
+- **前置**：JSON 语法、递归下降解析、Android 平台 JSON
+- **需求**：**JSON 解析/生成**——JDK6 时代无内建 JSON
+- **参考实现**：**来源实证：Android OpenJDK 移植**（JSONObject.java 头部版权 "Copyright (C) 2010 The Android Open Source Project" 实证——**与 KP-35 Base64（Josh Bloch）、KP-103（JCIP）同移植模式**：第三方/平台代码复制保版权头——**第三例移植来源**）；**JSONUtils 便捷层**（:113——append 系列 :146-176——**JSON 构建工具**）
+- **对比取舍**：**知识增量**：移植来源识别（版权头实证——识别"这是谁的代码"的方法论）；**重造轮子判断**（Android 老版 JSON 实现 vs Jackson 标准——移植旧代码不升级是技术债）
+- **my-xhs**：**不该用**——Jackson 覆盖
+
+#### KP-145b 并发工具（concurrent 4 + invoke 2 = 6 文件）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：ThreadFactory、Executor 委托、MethodHandle
+- **需求**：**线程工厂定制**（命名/守护/优先级/栈大小）+ Executor 委托 + MethodHandle 工具
+- **参考实现**：**CustomizedThreadFactory**（:40——implements ThreadFactory + **定制化属性**（javadoc :30-34——命名/daemon/优先级/栈大小 1024）——**可控线程工厂**）；**Delegating 家族**（DelegatingBlockingQueue/DelegatingScheduledExecutorService——委托包装）；**invoke 2 文件**（MethodHandlesLookupUtils——**KP-117 MethodHandle 探测的实现地**（findPublicStatic 等——**版本探测模式的实际实现**）/MethodHandleUtils）
+- **对比取舍**：**知识增量**：定制化线程工厂（命名+属性——生产线程命名规范）；MethodHandle 探测的实现细节（KP-117 依赖链实证）
+- **my-xhs**：**该用没用**——线程命名规范（my-xhs 线程池诊断参考）；Spring 无直接等价
+
+#### KP-145c 小包归组（misc 1 + nio 1 + security 1 + text 1 + filter 9 = 13 文件）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium（未深读）
+- **前置**：filter 家族（confucius KP-13~18 同主题）、编码/安全工具
+- **需求**：过滤（filter 9——confucius 同主题扩展）+ 杂项（misc/nio/security/text）
+- **参考实现**：filter（9 文件——Filter/FilterOperator/FilterUtils 等——**confucius KP-13~18 同主题扩展**（交叉引用））；misc/nio/security/text 各 1（编码/安全/文本工具）
+- **my-xhs**：**不该用**——JDK/Spring 覆盖
 
 ### 模块: `microsphere-lang-model`（16）+ `microsphere-annotation-processor`（4）+ `microsphere-jdk-tools`（1）
 
-#### KP-146 子模块三件（lang-model 16 + annotation-processor 4 + jdk-tools 1 = 21 文件）
+#### KP-146a `ConfigurationPropertyAnnotationProcessor` 编译期注解处理器（annotation-processor 4 文件）
 
-- **维度**：[规范] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式]（编译期处理） | **置信度**：Medium（未深读核心逻辑）
-- **前置**：Java Language Model API（javax.lang.model）、注解处理器（APT）
-- **需求**：**编译期配置元数据生成**（annotation-processor——@ConfigurationProperty → JSON）+ 语言模型工具（lang-model）+ JDK 工具桥（jdk-tools）
-- **参考实现**：**annotation-processor 4 类实证**（ConfigurationPropertyAnnotationProcessor/ConfigurationPropertyJSONElementVisitor——**@ConfigurationProperty 注解 → JSON 的编译期实现**（KP-101 注解的编译期侧）/FilerProcessor/ResourceProcessor——Filer 资源写入）；lang-model 封装 `javax.lang.model`（Element/TypeMirror 工具）；jdk-tools 桥接 compiler/annotation processing API
-- **对比取舍**：**编译期元数据生成**（annotation-processor + JSON）vs Spring 运行期反射——**编译期方案的优势**：类型安全 + 启动快（无反射）；劣势：构建复杂度；**KP-101 → KP-146（编译期）→ KP-144（运行期）三阶段完整闭环实证**
-- **my-xhs**：**该用没用**——若 my-xhs 做自定义配置注解框架可用；Spring 覆盖主流
+- **维度**：[规范] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（APT 编译期处理） | **置信度**：High
+- **前置**：javax.annotation.processing（AbstractProcessor/RoundEnvironment）、javax.lang.model、@ConfigurationProperty（KP-101）、Filer
+- **需求**：**编译期生成配置元数据 JSON**——@ConfigurationProperty 注解 → configuration-properties.json（KP-105 文件约定）
+- **参考实现**：**@SupportedAnnotationTypes**（:77——声明处理 @ConfigurationProperty）；**AbstractProcessor 生命周期**（init :89-91——ProcessingEnvironment/Messager 获取）；**处理链**（process 每轮 :51-57 javadoc → ConfigurationPropertyJSONElementVisitor（**元素访问器**——遍历注解元素收集元数据）→ writeMetadata（:64——**Filer 写入 JSON 文件**））；**FilerProcessor/ResourceProcessor**（Filer 资源写入工具）
+- **对比取舍**：**知识增量：编译期元数据生成的完整流程**（APT 生命周期：SupportedAnnotationTypes → init → process → Filer 输出）；**编译期 vs 运行期**（类型安全 + 启动快 vs 反射）
+- **my-xhs**：**该用没用**——自定义注解处理器参考（若做编译期校验/生成）
+
+#### KP-146b lang-model 语言模型工具（lang-model 16 文件）
+
+- **维度**：[规范] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium（部分深读）
+- **前置**：javax.lang.model（Element/TypeMirror/AnnotationValue）、注解处理
+- **需求**：**语言模型 API 封装**——Element/Type/AnnotationValue 的工具化
+- **参考实现**：**工具家族**（ElementUtils/TypeUtils/MethodUtils/FieldUtils/ConstructorUtils/MemberUtils/AnnotationUtils/LoggerUtils/MessagerUtils——**javax.lang.model 各对象的工具化**）；**JSON 访问器**（JSONElementVisitor/JSONAnnotationValueVisitor/AnnotatedElementJSONElementVisitor——**Element → JSON 序列化**（配合 KP-146a 元数据生成））；**ResolvableAnnotationValueVisitor/StringAnnotationValue**（注解值访问器）；ExecutableElementComparator
+- **对比取舍**：**知识增量**：javax.lang.model 的**完整工具化**（Spring 无此层）；Element → JSON 访问器（编译期元数据化的基础设施）
+- **my-xhs**：**该用没用**——语言模型工具参考（注解处理场景）
+
+#### KP-146c jdk-tools（1 文件）
+
+- **维度**：[规范] | **权重**：[边缘] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Low（未读）
+- **前置**：JavaCompiler API
+- **需求**：JDK 工具桥接（compiler/annotation processing API）
+- **my-xhs**：**不该用**
 
 #### KP-120 `QueueUtils`/`SetUtils`/`ListUtils` 专用工具（QueueUtils.java:52-146 + SetUtils.java:74-890 + ListUtils.java:73-738）
 
