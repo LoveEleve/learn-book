@@ -63,7 +63,7 @@
 ### 3.2 LoadBalancer 优化版 Supplier + 装饰链 [🔴 P1] [时间无关模式]
 - **来源**：KP-516（CustomizedLoadBalancer* + ZonePreferenceServiceInstanceListSupplier）
 - **机制**：**官方同名重写**（extends DelegatingServiceInstanceListSupplier :34——与官方 `org.springframework.cloud.loadbalancer.core.ZonePreferenceServiceInstanceListSupplier` 同名——IDE import 混淆风险）；**builder 装饰链**（withDiscoveryClient().withCaching().with(ZonePreference... ) :64-67——官方扩展点）；**双栈配置**（Reactive/Blocking @Order 193827465/466 :54-72）；**客户端级条件**（LoadBalancerEnvironmentPropertyUtils "configurations"=optimized-zone-preference :97-98）；**默认关闭**（customized=true 才装配——不干扰官方）
-- **my-xhs**：已用——ZonePreferenceServiceInstanceListSupplier 同名移植 + ZoneLoadBalancerConfiguration（[待深读 Medium]）
+- **my-xhs**：已用（已深读）——ZonePreferenceServiceInstanceListSupplier 逐行同构移植 + ZoneLoadBalancerConfiguration（单级装配/开关合并/双内部类互斥——R1 条件矛盾同样存在）
 
 ### 3.3 Ribbon 集成（过时适配）[🔴 P2] [过时→替代]
 - **来源**：KP-518（netflix 族）
@@ -121,7 +121,7 @@
 | 单例 Bean 化（KP-512） | `zone/ZoneContextAutoConfiguration.java:26-46` | @ConfigurationProperties 绑定替代 SpringFactories 双通道 |
 | 条件注解（KP-513） | ZoneContextAutoConfiguration:17 | @ConditionalOnProperty matchIfMissing=true（单层） |
 | 实例元数据解析（KP-515） | `zone/loadbalancer/ServiceInstanceZoneResolver.java` | 同构 |
-| LoadBalancer Supplier（KP-516） | `zone/loadbalancer/ZonePreferenceServiceInstanceListSupplier.java` + `ZoneLoadBalancerConfiguration.java` | 同名移植（官方 SCL 同名风险同样存在）；[待深读 Medium] |
+| LoadBalancer Supplier（KP-516） | `zone/loadbalancer/ZonePreferenceServiceInstanceListSupplier.java` + `ZoneLoadBalancerConfiguration.java` | 逐行同构移植（:19-38）+ 单级装配（无子上下文）/开关合并（preference.enabled）/双内部类同名互斥——**R1 条件矛盾同样存在**；ServiceInstanceZoneResolver 补 null 防御 |
 | 事件消费（KP-510 消费侧） | `zone/datasource/DynamicDataSource.java:88/:101` | **原生 PropertyChangeListener 切换数据源**——比微球 Spring 事件桥接更直接 |
 
 ### 6.2 真实差距（该用没用 5 KP）[实证]
