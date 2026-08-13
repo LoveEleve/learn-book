@@ -43,13 +43,13 @@ microsphere-source/
     ├── 06-microsphere-multiactive-多活区域路由知识大纲.md 5 维度 16 KP ✅
     ├── 07-microsphere-dynamic-动态多数据源知识大纲.md 5 维度 20 KP ✅
     ├── 08-microsphere-configuration-配置中心注解化知识大纲.md 2 维度 3 KP ✅
-    └── 09-microsphere-gateway-动态端点路由知识大纲.md 4 维度 5 KP ✅（本会话）
+    └── 09-microsphere-gateway-动态端点路由知识大纲.md 5 维度 7 KP ✅（本会话）
 progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 ```
 
 ---
 
-## 三、已完成状态（9/36 仓库，202 KP + 9 outline——含 02 补提取 3 KP + 08 问题域补 2 KP）
+## 三、已完成状态（9/36 仓库，204 KP + 9 outline——含 02 补提取 3 KP + 08/09 问题域补 4 KP）
 
 | # | 仓库 | 生产文件 | KP | 关键知识点 | outline |
 |---|------|:---:|:---:|-----------|:---:|
@@ -61,10 +61,10 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 | 06 | **microsphere-multiactive** | **31** | **16** | **Zone 自动发现 SPI（supports/locate）、ZoneContext 全局单例+双事件桥接、三重保护区域路由、云元数据探测、注册元数据闭环、Ribbon/Eureka 适配** | ✅ |
 | 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
 | 08 | **microsphere-configuration** | **11** | **5** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 双模式、Apollo 克隆替换热更新、自研 Nacos OpenAPI 客户端、三层层级抽象、历史 4 缺陷证实（D1-D4）** | ✅ |
-| 09 | **microsphere-gateway** | **28** | **5** | **we:// 端点粒度动态路由（vs 官方 lb:// 服务粒度）、Filter 链缓存+事件重建、心跳禁用与刷新传播（G1 断链根源）、WebFlux/MVC 双栈、G1-G15 缺陷表 10/15 已证** | ✅ |
+| 09 | **microsphere-gateway** | **28** | **7** | **we:// 端点粒度动态路由、Filter 链缓存+事件重建、心跳禁用（G1 断链根源）、双栈、metadata 协议链路（G11/G12 根源）、演进史重构损失、G1-G15 缺陷表 15/15 全部证实** | ✅ |
 | 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
 | 08 | **microsphere-configuration** | **11** | **5** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 双模式、Apollo 克隆替换热更新、自研 Nacos OpenAPI 客户端、三层层级抽象、历史 4 缺陷证实（D1-D4）** | ✅ |
-| 09 | **microsphere-gateway** | **28** | **5** | **we:// 端点粒度动态路由（vs 官方 lb:// 服务粒度）、Filter 链缓存+事件重建、心跳禁用与刷新传播（G1 断链根源）、WebFlux/MVC 双栈、G1-G15 缺陷表 10/15 已证** | ✅ |
+| 09 | **microsphere-gateway** | **28** | **7** | **we:// 端点粒度动态路由、Filter 链缓存+事件重建、心跳禁用（G1 断链根源）、双栈、metadata 协议链路（G11/G12 根源）、演进史重构损失、G1-G15 缺陷表 15/15 全部证实** | ✅ |
 
 **依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud → multiactive → dynamic ✅（00 SOP §3.2 主线 + 应用层 2 仓走完）
 
@@ -170,7 +170,7 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 | 仓库 | 历史缺陷表 |
 |------|-----------|
 | 18-dynamic | REQ 8 项 + 14 篇分析（与 multiactive ZoneContextChangedEvent 消费方强关联——**ZoneContextChangedListener 发布的事件由 dynamic 侧消费**——历史 17-07 提到） |
-| 16-gateway | ✅ 已清（本会话 10/15 证实——G1/G2/G3/G4/G5/G7/G8/G9/G13/G14/G15；G6/G10/G11/G12 待后续） |
+| 16-gateway | ✅ 已清（本会话 **15/15 全部证实**——G1-G15 清零） |
 | 17-multiactive | ✅ 已清（本会话） |
 | 09-observability | **P1：@EventListener(ApplicationPreparedEvent) 时序错误**（Kafka Appender 永不挂载）——三重验证结论 |
 | 14-druid | switch fallthrough bug（P2）——BeanSource 复用教训 |
