@@ -111,3 +111,19 @@
 
 **汇总**：已用 1 / 该用没用 1 / 不该用 2。
 **核心结论**：my-xhs 官方可观测性栈覆盖（logback + actuator + micrometer）；**P1 时序教训**为最大可迁移知识（自动配置事件监听时序）。
+
+### 深度 review 补充（问题域对照轮——历史 09 篇 4 篇分析）
+
+#### KP-1005 问题域补充（P2 @ConditionalOnBean 语义 + earlyApplicationEvents + 死代码清单 + 问题清单验证）
+
+- **维度**：[工程问题]（条件注解语义）| **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：@ConditionalOnBean name vs value 语义（Boot 官方）、bean 名生成规则（方法名）、earlyApplicationEvents 机制（AbstractApplicationContext）
+- **需求**：**第二个严重 bug 验证 + P1 机制补全**（历史 09-03 三层证据链 + 09-01 4.4）
+- **参考实现**：**P2 缺陷（历史 09-03 三层证据链全部源码验证）**：`@ConditionalOnBean(name = "io.micrometer.core.instrument.Clock")`（ConditionalOnEnabledPrometheusMetricsExport:42——**类全限定名传给 name 参数**）vs 官方 Clock bean 名 **"micrometerClock"**（MetricsAutoConfiguration.java:54——**按方法名生成 bean 名**——本地 spring-boot 源码实证）——**name 按 bean 名匹配（containsBean）非类名——条件永不匹配**——**@ConditionalOnBean 家族语义**（name=bean 名/value=类——**同名注解家族内部语义不一致**（历史 09-03 :45）——**Prometheus 导出条件永久失效**（连锁：导出配置不生效——与 P1 同族"静默失效"）；**P1 机制补全——earlyApplicationEvents**（历史 09-01 4.4 :228——AbstractApplicationContext.earlyApplicationEvents 缓冲早期事件——**为何没救到**：@EventListener 方法未注册时事件进 earlyApplicationEvents 缓冲——但**应用监听器（spring.factories 的）会立即收到**——@EventListener 的注册发生在 refresh 的 EventListenerMethodProcessor 阶段——**早于该阶段的事件（Prepared）不进早缓冲投递路径**——细节待深读）；**死代码清单**（MBeanAttributeMeterBinder 接口 :39——**骨架无实现**（历史 09-02 :109——"死代码的完整设计"）；CompositeFilter :36——**TODO 未完成**（历史 09-01 6.5））；**Sentinel 两实现两隐患**（历史 09-02 :162/:188——两套实现并存原因 + 两个隐患——待深读）；**P6Spy 两问题**（历史 09-02 :190/:211——待深读）；**测试基建缺陷**（历史 09-03 :114——spring-boot 侧 3 个"装配完成=通过"浅层测试 vs micrometer 侧真断言——**测试深度不齐**）
+- **对比取舍**：**知识增量**：①**@ConditionalOnBean name/value 语义陷阱**（:42——**类名 vs bean 名**——条件注解家族最常见的错误（与 06 FILER/08 contains 同族——**API 语义细节错误家族再添例**）；②**P1/P2 共性**（历史 09-03 :79——**都是"静默失效"**（永不触发/永不匹配——无报错——生产难发现）——**静默失效家族**（P1 时序 + P2 语义 + G15 无日志——跨仓库呼应）；③**死代码清单方法论**（MBean 骨架/CompositeFilter TODO——**接口先行无实现的"设计文档式代码"**）
+- **my-xhs**：**该用没用（实证）**——my-xhs 用官方 Prometheus 导出（无自写条件注解）；**@ConditionalOnBean 语义教训直接适用**（my-xhs 自写条件注解时 name/value 区分——若未来自写）
+
+### 包总结（问题域补充）
+
+- **核心命题**：**"静默失效家族 + 条件注解语义"**——P1（时序）+ P2（name/value 语义）+ G15（无日志）——**三种静默失效模式**跨仓库汇总
+- **验证成果**：P2 三层证据链全证实（:42 + 官方 :54）；死代码 2 处证实（MBean 骨架/CompositeFilter TODO）；Sentinel/P6Spy 隐患待深读
