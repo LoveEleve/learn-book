@@ -143,7 +143,17 @@ microsphere-source/
 | 17-multiactive | ✅ 已清（REQ-001~004 + 1 证伪） |
 | 18-dynamic | ✅ 已清（REQ-001~005 + ha-datasource 表述修正） |
 
-**待验证残留**（各 mapping 内部标注——后续顺手确认）：02 KP-117 of10MethodHandle / 03 KP-304/406 Medium / 07 KP-503 整数除法边界 / 10 REQ-003 监控 + D02/D03/D04 部分 / 12 MP 5 签名 + D01-D06 / 11 I18nLogger 空方法 / 09 G6 细节
+**待验证残留**（深度 review 核对：mapping 全库含 **37 处"待验证/待深读/待补扫/待后续"字样**——多数为批过程标注（批 2 的 [待补扫断言] 在批 3-6 已扫——未清理的历史标注）；**跨批确认的最终残留 9 项**（后续顺手确认）：
+- 02 KP-117 of10MethodHandle（10 参 handle 无对应公开重载）
+- 02/01 部分工具类测试缺口（FileUtils/FilterUtils NPE 边界 [待验证]）
+- 03 KP-304/406 Medium 置信度项
+- 07 KP-503 就绪率整数除法边界
+- 10 REQ-003 监控 + D02/D03/D04 部分
+- 12 MP 5 签名 + D01-D06
+- 11 I18nLogger 空方法
+- 09 G6 细节（MVC static 缓存——已部分证实 :44）
+- 14 Sentinel/P6Spy 隐患细节
+**建议**：以各 mapping 内 [待验证] 标注为准——提取时顺手核对并清理过程标注
 
 ---
 
@@ -178,7 +188,7 @@ microsphere-source/
 
 - 仓库：`/data/workspace/source-code/book/成长之路`，分支 `fresh`，远端 `git@github.com:LoveEleve/learn-book.git`
 - **只提交 microsphere-source 相关文件**；不碰 source-analysis/issue、talk-method 等他人未提交改动（git status 中始终存在——勿 add）
-- 本会话 commit 范围：`a5e4f88`（06 multiactive 起）~ `fb1f4e4`（L2 review 止）——30 个 commit（07-14 仓 + L2 + HANDOVER 系列）
+- 本会话 commit 范围：`a5e4f88`（06 multiactive 起）~ `2844604`（本文档）——**29 个 commit**（深度 review 核对：a5e4f88..2844604 = 29；a5e4f88..fb1f4e4 = 28——L2 review 前为 28）
 
 ---
 
