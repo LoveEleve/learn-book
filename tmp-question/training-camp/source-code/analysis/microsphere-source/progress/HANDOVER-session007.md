@@ -69,6 +69,7 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 3. **测试同步扫描**（02 §2.1）——测试断言写入"测试扫描记录"表
 4. **outline 必产**——每仓库完成后**必须**产 outline（曾漏 boot/cloud 两个，已补）
 5. **outline 粒度**——每 KP 独立条目（或 2-3 同主题合并且各自列出），覆盖表声称 N/N 必须正文有对应条目（曾两次"覆盖表 53/53 但正文缺 25 条"）
+6. **my-xhs 判定实证先行（session007 新增铁律）**——"已用"判定必须先查 my-xhs 代码（MCP data-workspace-my-xhs 索引 + 文件清单 + diff 对照）再写，禁止凭印象（曾 16 KP 判定错 12 个——my-xhs 已整体移植 zone 机制却标"该用没用"）
 
 ### 4.2 历史 REQ 交叉验证（重大价值——本会话最大发现）
 
@@ -97,10 +98,16 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 | R3 | Ec2 supports 恒 true → 非 AWS 环境启动 +3s（IMDS 超时） | Ec2AvailabilityZoneEndpointZoneLocator:35-36 | High |
 | X1 | **⑤b 引用目标修正**：本地无 spring-cloud-loadbalancer 源码/jar（find 全盘实证）——官方类断言（"官方仅按 zone 过滤"）降置信度 Medium + 标注 | — | — |
 
-### 4.4 my-xhs 判定
+### 4.4 my-xhs 判定（2026-08-13 实证修正——本会话最大教训）
 
-每 KP 保留 my-xhs 判定（用户明确要求，勿删勿瘦身）。判定三分法：已用（链接）/该用没用（差距清单）/不该用（理由）。
-本会话汇总：multiactive 16 KP = **该用没用 13 / 已用 1（KP-515 服务 metadata 读 zone）/ 不该用 4**——核心差距 **my-xhs 多活/区域路由**（官方 SCL ZonePreference 覆盖基础版）。
+**判定三分法必须实证，禁止凭印象**——本会话首版 16 KP 判定（已用 1/该用没用 13）**错误率 12/16**：my-xhs 实际已整体移植 zone 机制（`my-xhs-common/.../com/myxhs/common/zone/` 17 文件 + 4 测试）——"已用"判定全部经代码实证（MCP 搜索 + 文件清单 + diff 对照）后才确认。
+
+**my-xhs zone 包实证结论**：
+- **移植（已用 10 KP）**：ZoneContext/ZoneResolver/ZonePreferenceFilter/ZoneConstants（diff 实证逐字段对应 + 现代化改写 @Slf4j/@ConfigurationProperties/私有构造）+ 单例 Bean 化（ZoneContextAutoConfiguration:26-46）+ 条件注解 + ServiceInstanceZoneResolver + ZonePreferenceServiceInstanceListSupplier（同名移植）+ DynamicDataSource 原生 PropertyChangeListener 消费（:88/:101）
+- **差距（该用没用 5 KP）**：supports/locate 多源 SPI、组合定位器 fast-fail、云元数据探测族——my-xhs 用系统属性→Nacos metadata→defaultZone 单通道替代（ZoneContextAutoConfiguration:41-42）；注册前附加被 Nacos 配置声明替代
+- **自主增量（微球没有）**：`zone/redis/` 族 7 文件（多活 Redis 命令拦截与事件化）+ `zone/datasource/DynamicDataSource`（zone 变更→数据源切换——**与 dynamic 仓库强关联**）+ zone/loadbalancer/
+
+**教训（写入铁律）**：my-xhs 判定 = 提取层的实证动作（MCP 搜索 data-workspace-my-xhs + 文件清单 + diff），不是写作时的猜测——**每 KP 判定前先查 my-xhs 索引**。
 
 ---
 
