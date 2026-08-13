@@ -1,10 +1,10 @@
 # Microsphere Spring 扩展机制知识大纲（microsphere-spring 触发面）
 
-> 来源：`mapping/03-microsphere-spring.md` 27 个 KP 的知识本体提炼
+> 来源：`mapping/03-microsphere-spring.md` 33 个 KP 的知识本体提炼
 > 性质：**源码侧 outline（L1.5）**——mapping 是文件映射（过程），本大纲是知识本体（结果）
 > 组织：按知识维度，非按文件；每个知识点标注来源 KP + 六元元数据 + 现代替代
 > 用途：①自学/面试知识图谱（Spring 扩展机制）②与课程 L1 合并成 L3 的源码侧素材 ③与 Spring 官方源码对照（本地有）
-> 覆盖核对：27/27 KP 全部归属（文末核对表）
+> 覆盖核对：33/33 KP 全部归属（文末核对表）
 
 ---
 
@@ -61,6 +61,16 @@
 - **机制**：`GenericBeanPostProcessorAdapter<T>`——构造解析泛型实参（:47）→ 只对匹配类型 Bean 生效（类型过滤内建，免强转）
 - **my-xhs**：该用没用——自定义 BPP 参考（通用模式）
 
+### 2.6 注解驱动 @Import 模板 + 可选导入 [🔴 P1] [时间无关模式]
+- **来源**：KP-211/211b/211c
+- **机制**：**ImportSelector 模板化**（AnnotatedBeanCapableImportCandidate → Selector——泛型注解类型 ResolvableType 解析 + final selectImports 模板）+ **ResolvablePlaceholderAnnotationAttributes**（注解属性支持 ${placeholder}——Spring 官方缺失）+ **isEnabled 环境开关**（两级回退默认 true）+ **@ImportOptional**（类存在性探测，不存在跳过——Spring @Import 硬失败的容错版）+ @OverrideAnnotationAttributes 策略化覆盖
+- **my-xhs**：该用没用——自定义 @EnableXxx 模板基座参考
+
+### 2.7 跨生态转换桥 [🔴 P1] [时间无关模式]
+- **来源**：KP-216
+- **机制**：`SpringConverterAdapter implements ConditionalGenericConverter`——SPI 加载全部 microsphere Converter → ConvertiblePair 双键映射 → **无缝接入 Spring ConversionService**（生态整合范式）
+- **my-xhs**：该用没用——自定义 Converter 接入 Spring 参考
+
 ---
 
 ## 三、配置管理扩展 [分布式问题]
@@ -111,15 +121,15 @@
 
 ---
 
-## 覆盖核对（27/27）
+## 覆盖核对（33/33）
 
 | 维度 | 覆盖 KP | 数 |
 |------|---------|:--:|
 | 一、生态适配 | 202,206,217,224 | 4 |
-| 二、Spring 扩展点 | 201,203,204,205,207,208,209,210,214,226 | 10 |
-| 三、配置管理 | 212,213,215,216 | 4 |
-| 四、Web 层 | 221,222,223,224,225 | 5 |
-| 五、缓存/SQL | 217,218,226,227 | 4 |
+| 二、Spring 扩展点 | 201,203,204,205,207,208,209,210,211,211b,211c,211d,214,216,216b,226,228 | 17 |
+| 三、配置管理 | 212,213,215,216c | 4 |
+| 四、Web 层 | 221,222,223,224,225,227 | 6 |
+| 五、缓存/SQL | 217,218,226 | 3 |
 
-**去重后唯一 KP**：201-227 全部 = **27/27 ✓**（KP-217 双归属 一/五；KP-224 双归属 一/四；KP-226 双归属 二/五）
-**无孤儿 KP** ✓
+**去重后唯一 KP**：201-228（含 211b-d/216b-c 拆分）全部 = **33/33 ✓**
+**无孤儿 KP** ✓（KP-216 双归属 二/三；KP-224 双归属 一/四；KP-226 双归属 二/五）
