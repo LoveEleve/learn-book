@@ -31,7 +31,8 @@ microsphere-source/
 │   ├── 04-microsphere-spring-boot.md   17 KP ✅
 │   ├── 05-microsphere-spring-cloud.md  15 KP ✅
 │   ├── 06-microsphere-multiactive.md   16 KP ✅
-│   └── 07-microsphere-dynamic.md      20 KP ✅（本会话）
+│   ├── 07-microsphere-dynamic.md      20 KP ✅
+│   └── 08-microsphere-configuration.md  3 KP ✅（本会话）
 └── outline/                            ← 源码侧知识大纲（L1.5，每仓库必产）
     ├── 01-confucius-commons-jdk知识大纲.md       7 维度 35 KP ✅
     ├── 02-microsphere-java-生态设计模式知识大纲.md 9 维度 53 KP ✅
@@ -39,13 +40,14 @@ microsphere-source/
     ├── 04-microsphere-spring-boot-扩展机制知识大纲.md 4 维度 12 节 17 KP ✅
     ├── 05-microsphere-spring-cloud-服务治理知识大纲.md 5 维度 11 节 15 KP ✅
     ├── 06-microsphere-multiactive-多活区域路由知识大纲.md 5 维度 16 KP ✅
-    └── 07-microsphere-dynamic-动态多数据源知识大纲.md 5 维度 20 KP ✅（本会话）
+    ├── 07-microsphere-dynamic-动态多数据源知识大纲.md 5 维度 20 KP ✅
+    └── 08-microsphere-configuration-配置中心注解化知识大纲.md 2 维度 3 KP ✅（本会话）
 progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 ```
 
 ---
 
-## 三、已完成状态（7/36 仓库，192 KP + 7 outline——含 02 深度 review 补提取 3 KP）
+## 三、已完成状态（8/36 仓库，195 KP + 8 outline——含 02 深度 review 补提取 3 KP）
 
 | # | 仓库 | 生产文件 | KP | 关键知识点 | outline |
 |---|------|:---:|:---:|-----------|:---:|
@@ -56,11 +58,13 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 | 05 | microsphere-spring-cloud | 78 | 15 | Union 多注册（短路 vs 全量）、注册四态事件、Feign 配置热更新、平滑加权轮询 | ✅ |
 | 06 | **microsphere-multiactive** | **31** | **16** | **Zone 自动发现 SPI（supports/locate）、ZoneContext 全局单例+双事件桥接、三重保护区域路由、云元数据探测、注册元数据闭环、Ribbon/Eureka 适配** | ✅ |
 | 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
+| 08 | **microsphere-configuration** | **11** | **3** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 两种扩展模式并存、Apollo PropertySource 克隆替换热更新、自研 Nacos OpenAPI 客户端、拼写错误第 4/5 例（Porperty/Cient）** | ✅ |
 | 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
+| 08 | **microsphere-configuration** | **11** | **3** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 两种扩展模式并存、Apollo PropertySource 克隆替换热更新、自研 Nacos OpenAPI 客户端、拼写错误第 4/5 例（Porperty/Cient）** | ✅ |
 
 **依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud → multiactive → dynamic ✅（00 SOP §3.2 主线 + 应用层 2 仓走完）
 
-**剩余 28 仓库**（按依赖链 + stage-4 关联度建议；数字为**生产文件数**）：configuration（11 小仓快）→ gateway（28）→ nacos（128）→ redis（86）→ 其余
+**剩余 27 仓库**（按依赖链 + stage-4 关联度建议；数字为**生产文件数**）：gateway（28）→ nacos（128）→ redis（86）→ 其余
 
 ---
 
@@ -191,6 +195,6 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 
 1. **必读**：本文 + `method/01-现代实现映射与自主落地.md`（方法论）+ `discussion/2026-08-12-方向规划.md`（方向）
 2. **流程**（每仓库）：建 MCP 索引（index_repository）→ 读上下文（README/pom/包结构）→ 分批提取（≤10 文件/批，穷尽性核对先行）→ 测试扫描 → 历史 REQ 缺陷交叉验证 → 七项 review 报告 → outline → 提交推送
-3. **参考**：`mapping/01-06` 的格式与粒度（KP 编号：01 仓库 KP-01~35 / 02 仓库 KP-101~120（含子编号） / 03 仓库 KP-201~228 / 04 仓库 KP-301~317 / 05 仓库 KP-401~415 / 06 仓库 KP-501~518 / 07 仓库 KP-601~620——**下个仓库从 701 开始**）
+3. **参考**：`mapping/01-06` 的格式与粒度（KP 编号：01 仓库 KP-01~35 / 02 仓库 KP-101~120（含子编号） / 03 仓库 KP-201~228 / 04 仓库 KP-301~317 / 05 仓库 KP-401~415 / 06 仓库 KP-501~518 / 07 仓库 KP-601~620 / 08 仓库 KP-701~703——**下个仓库从 801 开始**）
 4. **工具**：MCP 索引已建（confucius/java/spring/boot/cloud + multiactive + 历史仓库等）
 5. **源码位置**：confucius 在 `source-code/code/microsphere/`；java/spring/boot 在 `cloud-native-code/share/`；spring-cloud/multiactive/configuration/dynamic/gateway/redis 在 `cloud-native-code/stage-4/`（注意：实际完整路径前缀是 `/data/workspace/java-training-camp/cloud-native-code/`）
