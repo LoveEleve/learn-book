@@ -31,7 +31,7 @@
 - **前置**：Spring Cloud DiscoveryClient/CompositeDiscoveryClient（官方多注册中心合并）、多注册中心场景
 - **需求**：**多注册中心全量合并**——应用同时注册到 Nacos + Eureka 等，查询时**合并所有注册中心结果**（非短路）
 - **参考实现**：**聚合发现**（implements DiscoveryClient :54 + **union 合并语义**（getInstances :88-98——**遍历所有 client 收集并集**（非空才加入 :93——跳过空结果）；getServices :112-120——**Set 去重合并**））；**懒加载 + 排除**（getDiscoveryClients :128-145——**SmartInitializingSingleton 后初始化**（容器就绪后收集）+ **排除 CompositeDiscoveryClient 与自身**（:135-138——**防递归**（官方 Composite 已被排除，自身也排除——避免重复/循环）））；**生命周期**（ApplicationContextAware + SmartInitializingSingleton + DisposableBean :54）
-- **对比取舍**：**知识增量**：①**与官方 CompositeDiscoveryClient 的本质差异**（官方源码实证 CompositeDiscoveryClient.java:51-59——**first-match 短路**（第一个非空即返回）；microsphere Union 是**全量 union 合并**（所有非空结果合并）——**"短路优先" vs "全量合并"两种多注册中心语义**——测试实证（UnionDiscoveryClientTest :78-81——内部列表含 Union/Simple/Dummy）；②**排除 Composite 与自身**（:135-138——防递归的容器收集设计）；③**session005 交接 [未找到] → 本仓库实证**（历史疑问解决）
+- **对比取舍**：**知识增量**：①**与官方 CompositeDiscoveryClient 的本质差异**（官方源码实证 CompositeDiscoveryClient.java:51-59——**first-match 短路**（第一个非空即返回）；microsphere Union 是**全量 union 合并**（所有非空结果合并）——**"短路优先" vs "全量合并"两种多注册中心语义**——测试实证（UnionDiscoveryClientTest :78-81——内部列表含 Union/Simple/Dummy）；②**排除 Composite 与自身**（:135-138——防递归的容器收集设计）；③**缺陷：getInstances 无去重**（:88-98 addAll 直接合并——同一实例在多注册中心重复注册时会返回重复（历史 REQ D04 同发现——交叉验证）——正确应如 getServices 用 Set 去重）
 - **my-xhs**：**该用没用**——多注册中心全量合并场景（my-xhs 若同时用 Nacos + 其他）；官方 Composite（短路优先）覆盖多注册基础
 
 #### KP-402 `ReactiveDiscoveryClientAdapter` 响应式发现适配（ReactiveDiscoveryClientAdapter.java:38-105）
@@ -98,13 +98,13 @@
 - **my-xhs**：**该用没用**
 ### 包: `io.microsphere.spring.cloud.fault`（批 2a：5 文件）
 
-#### KP-410 `WeightedRoundRobin` 加权轮询（WeightedRoundRobin.java:12-118 + LoadBalancerUtils + TomcatFaultToleranceAutoConfiguration）
+#### KP-410 `WeightedRoundRobin` 加权轮询数据载体（WeightedRoundRobin.java:12-166 + LoadBalancerUtils + TomcatFaultToleranceAutoConfiguration）
 
-- **维度**：[分布式问题]（负载均衡）| **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（加权算法） | **置信度**：High
-- **前置**：加权轮询算法（平滑加权）、LongAdder、Nacos 权重模型
-- **需求**：**平滑加权轮询的权重载体**——权重可动态调整的轮询节点（Nacos 权重负载均衡的配套）
-- **参考实现**：**LongAdder 计数器**（:18——**高并发计数**（无 CAS 竞争））；**权重调整重置**（setWeight :79-82——**改权重重置计数器**）；**核心算法**（increaseCurrent :98-101——**当前值加权重**；sel :117-118——**总权重的减法**（平滑加权轮询的调度语义））
-- **对比取舍**：**知识增量**：①**平滑加权轮询数据结构**（current + weight 双字段——Nginx 平滑加权算法）；②**LongAdder 高并发**（vs AtomicLong——竞争优化）；③**动态权重**（setWeight 重置——动态调权）
+- **维度**：[分布式问题]（负载均衡）| **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（加权数据结构） | **置信度**：High
+- **前置**：加权轮询算法（Nginx/Nacos 平滑加权）、LongAdder、动态权重
+- **需求**：**加权轮询的节点数据结构**——权重可动态调整的轮询节点（Nacos 权重负载均衡的配套）
+- **参考实现**：**LongAdder 计数器**（:18——**高并发计数**（无 CAS 竞争））；**权重调整重置**（setWeight :79-82——**改权重重置计数器**）；**两个核心操作**（increaseCurrent :98-101——**当前值加权重**；sel :117-119——**总权重减法**——**注意：这只是数据载体（两个操作），非完整算法**（Nacos 版 WeightedRR 有 select 循环做节点选择——本类无选择逻辑，由 LoadBalancerUtils 配合使用——历史 REQ D07 "完整实现"同发现：缺 select）
+- **对比取舍**：**知识增量**：①**平滑加权轮询的数据结构**（current + weight 双字段 + 两操作——Nginx 平滑加权算法的载体部分）；②**LongAdder 高并发**（vs AtomicLong——竞争优化）；③**动态权重**（setWeight 重置——动态调权）；④**定位辨析**：数据结构 vs 完整算法（选择逻辑在 LoadBalancerUtils——设计拆分）
 - **my-xhs**：**该用没用**——加权负载均衡（my-xhs 若做权重路由）；Spring Cloud LoadBalancer 有 Weighted 实现
 
 #### KP-411 Tomcat 容错（TomcatFaultToleranceAutoConfiguration:56-90 + TomcatDynamicConfigurationListener + FaultTolerancePropertyConstants）
@@ -132,7 +132,7 @@
 - **前置**：FeignClientFactoryBean/NamedContextFactory/FeignClientSpecification（Spring Cloud OpenFeign）、ApplicationReadyEvent、配置变更
 - **需求**：**Feign 客户端配置热更新**——Feign 配置变更（如负载均衡规则）自动重建客户端（官方 @RefreshScope 外的完整刷新方案）
 - **参考实现**：**触发链**（@ConditionalOnOpenFeignAvailable + @ConditionalOnClass 双类 + @ConditionalOnBean(Marker) :31-36——**条件装配**；@AutoConfigureAfter 官方 Feign + microsphere Specification :37-40；**ApplicationReadyEvent 注册监听**（:49-55——**启动后注册配置变更监听器**））；**自动刷新家族**（autorefresh 6 文件——AutoRefreshCapability/AutoRefreshCapabilityCustomizer/EnableFeignAutoRefresh/FeignClientConfigurationChangedListener/**FeignComponentRegistry**（:67——**组件注册表**（FeignClientProperties.getDefaultConfig + beanFactory——**按配置名管理 Feign 组件**）））
-- **对比取舍**：**知识增量**：①**Feign 配置热更新的完整方案**（Spring Cloud 官方 @RefreshScope 只能刷新属性，Feign 组件重建需子上下文——microsphere 用注册表 + 变更监听）；②**组件注册表模式**（FeignComponentRegistry——按配置名管理组件实例）
+- **对比取舍**：**知识增量**：①**Feign 配置热更新的完整方案**（Spring Cloud 官方 @RefreshScope 只能刷新属性，Feign 组件重建需子上下文——microsphere 用注册表 + 变更监听）；②**组件注册表模式**（FeignComponentRegistry——按配置名管理组件实例）；③**缺陷（历史 REQ 交叉验证）**：**FeignClientConfigurationChangedListener 无子属性 key 崩溃**（:80-82——`str.substring(0, index)` 当 key 无子属性时 index=-1 → StringIndexOutOfBoundsException——运行期崩溃，历史 REQ D02 同发现）；**CompositedRequestInterceptor.refresh() NPE**（:129-130——`config.get(properties.getDefaultConfig())` 无键返回 null → 方法引用 NPE，历史 REQ D03 同发现）
 - **my-xhs**：**该用没用**——Feign 配置热更新（my-xhs 负载均衡策略动态调整）；官方 @RefreshScope 覆盖属性级
 
 #### KP-414 装饰组件家族（DecoratedFeignComponent:23-68 + Decorated 7 变体 + Refreshable + CompositedRequestInterceptor）
