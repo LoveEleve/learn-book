@@ -51,13 +51,14 @@ microsphere-source/
     ├── 10-microsphere-redis-基础设施增强知识大纲.md 4 维度 6 KP ✅
     ├── 11-microsphere-observability-可观测性增强知识大纲.md 3 维度 4 KP ✅
     ├── 12-microsphere-mybatis-executor增强知识大纲.md 4 维度 6 KP ✅
-    └── 13-microsphere-alibaba-druid-连接池增强知识大纲.md 3 维度 3 KP ✅（本会话）
+    ├── 13-microsphere-alibaba-druid-连接池增强知识大纲.md 3 维度 3 KP ✅
+    └── 14-microsphere-sentinel-流控集成知识大纲.md 2 维度 3 KP ✅（本会话）
 progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 ```
 
 ---
 
-## 三、已完成状态（13/36 仓库，226 KP + 13 outline——含 02 补提取 3 KP + 08-13 问题域补 10 KP）
+## 三、已完成状态（14/36 仓库，229 KP + 14 outline——含 02 补提取 3 KP + 08-13 问题域补 10 KP）
 
 | # | 仓库 | 生产文件 | KP | 关键知识点 | outline |
 |---|------|:---:|:---:|-----------|:---:|
@@ -73,18 +74,20 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 | 10 | **microsphere-redis** | **86** | **7** | **命令拦截三回调+事件化（my-xhs zone/redis/ 族上游实证）、Kafka 逻辑复制、定长序列化家族、命令元数据+Doclet 生成、连接工厂 AOP 代理、问题域三主题（ThreadLocal 代价/双层代理/复制三陷阱 + V0/V1 版本化）** | ✅ |
 | 11 | **microsphere-observability** | **39** | **5** | **InMemoryAppender 启动缓冲 + P1 时序 bug（时序铁律）、SkipList 去重副作用、Filter 桥接、Micrometer 补全、问题域（P2 @ConditionalOnBean 语义陷阱 + 静默失效家族）** | ✅ |
 | 12 | **microsphere-mybatis** | **54** | **6** | **ExecutorFilter 过滤链（10/15 方法覆盖）、Interceptor 桥接、双 Enable 注解、测试解析器族（29 文件过半）、MP 生态对照、问题域（P1-P6 已证清单——P6 二级缓存短路/拼写第 7 例 Defintion）** | ✅ |
-| 13 | **microsphere-alibaba-druid** | **19** | **4** | **官方 Filter 491 方法三层收敛、三源装配、P2 switch fallthrough、问题域（P1 双开关冗余/P3 空壳/P4 占位符 + buildResourceName SQL AST + P2 根源跨仓库对照——BeanSource 复用 vs 手写 switch）** | ✅ |
+| 13 | **microsphere-alibaba-druid** | **19** | **4** | **官方 Filter 491 方法三层收敛、三源装配、P2 switch fallthrough、问题域（P1 双开关冗余/P3 空壳/P4 占位符 + buildResourceName SQL AST + P2 根源跨仓库对照）** | ✅ |
+| 14 | **microsphere-sentinel** | **30** | **3** | **模板 API（免样板）+ 插件 SPI（五元组）+ JMX 插件仓库、6 适配器统一模式（插件+框架扩展点双实现——5 类独有：MyBatis/Druid/Redis/P6Spy/Hibernate——官方无）、四重条件装配（跨仓库条件消费）** | ✅ |
 | 07 | **microsphere-dynamic** | **81** | **20** | **子上下文隔离架构（每单元独立 AnnotationConfigApplicationContext）、4 SPI×6 模块管道、事件驱动重建（ZoneContextChangedEvent 消费方实证）、动态数据源两种架构对照（重建 vs 预建池）、Import 三件套、ORM 模块对称** | ✅ |
 | 08 | **microsphere-configuration** | **11** | **5** | **配置中心注解化三件套（注解+Attributes+Loader）、Loader vs Registrar 双模式、Apollo 克隆替换热更新、自研 Nacos OpenAPI 客户端、三层层级抽象、历史 4 缺陷证实（D1-D4）** | ✅ |
 | 09 | **microsphere-gateway** | **28** | **7** | **we:// 端点粒度动态路由、Filter 链缓存+事件重建、心跳禁用（G1 断链根源）、双栈、metadata 协议链路（G11/G12 根源）、演进史重构损失、G1-G15 缺陷表 15/15 全部证实** | ✅ |
 | 10 | **microsphere-redis** | **86** | **7** | **命令拦截三回调+事件化（my-xhs zone/redis/ 族上游实证）、Kafka 逻辑复制、定长序列化家族、命令元数据+Doclet 生成、连接工厂 AOP 代理、问题域三主题（ThreadLocal 代价/双层代理/复制三陷阱 + V0/V1 版本化）** | ✅ |
 | 11 | **microsphere-observability** | **39** | **5** | **InMemoryAppender 启动缓冲 + P1 时序 bug（时序铁律）、SkipList 去重副作用、Filter 桥接、Micrometer 补全、问题域（P2 @ConditionalOnBean 语义陷阱 + 静默失效家族）** | ✅ |
 | 12 | **microsphere-mybatis** | **54** | **6** | **ExecutorFilter 过滤链（10/15 方法覆盖）、Interceptor 桥接、双 Enable 注解、测试解析器族（29 文件过半）、MP 生态对照、问题域（P1-P6 已证清单——P6 二级缓存短路/拼写第 7 例 Defintion）** | ✅ |
-| 13 | **microsphere-alibaba-druid** | **19** | **4** | **官方 Filter 491 方法三层收敛、三源装配、P2 switch fallthrough、问题域（P1 双开关冗余/P3 空壳/P4 占位符 + buildResourceName SQL AST + P2 根源跨仓库对照——BeanSource 复用 vs 手写 switch）** | ✅ |
+| 13 | **microsphere-alibaba-druid** | **19** | **4** | **官方 Filter 491 方法三层收敛、三源装配、P2 switch fallthrough、问题域（P1 双开关冗余/P3 空壳/P4 占位符 + buildResourceName SQL AST + P2 根源跨仓库对照）** | ✅ |
+| 14 | **microsphere-sentinel** | **30** | **3** | **模板 API（免样板）+ 插件 SPI（五元组）+ JMX 插件仓库、6 适配器统一模式（插件+框架扩展点双实现——5 类独有：MyBatis/Druid/Redis/P6Spy/Hibernate——官方无）、四重条件装配（跨仓库条件消费）** | ✅ |
 
 **依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud → multiactive → dynamic ✅（00 SOP §3.2 主线 + 应用层 2 仓走完）
 
-**剩余仓库决策（用户 2026-08-13）**：**全部移出提取队列**——sentinel（30）/alibaba-sentinel（30）/resilience4j（57）/dubbo（10）/tomcat/security（10）/netflix（8）为**官方生态封装**（知识本体在官方源码——另一 AI 系统性梳理）；etcd（8）/hibernate（15）/logging（33）/i18n（36）为**已提取模式同族重复**（08 configuration/07 ORM/11 observability 已覆盖模式）；bom/build/microsphere-test 非知识仓——**提取阶段结束（13/36 仓库，226 KP + 13 outline）**——进入收尾阶段（L2 聚合/L3 大纲/my-xhs 差距清单）
+**剩余仓库决策（用户 2026-08-13 修正）**：**sentinel（30 + alibaba-sentinel 30）恢复提取**（07-sentinel 历史材料丰富 + 5 类独有适配器——已完成：14 仓 3 KP）；**其余移出**——resilience4j（57）/dubbo（10）/tomcat/security（10）/netflix（8）为官方生态封装（另一 AI 梳理）；etcd（8）/hibernate（15）/logging（33）/i18n（36）为已提取模式同族重复；bom/build/microsphere-test 非知识仓——**提取阶段结束（14/36 仓库，229 KP + 14 outline）**——进入收尾阶段（L2 聚合/L3 大纲/my-xhs 差距清单）
 > **决策（用户 2026-08-13）**：**microsphere-nacos（128 文件）移出本提取队列**——手写 Nacos OpenAPI 客户端（openapi 118 + discovery-spring-cloud 10）——**由另一 AI 系统性梳理 Nacos 源码**——本队列不提取（避免重复劳动）；其知识本体（HTTP 客户端骨架/鉴权/序列化）已在 02/08 覆盖——若后续需要对照可在 L2 聚合时引用历史 06-REQ（含 HttpMethod.DELETE 写 "GET" :58 缺陷线索）
 
 ---
@@ -216,6 +219,6 @@ progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
 
 1. **必读**：本文 + `method/01-现代实现映射与自主落地.md`（方法论）+ `discussion/2026-08-12-方向规划.md`（方向）
 2. **流程**（每仓库）：建 MCP 索引（index_repository）→ 读上下文（README/pom/包结构）→ 分批提取（≤10 文件/批，穷尽性核对先行）→ 测试扫描 → 历史 REQ 缺陷交叉验证 → 七项 review 报告 → outline → 提交推送
-3. **参考**：`mapping/01-06` 的格式与粒度（KP 编号：01 仓库 KP-01~35 / 02 仓库 KP-101~120（含子编号） / 03 仓库 KP-201~228 / 04 仓库 KP-301~317 / 05 仓库 KP-401~415 / 06~10 仓库 KP-501~906 / 11 仓库 KP-1001~1004 / 12 仓库 KP-1101~1106 / 13 仓库 KP-1201~1203——**下个仓库从 1301 开始**）
+3. **参考**：`mapping/01-06` 的格式与粒度（KP 编号：01 仓库 KP-01~35 / 02 仓库 KP-101~120（含子编号） / 03 仓库 KP-201~228 / 04 仓库 KP-301~317 / 05 仓库 KP-401~415 / 06~10 仓库 KP-501~906 / 11 仓库 KP-1001~1004 / 12 仓库 KP-1101~1106 / 13 仓库 KP-1201~1203 / 14 仓库 KP-1301~1303——**收尾阶段（L2/L3/差距清单）**）
 4. **工具**：MCP 索引已建（confucius/java/spring/boot/cloud + multiactive + 历史仓库等）
 5. **源码位置**：confucius 在 `source-code/code/microsphere/`；java/spring/boot 在 `cloud-native-code/share/`；spring-cloud/multiactive/configuration/dynamic/gateway/redis 在 `cloud-native-code/stage-4/`（注意：实际完整路径前缀是 `/data/workspace/java-training-camp/cloud-native-code/`）
