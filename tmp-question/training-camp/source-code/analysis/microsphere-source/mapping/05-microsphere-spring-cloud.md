@@ -25,14 +25,14 @@
 
 ### 包: `io.microsphere.spring.cloud.client.discovery`（批 1a：8 文件）
 
-#### KP-401 `UnionDiscoveryClient` 多注册中心联合发现（UnionDiscoveryClient.java:54-120）
+#### KP-401 `UnionDiscoveryClient` 多注册中心联合发现（UnionDiscoveryClient.java:54-155）
 
 - **维度**：[分布式问题]（服务发现）| **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（多注册中心模式） | **置信度**：High
-- **前置**：Spring Cloud DiscoveryClient（getInstances/getServices）、多注册中心场景
-- **需求**：**多注册中心联合查询**——应用同时注册到 Nacos + Eureka 等，查询时合并所有注册中心结果（**session005 交接文档实证过的类**）
-- **参考实现**：**聚合发现**（implements DiscoveryClient :54 + **合并语义**（getInstances :88-98——**遍历所有 client 收集并集**（非空才加入 :93——跳过空结果）；getServices :112-120——**Set 去重合并**））；**懒加载**（getDiscoveryClients :90/:114——**SmartInitializingSingleton 后初始化**（:54——**容器就绪后从 ApplicationContext 收集全部 DiscoveryClient**））；**生命周期**（ApplicationContextAware + SmartInitializingSingleton + DisposableBean :54）
-- **对比取舍**：**知识增量**：①**多注册中心合并模式**（遍历 + 并集——与 KP-202 组合模式同构但语义不同：收集 vs 过滤）；②**SmartInitializingSingleton 懒收集**（容器就绪后统一收集子 client——避免循环依赖）；③**session005 交接中 [未找到] → 本仓库实证**（历史疑问解决）
-- **my-xhs**：**该用没用**——多注册中心场景（my-xhs 若同时用 Nacos + 其他）；单一 Nacos 下无需求
+- **前置**：Spring Cloud DiscoveryClient/CompositeDiscoveryClient（官方多注册中心合并）、多注册中心场景
+- **需求**：**多注册中心全量合并**——应用同时注册到 Nacos + Eureka 等，查询时**合并所有注册中心结果**（非短路）
+- **参考实现**：**聚合发现**（implements DiscoveryClient :54 + **union 合并语义**（getInstances :88-98——**遍历所有 client 收集并集**（非空才加入 :93——跳过空结果）；getServices :112-120——**Set 去重合并**））；**懒加载 + 排除**（getDiscoveryClients :128-145——**SmartInitializingSingleton 后初始化**（容器就绪后收集）+ **排除 CompositeDiscoveryClient 与自身**（:135-138——**防递归**（官方 Composite 已被排除，自身也排除——避免重复/循环）））；**生命周期**（ApplicationContextAware + SmartInitializingSingleton + DisposableBean :54）
+- **对比取舍**：**知识增量**：①**与官方 CompositeDiscoveryClient 的本质差异**（官方源码实证 CompositeDiscoveryClient.java:51-59——**first-match 短路**（第一个非空即返回）；microsphere Union 是**全量 union 合并**（所有非空结果合并）——**"短路优先" vs "全量合并"两种多注册中心语义**——测试实证（UnionDiscoveryClientTest :78-81——内部列表含 Union/Simple/Dummy）；②**排除 Composite 与自身**（:135-138——防递归的容器收集设计）；③**session005 交接 [未找到] → 本仓库实证**（历史疑问解决）
+- **my-xhs**：**该用没用**——多注册中心全量合并场景（my-xhs 若同时用 Nacos + 其他）；官方 Composite（短路优先）覆盖多注册基础
 
 #### KP-402 `ReactiveDiscoveryClientAdapter` 响应式发现适配（ReactiveDiscoveryClientAdapter.java:38-105）
 
@@ -169,6 +169,6 @@
 
 | 测试文件 | 验证了 | 结论 |
 |---------|--------|------|
-| UnionDiscoveryClient 相关测试 | 多注册中心合并 | KP-401 [待补扫] |
-| WeightedRoundRobin 相关测试 | 加权轮询算法 | KP-410 [待补扫] |
-| Feign 自动刷新相关测试 | 组件重建 | KP-413 [待补扫] |
+| UnionDiscoveryClientTest / IntegrationTest | **内部列表含 Union/Simple/Dummy 三类**（:78-81）+ description（:86-87）+ getInstances 合并（:92）——**多 client 并存实证** | KP-401 ✓ |
+| WeightedRoundRobinTest | 权重/计数器断言（:45-73——getId :45/getWeight :51/increaseCurrent 累加 :57-59/sel 减法 :65/getLastUpdate :70-73）——**加权算法实证** | KP-410 ✓ |
+| MultipleRegistrationTest / EventPublishingRegistrationAspectTest / SimpleAutoServiceRegistrationTest 等 | 多注册/切面/自动注册 | KP-404/405 [待补扫] |
