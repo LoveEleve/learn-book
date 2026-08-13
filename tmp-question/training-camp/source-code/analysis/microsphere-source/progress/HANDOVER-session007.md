@@ -1,0 +1,169 @@
+# 交接文档 — microsphere-source 源码提取（Session 007）
+
+> **本文件是 microsphere-source 提取的唯一权威进度文档。** 接手前完整阅读本文 + 方法论，再动任何文件。
+> 最后更新：2026-08-13
+> 范围：microsphere 生态源码提取（source/）——独立于 microsphere-extraction（课程提取，已完成 stage-1~4）
+
+---
+
+## 一、任务背景
+
+**目标**：对 microsphere 生态源码做"穷尽提取 + 现代实现映射 + my-xhs 落地判定"，最终产出源码侧知识图谱，与课程 L1 合并成 L3 总教学大纲。
+
+**核心视角（与历史分析的本质区别）**：
+- 历史 `microsphere-analysis/`（2026-07~08 做过一轮）**无方法论、不作数**——只作"交叉验证清单"（见 §四）
+- 本提取**严格按方法论**：02 SOP（穷尽）+ 08（三层次）+ 04（过时三级）+ 09（前置/掌握度）+ 自研 01-SOP（现代实现映射与自主落地）
+
+**每个知识点五件套**：需求 / 自主实现 / 参考实现 / 对比取舍 / **my-xhs 落地判定**（已用/该用没用/不该用——用户明确要求每 KP 保留）
+
+---
+
+## 二、目录结构与产出
+
+```
+microsphere-source/
+├── discussion/2026-08-12-方向规划.md   ← 方向定稿（5 问结论 + 四步流程 + 穷尽+三层叠加）
+├── method/01-现代实现映射与自主落地.md  ← 方法论 SOP（试点沉淀 + 8 条坑清单）
+├── mapping/                            ← L1 提取表（穷尽映射 + 三层叠加）——当前主产出
+│   ├── 01-confucius-commons.md         35 KP ✅
+│   ├── 02-microsphere-java.md          53 KP ✅
+│   ├── 03-microsphere-spring.md        33 KP ✅
+│   ├── 04-microsphere-spring-boot.md   17 KP ✅
+│   ├── 05-microsphere-spring-cloud.md  15 KP ✅
+│   └── 06-microsphere-multiactive.md   16 KP ✅（本会话）
+└── outline/                            ← 源码侧知识大纲（L1.5，每仓库必产）
+    ├── 01-confucius-commons-jdk知识大纲.md       7 维度 35 KP ✅
+    ├── 02-microsphere-java-生态设计模式知识大纲.md 9 维度 53 KP ✅
+    ├── 03-microsphere-spring-扩展机制知识大纲.md   5 维度 33 KP ✅
+    ├── 04-microsphere-spring-boot-扩展机制知识大纲.md 4 维度 12 节 17 KP ✅
+    ├── 05-microsphere-spring-cloud-服务治理知识大纲.md 5 维度 11 节 15 KP ✅
+    └── 06-microsphere-multiactive-多活区域路由知识大纲.md 5 维度 16 KP ✅（本会话）
+progress/HANDOVER-session007.md         ← 本文（唯一权威进度）
+```
+
+---
+
+## 三、已完成状态（6/36 仓库，169 KP + 6 outline）
+
+| # | 仓库 | 生产文件 | KP | 关键知识点 | outline |
+|---|------|:---:|:---:|-----------|:---:|
+| 01 | confucius-commons | 38 | 35 | JDK 内部机制触发面（findLoadedClass/Unsafe/attach/SPI）、移植来源三实证（Josh Bloch/JCIP/Android） | ✅ |
+| 02 | microsphere-java | 323 | 53 | SPI 注册中心三处实证、MethodHandle 版本探测、配置元数据三阶段闭环、泛型模型、转换四方向族 | ✅ |
+| 03 | microsphere-spring | 288 | 33 | 注入点解析、回调式责任链、BeanFactory 三时点、@Import 模板/可选导入、TTL cacheResolver | ✅ |
+| 04 | microsphere-spring-boot | 73 | 17 | 前缀条件注解、Binder 绑定监听、条件评估报告、Boot3 兼容层、监控线程池 | ✅ |
+| 05 | microsphere-spring-cloud | 78 | 15 | Union 多注册（短路 vs 全量）、注册四态事件、Feign 配置热更新、平滑加权轮询 | ✅ |
+| 06 | **microsphere-multiactive** | **31** | **16** | **Zone 自动发现 SPI（supports/locate）、ZoneContext 全局单例+双事件桥接、三重保护区域路由、云元数据探测、注册元数据闭环、Ribbon/Eureka 适配** | ✅ |
+
+**依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud → multiactive ✅（00 SOP §3.2 主线 + 首个应用层仓库走完）
+
+**剩余 29 仓库**（按依赖链 + stage-4 关联度建议；数字为**生产文件数**）：dynamic（81）→ configuration（11）→ gateway（28）→ nacos（128）→ redis（86）→ 其余
+
+---
+
+## 四、核心方法论沉淀（接手必读）
+
+### 4.1 铁律（每批/每仓库执行，违反即重蹈覆辙）
+
+1. **穷尽性核对先行**——每批写完后**立即**用 `find 文件清单 vs 文档提及` 核对（不等 review）——曾两次犯"归组过粗"（spring 42/47 未覆盖、spring-cloud 44/46 未覆盖）
+2. **行号写入时验证**——`grep -n` 抄录，禁止凭文件总行数估算（批 2 曾整批行号错）
+3. **测试同步扫描**（02 §2.1）——测试断言写入"测试扫描记录"表
+4. **outline 必产**——每仓库完成后**必须**产 outline（曾漏 boot/cloud 两个，已补）
+5. **outline 粒度**——每 KP 独立条目（或 2-3 同主题合并且各自列出），覆盖表声称 N/N 必须正文有对应条目（曾两次"覆盖表 53/53 但正文缺 25 条"）
+
+### 4.2 历史 REQ 交叉验证（重大价值——本会话最大发现）
+
+**历史分析缺陷表是"待验证假设库"——不盲信、逐个源码验证**。流程：
+
+```
+每仓库提取完成后 → 对照 microsphere-analysis/{NN}-REQ-requirements-spec.md 缺陷表（D 系列）
+  → 逐个源码验证（grep 行号）
+  → 证实的补入对应 KP（标注"历史 REQ Dxx 交叉验证"）
+  → 证伪的标注（如 D11——历史说 ErrorDecoder.Default 抽象，Feign 源码实证是具体类）
+  → 验证清单附 mapping 尾部（cloud 16 项/boot 6 项全部验证完——15 证实 + 1 证伪）
+```
+
+**跨会话验证成果累计**：
+- session006：05-cloud + 04-boot 共 22 项历史缺陷——**21 证实 + 1 证伪**（D11）
+- **session007：06-multiactive——REQ-001~004 全部证实 + 9 篇分析中 2 项缺陷证实 + 1 项证伪**（17-07 声称 "ZoneContextChangedListener 只实现 PropertyChangeListener 不实现 ApplicationListener"——**源码实证 :56 implements SmartApplicationListener**（extends ApplicationListener）——历史又一处结论需源码实证的案例；其"自消费"动机分析合理但实现路径断言错误）
+
+### 4.3 my-xhs 判定
+
+每 KP 保留 my-xhs 判定（用户明确要求，勿删勿瘦身）。判定三分法：已用（链接）/该用没用（差距清单）/不该用（理由）。
+本会话汇总：multiactive 16 KP = **该用没用 13 / 已用 1（KP-515 服务 metadata 读 zone）/ 不该用 4**——核心差距 **my-xhs 多活/区域路由**（官方 SCL ZonePreference 覆盖基础版）。
+
+---
+
+## 五、关键知识索引（跨仓库引用，写总结勿写错）
+
+### 生态递进链（多会话实证）
+- **JDK SPI**（microsphere-java ServiceLoaderUtils）→ **SpringFactoriesLoader**（microsphere-spring）→ **@ConditionalOnXxx**（boot）→ **DiscoveryClient/ServiceRegistry**（cloud）→ **ZoneLocator 双通道装配**（multiactive ZoneAutoConfiguration :47 loadFactories + :50 Bean 收集）
+- **注册事件体系**：cloud KP-405（RegistrationPreRegisteredEvent/EventPublishingRegistrationAspect）→ **multiactive KP-514 跨仓库消费**（@ConditionalOnBean(EventPublishingRegistrationAspect) + @AutoConfigureAfter ServiceRegistryAutoConfiguration）——**跨仓库条件装配实证**
+- **双事件桥接**：ZoneContext（JavaBeans PropertyChangeSupport）→ ZoneContextChangedListener（临时监听器收集 → Spring 事件）——KP-510
+- **系统属性全局通道**：CompositeZoneLocator :98 写 ↔ ZoneContext.getCurrentZone :233 读——KP-501/KP-508 双通道自洽
+
+### 本仓库三处"官方同名重写"（命名冲突先例）
+| 类 | 官方同名 | 风险 |
+|----|---------|------|
+| ZonePreferenceServiceInstanceListSupplier（cloud loadbalancer） | org.springframework.cloud.loadbalancer.core.* | IDE import 混淆 |
+| ZonePreferenceServerListFilter（netflix ribbon） | com.netflix.loadbalancer.* | IDE import 混淆 |
+| 历史 REQ 缺陷表已记录此风险 |
+
+### 拼写错误/缺陷实证（API 稳定约束）
+- `PREFERENCE_FILER_PROPERTY_NAME_PREFIX`（multiactive ZoneConstants :108）——FILER 应为 FILTER——同 StacKTrace/Pattens 先例
+- ZoneContext 双通道状态分裂（setZone 写字段 vs getCurrentZone 读系统属性——设计自洽但 API 表面分裂）
+- HttpUtils.doGet info 级日志打印完整响应（:44——生产泄漏隐患）
+- ZonePreferenceFilter 返回引用语义不统一（disabled 分支新列表 vs 其余原引用）
+- netflix 模块（Ribbon 2.7.18）+ HttpUtils（HttpURLConnection）——两处过时→替代已标注
+
+### 测试盲区实证（诚实标注）
+- **aws/netflix 两模块 0 测试文件**（IMDS 不可达路径/集成路径无测试覆盖）——集成模块风险点
+
+---
+
+## 六、待验证/待核对（接手注意）
+
+### [待验证]（已清零——cloud/boot/multiactive 全部验证完毕）
+- cloud D01-D16 + boot D01-D06：全部验证完（21 证实含 2 部分 + 1 证伪）
+- multiactive REQ-001~004 + 9 篇分析 3 项：全部验证完（REQ 4 证实 + 缺陷 2 证实 + 1 证伪）——无遗留
+
+### [待验证]（mapping 内部标注，后续仓库提取时顺手确认）
+- 02 KP-117 `of10MethodHandle`（10 参 handle 存在但无对应公开重载）
+- 03 KP-304/406 等 Medium 置信度项（未深读核心逻辑）
+- 06 KP-503 就绪率整数除法边界（zoneCount*100/entitiesSize 截断行为——测试未覆盖低实例数截断边界）
+
+### 剩余仓库的历史交叉验证材料（提取后必做）
+| 仓库 | 历史缺陷表 |
+|------|-----------|
+| 18-dynamic | REQ 8 项 + 14 篇分析（与 multiactive ZoneContextChangedEvent 消费方强关联——**ZoneContextChangedListener 发布的事件由 dynamic 侧消费**——历史 17-07 提到） |
+| 16-gateway | G1-G15 全局缺口表（16-08） |
+| 17-multiactive | ✅ 已清（本会话） |
+| 09-observability | **P1：@EventListener(ApplicationPreparedEvent) 时序错误**（Kafka Appender 永不挂载）——三重验证结论 |
+| 14-druid | switch fallthrough bug（P2）——BeanSource 复用教训 |
+
+---
+
+## 七、未决问题（用户决策）
+
+1. **剩余 29 仓库顺序**：本会话完成 multiactive（应用层首个）——建议继续 dynamic（81 文件 + 与 multiactive 事件强关联 + 历史 14 篇分析）→ configuration（11 小仓试点快）→ gateway → nacos → redis——**顺序待用户确认**
+2. **L2 聚合**（全部仓库后——跨仓库去重 + 5 维度聚合）
+3. **L3 总教学大纲**（最终交付——课程 + 源码合并）
+4. **my-xhs 差距清单执行**（"该用没用"项汇总——接 my-xhs-优化规划）
+
+---
+
+## 八、git 约定
+
+- 仓库：`/data/workspace/source-code/book/成长之路`，分支 `fresh`
+- 远端：`git@github.com:LoveEleve/learn-book.git`
+- **只提交 microsphere-source 相关文件**；不碰 source-analysis/issue、talk-method、issue 等他人项目未提交改动
+- 本会话 commit 范围：`ae62866` 之后 ~（交接文档收尾 commit）——**multiactive 提取 4 批 + outline + 交接文档**
+
+---
+
+## 九、接手须知（下个 AI 第一件事）
+
+1. **必读**：本文 + `method/01-现代实现映射与自主落地.md`（方法论）+ `discussion/2026-08-12-方向规划.md`（方向）
+2. **流程**（每仓库）：建 MCP 索引（index_repository）→ 读上下文（README/pom/包结构）→ 分批提取（≤10 文件/批，穷尽性核对先行）→ 测试扫描 → 历史 REQ 缺陷交叉验证 → 七项 review 报告 → outline → 提交推送
+3. **参考**：`mapping/01-06` 的格式与粒度（KP 编号：01 仓库 KP-01~35 / 02 仓库 KP-101~120（含子编号） / 03 仓库 KP-201~228 / 04 仓库 KP-301~317 / 05 仓库 KP-401~415 / 06 仓库 KP-501~518——**下个仓库从 601 开始**）
+4. **工具**：MCP 索引已建（confucius/java/spring/boot/cloud + multiactive + 历史仓库等）
+5. **源码位置**：confucius 在 `source-code/code/microsphere/`；java/spring/boot 在 `cloud-native-code/share/`；spring-cloud/multiactive/configuration/dynamic/gateway/redis 在 `cloud-native-code/stage-4/`（注意：实际完整路径前缀是 `/data/workspace/java-training-camp/cloud-native-code/`）
