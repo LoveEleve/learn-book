@@ -36,15 +36,16 @@ microsphere-source/
     ├── 03-microsphere-spring-扩展机制知识大纲.md   5 维度 33 KP ✅
     ├── 04-microsphere-spring-boot-扩展机制知识大纲.md 4 维度 12 节 17 KP ✅
     └── 05-microsphere-spring-cloud-服务治理知识大纲.md 5 维度 11 节 15 KP ✅
+progress/HANDOVER-session006.md         ← 本文（唯一权威进度）
 ```
 
 ---
 
-## 三、已完成状态（6/36 仓库，153 KP + 5 outline）
+## 三、已完成状态（5/36 仓库，153 KP + 5 outline）
 
 | # | 仓库 | 生产文件 | KP | 关键知识点 | outline |
 |---|------|:---:|:---:|-----------|:---:|
-| 01 | confucius-commons | 36 | 35 | JDK 内部机制触发面（findLoadedClass/Unsafe/attach/SPI）、移植来源三实证（Josh Bloch/JCIP/Android） | ✅ |
+| 01 | confucius-commons | 38 | 35 | JDK 内部机制触发面（findLoadedClass/Unsafe/attach/SPI）、移植来源三实证（Josh Bloch/JCIP/Android） | ✅ |
 | 02 | microsphere-java | 323 | 53 | SPI 注册中心三处实证、MethodHandle 版本探测、配置元数据三阶段闭环、泛型模型、转换四方向族 | ✅ |
 | 03 | microsphere-spring | 288 | 33 | 注入点解析、回调式责任链、BeanFactory 三时点、@Import 模板/可选导入、TTL cacheResolver | ✅ |
 | 04 | microsphere-spring-boot | 73 | 17 | 前缀条件注解、Binder 绑定监听、条件评估报告、Boot3 兼容层、监控线程池 | ✅ |
@@ -52,7 +53,7 @@ microsphere-source/
 
 **依赖链进度**：confucius-commons → microsphere-java → microsphere-spring → spring-boot → spring-cloud ✅（00 SOP §3.2 主线已走完）
 
-**剩余 30 仓库**（按依赖链 + stage-4 关联度建议）：multiactive（45）→ dynamic（127）→ configuration（15）→ gateway（53）→ nacos（150）→ redis（181）→ 其余
+**剩余 30 仓库**（按依赖链 + stage-4 关联度建议；数字为**生产文件数**）：multiactive（31）→ dynamic（81）→ configuration（11）→ gateway（28）→ nacos（128）→ redis（86）→ 其余
 
 ---
 
@@ -79,9 +80,8 @@ microsphere-source/
 ```
 
 **本会话验证成果**（05-cloud + 04-boot 共 22 项历史缺陷）：
-- **20 证实**（含 2 运行期崩溃 D02/D03、1 语义错误 D12 @After finally、参数颠倒 D01/D08、死代码等）
+- **21 证实**（cloud 15 含 2 部分证实 + boot 6——含 2 运行期崩溃 D02/D03、1 语义错误 D12 @After finally、参数颠倒 D01/D08、死代码等）
 - **1 证伪**（D11 Default 抽象类——Feign 版本差异）
-- **1 部分证实**（D13 阻塞——有 isInNonBlockingThread 防御但 get() 仍阻塞）
 
 ### 4.3 my-xhs 判定
 
@@ -118,7 +118,7 @@ microsphere-source/
 ## 六、待验证/待核对（接手注意）
 
 ### [待验证]（已清零——本会话已全部验证）
-- cloud D01-D16 + boot D01-D06 历史缺陷：**全部验证完毕**（20 证实 + 1 证伪 + 1 部分）——无遗留
+- cloud D01-D16 + boot D01-D06 历史缺陷：**全部验证完毕**（21 证实含 2 部分 + 1 证伪）——无遗留
 
 ### [待验证]（mapping 内部标注，后续仓库提取时顺手确认）
 - 02 KP-117 `of10MethodHandle`（10 参 handle 存在但无对应公开重载）
@@ -149,7 +149,7 @@ microsphere-source/
 - 仓库：`/data/workspace/source-code/book/成长之路`，分支 `fresh`
 - 远端：`git@github.com:LoveEleve/learn-book.git`
 - **只提交 microsphere-source 相关文件**；不碰 source-analysis/issue、talk-method、issue 等他人项目未提交改动
-- 本会话 commit 范围：`e149df1`（启动）~ `ae62866`（[待验证] 清零）——20 个 commit
+- 本会话 commit 范围：`e149df1`（启动）~ `ae62866`（[待验证] 清零）——**26 个 commit**（不含交接文档 e783b9d）
 
 ---
 
@@ -157,6 +157,6 @@ microsphere-source/
 
 1. **必读**：本文 + `method/01-现代实现映射与自主落地.md`（方法论）+ `discussion/2026-08-12-方向规划.md`（方向）
 2. **流程**（每仓库）：建 MCP 索引（index_repository）→ 读上下文（README/pom/包结构）→ 分批提取（≤10 文件/批，穷尽性核对先行）→ 测试扫描 → 历史 REQ 缺陷交叉验证 → 七项 review 报告 → outline → 提交推送
-3. **参考**：`mapping/01-05` 的格式与粒度（KP 编号：01 仓库 1-35 / 02 仓库 101-146 / 03 仓库 201-228 / 04 仓库 301-317 / 05 仓库 401-415——**下个仓库从 501 开始**）
+3. **参考**：`mapping/01-05` 的格式与粒度（KP 编号：01 仓库 KP-01~35 / 02 仓库 KP-101~120（含 124a-d/145a-c/146a-c 子编号） / 03 仓库 KP-201~228（含 211b-d/216b-c） / 04 仓库 KP-301~317 / 05 仓库 KP-401~415——**下个仓库从 501 开始**）
 4. **工具**：MCP 索引已建 6 个（confucius/microsphere-java/microsphere-spring/spring-boot/spring-cloud + 历史 multiactive 等）
 5. **源码位置**：confucius 在 `source-code/code/microsphere/`；java/spring/boot 在 `cloud-native-code/share/`；spring-cloud 在 `cloud-native-code/stage-4/`（仅此一处）
