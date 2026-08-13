@@ -79,16 +79,17 @@
 - [x] **④ 过时三级**：3 KP 全部标注（均时间无关模式——注解化集成模式；Nacos OpenAPI 自研客户端有版本维护风险已标注）✓
 - [x] **⑤ 重复内容**：三件套模式四中心同构（KP-701/703 归组）；与 03 仓库 PropertySourceExtension 跨仓库引用（KP-3.1）✓
 - [x] **⑤b 引用目标核对**：PropertySourceExtension/PropertySourceExtensionLoader/PropertySourceExtensionAttributes（03 仓库本地源码有）✓；EnableApolloConfig（apollo 官方——本地无——凭 API 语义标注 Medium）✓
-- [x] **⑥ 诚实标注**：批 2 部分文件未逐行深读（Loader resolveResources 细节——归组标注）；apollo 官方类无本地源码已标注 ✓
+- [x] **⑤ 来源归属（深度 review 补）**：NacosPorpertySource 作者 **Walklown**（:40——外部贡献者——同 06 仓库 HttpUtils/CustomizedLoadBalancerAutoConfiguration）——**拼写错误集中实证**（Porperty/Cient 均在 Walklown 代码）——外部贡献代码的 API 纪律风险先例 ✓
+- [x] **⑥ 诚实标注**：批 2 部分文件未逐行深读（Loader resolveResources 细节——归组标注）；apollo 官方类（EnableApolloConfig/PropertySourcesProcessor）无本地源码已标注 ✓
 - [x] **⑦ 命名空间迁移**：N/A ✓
 
 ### 测试扫描记录（02 §2.1，4 测试全扫）
 
 | 测试文件 | 验证了 | 结论 |
 |---------|--------|------|
-| NacosPorpertySourceTest | 注解属性断言（含拼错类名——错误固化实证） | KP-701 ✓ |
-| ApolloPropertySourceTest | 注解属性断言（appId/meta/cluster 缺省占位符） | KP-702 ✓ |
-| EtcdPropertySourceTest / ZookeeperPropertySourceTest | 注解属性断言 | KP-703 ✓ |
+| NacosPorpertySourceTest | **端到端环境属性加载断言**（:109/:115——`environment.getProperty("my.name")` 从 Nacos 拉取配置加载——非仅注解断言）+ 拼错类名（错误固化实证） | KP-701 ✓ |
+| ApolloPropertySourceTest | **端到端 @Value 注入断言**（:51-53——id/name/country 注入——Apollo 配置生效实证） | KP-702 ✓ |
+| EtcdPropertySourceTest / ZookeeperPropertySourceTest | **端到端环境属性断言**（etcd :107/:113、zk :128/:132——`my.name` 加载——四中心测试同构实证） | KP-703 ✓ |
 
 ### 历史 REQ/分析交叉验证清单（08-configuration）
 
@@ -126,7 +127,7 @@
 - **维度**：[工程问题]（抽象层级）| **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式] | **置信度**：High
 - **前置**：03 仓库 @PropertySource 扩展基座
 - **需求**：**配置中心注解化的三层层级**——@PropertySourceExtension 元注解（第 1 层）→ PropertySourceExtensionLoader 模板方法（第 2 层）→ PropertySourcesChangedEvent 事件体系（第 3 层）——历史 15-02 核心抽象（:14）
-- **参考实现**：**三层层级**（历史 15-02 :39/:136/:249——①第 1 层 @PropertySourceExtension 元注解（10 属性——03 仓库 KP-3.1 的源头——first/before/after 排序控制）②第 2 层 PropertySourceExtensionLoader 模板方法（resolveResources 抽象——本仓库四中心实现）③第 3 层 PropertySourcesChangedEvent 事件体系（03 仓库 KP-213——配置变更事件——dynamic 仓库消费方实证））；**与原生 SDK 对照**（历史 15-01 :101 + 15-03 :344-360 表——自研 OpenApiNacosClient vs 官方 nacos-client：**gRPC 长连接/双向流推送/故障转移（官方）vs HTTP REST 短连接/长轮询/静态 serverAddress（自研）**——依赖 ~10MB vs ≈0——**自研收益零依赖、代价无故障转移**（+ API 升级手动适配））
+- **参考实现**：**三层层级**（历史 15-02 :39/:136/:249——①第 1 层 @PropertySourceExtension 元注解（**10 属性实证**——name/autoRefreshed/first/before/after/value/resourceComparator/ignoreResourceNotFound/encoding/factory——本地源码 :102-129——03 仓库 KP-3.1 的源头——first/before/after 排序控制）②第 2 层 PropertySourceExtensionLoader 模板方法（resolveResources 抽象——本仓库四中心实现）③第 3 层 PropertySourcesChangedEvent 事件体系（03 仓库 KP-213——配置变更事件——dynamic 仓库消费方实证））；**与原生 SDK 对照**（历史 15-01 :101 + 15-03 :344-360 表——自研 OpenApiNacosClient vs 官方 nacos-client：**gRPC 长连接/双向流推送/故障转移（官方）vs HTTP REST 短连接/长轮询/静态 serverAddress（自研）**——依赖 ~10MB vs ≈0——**自研收益零依赖、代价无故障转移**（+ API 升级手动适配））
 - **对比取舍**：**知识增量**：①**三层层级的职责划分**（元注解声明 → 模板方法加载 → 事件通知——**配置中心抽象的分层架构**）；②**自研 vs 官方 SDK 的选型维度**（连接模型/推送机制/故障转移/依赖大小/版本适配——**基础设施自研的决策框架**）
 - **my-xhs**：**该用没用（实证修正）**——my-xhs-analytics 等模块 pom 实证 `spring-cloud-starter-alibaba-nacos-config`（:58）——**官方 Starter**（非自研）——三层层级抽象无场景（单配置中心）；**决策框架可借鉴**
 
@@ -141,7 +142,7 @@
 | D2 | 单 dataId 限制（resolveResources 只返回 Resource[1]） | ✅ 证实（:77 `new Resource[1]`——多配置需多个注解） | KP-701 |
 | D3 | ShutdownHook 强转风险（((OpenApiTemplateClient) value)——非子类实现抛 ClassCastException） | ✅ 证实（:60 强转） | KP-701 |
 | D4 | setSystemProperty 用 contains(key) 应 containsKey（Hashtable.contains 检查值非键——"不覆盖"防御无效） | ✅ 证实（ApolloPropertySourceBeanDefinitionRegistrar:198 `systemProperties.contains(key)`） | KP-702 |
-- **对比取舍**：**知识增量**：①**Hashtable.contains vs containsKey 语义陷阱**（:198——contains 检查**值**存在（Hashtable 继承）——"按键查重"意图用错 API——**API 语义铁证**（同 06 仓库 ZonePreferenceFilter 就绪率除法——运算符/API 语义细节）；②**Apollo 执行顺序保证**（历史 15-04 :330——PropertySourcesProcessor 是 BeanDefinitionRegistryPostProcessor(PriorityOrdered) 先于本 Registrar 的 BeanFactoryPostProcessor——**Spring 两阶段后处理器顺序保证**——知识增量（非缺陷））；③**MODIFIED 事件快照精度**（历史 15-04 :355——oldPropertySource 是完整快照非具体 key 旧值——事件消费者无法定位旧值——知识增量）
+- **对比取舍**：**知识增量**：①**Hashtable.contains vs containsKey 语义陷阱**（:198——contains 检查**值**存在（Hashtable 继承）——"按键查重"意图用错 API——**API 语义铁证**（同 06 仓库 ZonePreferenceFilter 就绪率除法——运算符/API 语义细节）；②**Apollo 执行顺序保证**（历史 15-04 :330——PropertySourcesProcessor 是 BeanDefinitionRegistryPostProcessor(PriorityOrdered) 先于本 Registrar 的 BeanFactoryPostProcessor——**Spring 两阶段后处理器顺序保证**（本地源码实证：PostProcessorRegistrationDelegate:84——"Invoke BeanDefinitionRegistryPostProcessors first"——先 BDRPP 后 BFPP）——知识增量（非缺陷））；③**MODIFIED 事件快照精度**（历史 15-04 :355——oldPropertySource 是完整快照非具体 key 旧值——事件消费者无法定位旧值——知识增量）
 - **my-xhs**：**不该用**——缺陷验证知识无落地（Nacos 官方 Starter 无此实现）
 
 ### 包总结（问题域补充）
