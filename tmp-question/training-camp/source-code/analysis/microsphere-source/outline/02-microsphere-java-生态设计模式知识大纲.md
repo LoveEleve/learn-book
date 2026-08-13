@@ -54,7 +54,18 @@
 
 ---
 
-## 三、泛型与反射体系 [工程问题]
+### 2.4 编译期注解处理器（APT 完整生命周期）[🔴 P2] [时间无关模式]
+- **来源**：KP-146a/146b/146c
+- **机制**：**APT 生命周期**（@SupportedAnnotationTypes :77 → init :89 → process 每轮 → Filer 输出 JSON :64）+ **Element → JSON 访问器**（JSONElementVisitor/JSONAnnotationValueVisitor——编译期元数据化基础设施）+ lang-model 工具家族（ElementUtils/TypeUtils/MessagerUtils）
+- **对比**：编译期（类型安全+启动快）vs Spring 运行期反射；三阶段闭环（注解 → 编译期 JSON → 运行期加载）
+- **my-xhs**：该用没用——自定义注解处理器参考
+
+### 2.5 元注解家族（@Since/@Experimental/@Immutable + 编译期资源约定）[🟢 P3] [时间无关模式]
+- **来源**：KP-104
+- **机制**：@Since（module+value 属性）/@Experimental（SOURCE retention）/@Immutable（RUNTIME）——库作者文档工具
+- **my-xhs**：不该用——内部库无需
+
+
 
 > **核心命题**：泛型类型模型（JavaType）+ 实参解析（TypeUtils）是 convert 泛型推断的地基——**本包与 convert 的依赖链实证**。
 
@@ -74,6 +85,12 @@
 - **来源**：KP-128（MethodUtils/FieldUtils/ConstructorUtils/AccessibleObjectUtils）+ KP-127（定义类家族）+ KP-129（ProxyUtils）
 - **机制**：**Predicate 工厂**（PUBLIC/STATIC/FINAL 等组合过滤 :132-157）+ **banned-methods 配置化禁用名单**（:113/:252）+ **AccessibleObjectUtils --add-opens 友好提示**（错误解析自动提取包名 :200-204）+ 定义类家族（@Immutable 元数据模型）
 - **my-xhs**：该用没用——banned 名单 + add-opens 提示模式（开发体验设计）
+
+### 3.4 Bean 属性解析核心（深度预算防环）[🔴 P1] [时间无关模式]
+- **来源**：KP-108（BeanUtils:449-514）
+- **机制**：**递归解析 + 深度预算防环**（`incrementAndGet() >= maxResolvedDepth` 截断 :453——无 visited 集，深度耗尽即停）+ **类型白名单**（primitive/simple/Class 直接返回 :487-495）+ BeanMetadata 并发缓存（:150）
+- **对比**：深度预算 vs Jackson/Spring 对象标识防环——性能权衡
+- **my-xhs**：该用没用——属性展平/导出场景；循环引用注意
 
 ---
 
@@ -96,6 +113,16 @@
 - **来源**：KP-110~114
 - **机制**：空对象 + 委托 + 单例三模式组合；**DelegatingWrapper 解包协议**（unwrap/isWrapperFor 默认方法——JDBC Wrapper 模式移植）
 - **my-xhs**：该用没用——DelegatingWrapper 解包协议（缓存/连接包装层）
+
+### 4.4 集合工具细节（equals 语义/工厂/专用工具）[🟡 P2] [过时→List.of]
+- **来源**：KP-115（Iterators.equals/PropertiesUtils.flatProperties）+ KP-118（Sets.ofSet/Maps.ofMap arity 缓存）+ KP-119（MapUtils）+ KP-120（Queue/Set/List 专用）
+- **机制**：**equals 集合语义**（跨类型相等——List vs Set 空集相等测试实证；multiset 边缘缺陷）+ **按 arity 缓存多 MethodHandle**（Sets of0/of1...）+ FIXED_LOAD_FACTOR=1.0f（防扩容）+ accessOrder（LRU）
+- **my-xhs**：该用没用——LRU 缓存参考；equals 语义陷阱注意
+
+### 4.5 Bean 元数据缓存与属性包装 [🟡 P2] [时间无关模式]
+- **来源**：KP-106/107
+- **机制**：Introspector 缓存（BeanMetadata）+ 属性值包装（BeanProperty——@Nonnull/@Nullable 空语义）
+- **my-xhs**：该用没用——高性能反射属性访问参考；Spring BeanWrapperImpl 有内置缓存
 
 ---
 
@@ -143,11 +170,42 @@
 - **对比取舍**：扩展 JDK URL 协议 vs Spring `Resource` 抽象——架构取舍
 - **my-xhs**：不该用（Spring Resource 覆盖）
 
+### 7.3 关闭钩子管理 + 流工具 + 序列化 SPI [🟡 P2] [时间无关模式]
+- **来源**：KP-134（ShutdownHookUtils）/ KP-140（IOUtils）/ KP-141（Serializer）
+- **机制**：**关闭钩子专用线程 + 容量配置化**（shutdown-hook.callbacks-capacity :86-107——防单回调阻塞/无限注册）；IOUtils 缓冲区三层配置（microsphere.io.buffer.size）；Serializer SPI（"SPI + Prioritized 选优"第三处实证——convert/io/metadata 同构）
+- **my-xhs**：该用没用——关闭钩子管理（清理任务）；Spring @PreDestroy 覆盖多数
+
+### 7.4 工具包（JSON 移植 + 并发工厂 + 小包）[🟡 P3] [过时→Jackson]
+- **来源**：KP-145a/145b/145c
+- **机制**：**JSON = Android OpenJDK 移植**（版权头 "Copyright 2010 Android" 实证——第三例移植来源）+ **CustomizedThreadFactory 定制化**（命名/守护/优先级/栈大小 :30-34）+ MethodHandlesLookupUtils（**KP-117 探测模式实现地**）+ filter（confucius KP-13~18 同主题）
+- **my-xhs**：该用没用——线程命名规范；Jackson 覆盖 JSON
+
 ---
 
-## 八、生态演进与移植来源实证（跨仓库总结）[工程问题]
+## 八、类型转换方向族（convert 实现层）[工程问题]
 
-### 8.1 两代演进对照表（confucius → microsphere-java）[🟡 P2]
+> **核心命题**：52 个转换器按"转换方向"归 4 族——数值/字符串/Object/集合——每族一个模板模式。
+
+### 8.1 字符串转换族（String 枢纽落地）[🔴 P2] [时间无关模式]
+- **来源**：KP-124b（StringTo* 17 个）
+- **机制**：`StringConverter<T> extends Converter<String,T>`（String 枢纽标记）+ 单例模式（INSTANCE）+ **JDK8 类型支持**（StringToDuration/InputStream——Spring 需自定义）
+- **my-xhs**：该用没用——配置格式转换（String→任意）
+
+### 8.2 集合转换族（继承树模板）[🔴 P2] [时间无关模式]
+- **来源**：KP-124d（multiple 14 个）
+- **机制**：**继承树而非独立类**（StringToIterableConverter 基座 → Collection → List/Set/Queue/Deque 13 变体）+ MultiValueConverter 双类型 accept（源 + 集合类型双匹配）
+- **my-xhs**：该用没用——分隔字符串转集合
+
+### 8.3 数值族 + Object/特殊族 [🟡 P3] [时间无关模式]
+- **来源**：KP-124a/124c
+- **机制**：数值族（Number→X 7 个——统一模板）；Object 宽入口 + Optional 特殊实现（implements Converter 非 Abstract）+ Map↔Properties 互转
+- **my-xhs**：不该用——Spring NumberUtils 覆盖
+
+---
+
+## 九、生态演进与移植来源实证（跨仓库总结）[工程问题]
+
+### 9.1 两代演进对照表（confucius → microsphere-java）[🟡 P2]
 | 主题 | confucius | microsphere-java | 演进 |
 |------|-----------|-----------------|------|
 | SPI 加载 | 无缓存（KP-32） | 缓存开关 + 4 重载（KP-123） | 性能 |
@@ -156,7 +214,7 @@
 | 常量接口 | 平铺 5 接口（KP-11） | 分层聚合 + JDK 内置（KP-105） | 工程化 |
 | 空注解 | JSR-305 直接依赖（KP-12） | TypeQualifierNickname 组合（KP-102） | 标准化 |
 
-### 8.2 移植来源三实证（版权头识别法）[🟡 P2]
+### 9.2 移植来源三实证（版权头识别法）[🟡 P2]
 | 移植物 | 来源 | 证据 |
 |--------|------|------|
 | Base64 | Josh Bloch / Preferences | 作者头（confucius KP-35） |

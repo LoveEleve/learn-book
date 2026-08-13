@@ -314,13 +314,6 @@
 - **对比取舍**：**知识增量：端点映射元数据化**——把 MVC 的 HandlerMapping 内部端点信息**外部化为元数据模型**（网关路由发现/监控/文档生成的基础）；**negated 否定匹配**（@RequestMapping 的 ! 前缀语义）；Builder + 不可变 + hashCode 缓存是值对象完整设计
 - **my-xhs**：**该用没用**——网关路由自动发现（my-xhs 网关动态路由参考——从服务端点元数据生成路由）
 
-#### KP-223 web 配套（event 3 + annotation 2 + util 13 + constants 1）
-
-- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium（未深读）
-- **前置**：Web 请求事件、注解
-- **需求**：web 事件（请求生命周期）/注解/工具
-- **my-xhs**：**不该用**——Spring 官方覆盖
-
 ### 模块: `webmvc` 35 + `webflux` 24 + `jdbc` 7 + `guice` 3（批 6：69 文件——仓库收官）
 
 #### KP-224 `EnableWebMvcExtension`/`EnableWebFluxExtension` 双扩展注解（EnableWebMvcExtension.java:78-182 + EnableWebFluxExtension.java:71-121）
