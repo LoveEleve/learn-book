@@ -102,3 +102,20 @@
 
 **汇总**：已用 1 / 该用没用 2。
 **核心结论**：my-xhs 连接池 = HikariCP（官方覆盖池指标）；**接口收敛模式 + switch 教训**为可迁移知识。
+
+### 深度 review 补充（问题域对照轮——历史 14 篇 2 篇）
+
+#### KP-1204 问题域补充（P1-P4 新缺陷 + buildResourceName SQL AST + P2 根源跨仓库对照）
+
+- **维度**：[工程问题]（缺陷/对照）| **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：Druid SQLUtils（SQL AST 解析器）、BeanSource 工具类（02 仓库——多态分派）、@ConditionalOnAlibabaDruidEnabled
+- **需求**：**问题域查漏**——P1-P4 新缺陷 + buildResourceName 机制 + P2 的跨仓库根源对照（历史 14-01 :333-343 + 14-02 :36-100）
+- **参考实现**：**buildResourceName（SQL AST 解析）**（AbstractStatementFilter :43——`SQLUtils.parseStatements`（**Druid SQL 解析器**——AST 解析 SQL 生成资源名）+ :206——调用——**每条 SQL 的 AST 解析**（资源名 = 语句标识——日志/监控关联）；**P1 双开关冗余（历史 14-01 P1）**：`AlibabaDruidProperties.enabled`（:42-59——**字段存在但 AutoConfiguration 无 isEnabled() 分支**（grep 仅注释 :41——**绑定暴露但不实际开关**）vs @ConditionalOnAlibabaDruidEnabled（条件注解）——**双开关语义重叠**（一个真的生效一个只是字段）；**P2 根源跨仓库对照（历史 14-02 :36-100——重要发现）**：13-mybatis 用 **BeanSource.registerBeans 静态工具**（:301-303——**多态分派**——每个枚举常量各自实现 registerBeans——循环安全）vs 14-druid **手写 switch**（:67-79——绕开工具——fallthrough bug）——**P2 是"不复用工具手写重造"的后果**——跨仓库同一机制两种用法对照（正确 vs 缺陷）；**P3 spring-cloud 空壳**（AlibabaDruidCloudAutoConfiguration @Bean 数 0——配置在 features.yaml）；**P4 日志占位符不匹配**（LoggingStatementFilter:64——`3 个 {} 传 2 参数`——纯格式瑕疵）
+- **对比取舍**：**知识增量**：①**SQL AST 资源名**（:43——**SQL 解析生成标识**（监控关联键——SQL 级可观测）；②**P2 根源方法论**（14-02——**同一工具两种用法**——不复用工具 = 重造轮子引入缺陷——**复用优先原则**（工具方法存在时手写实现 = 风险源）；③**双开关冗余模式**（P1——属性绑定 vs 条件注解重叠——**开关语义单一来源原则**
+- **my-xhs**：**该用没用（实证）**——my-xhs 用 Hikari（无 Druid SQL AST）——**复用优先原则直接适用**（自写替代已有工具前先查）；SQL AST 解析能力可借鉴（SQL 级监控）
+
+### 包总结（问题域补充）
+
+- **核心命题**：**"P1-P4 缺陷清单 + SQL AST + P2 根源对照"**——历史 14 篇 2 篇全映射
+- **验证成果**：buildResourceName（:43/:206）/P1（无 isEnabled 分支）/P3（@Bean 0）/P4（:64 占位符）全部源码实证
+- **跨仓库对照**：BeanSource 工具复用（13 正确）vs 手写 switch（14 缺陷）——**复用优先原则**
