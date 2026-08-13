@@ -51,10 +51,10 @@
 - **生态呼应**：microsphere-spring KP-213（配置变更事件）的 Boot 级升级
 - **my-xhs**：该用没用——配置绑定监控/热更新（对接 Nacos）
 
-### 3.2 元数据读取 + 自动配置排除 [🔴 P1] [时间无关模式]
-- **来源**：KP-307（ConfigurationMetadataReader）/ KP-310（ConfigurableAutoConfigurationImportFilter）
-- **机制**：**编译期元数据读取**（spring-configuration-metadata.json 双路径 :49-51——三阶段闭环的 Boot 版）；**AutoConfigurationImportFilter 官方扩展点**（:53——自动配置排除——@ConfigurationProperty 注解属性落地 :55-59）
-- **my-xhs**：该用没用——自动配置排除；官方 spring.autoconfigure.exclude 覆盖
+### 3.2 元数据读取 + 自动配置排除 + 默认属性 [🔴 P1] [时间无关模式]
+- **来源**：KP-307（ConfigurationMetadataReader）/ KP-310（ConfigurableAutoConfigurationImportFilter）/ KP-311（默认属性家族）
+- **机制**：**编译期元数据读取**（spring-configuration-metadata.json 双路径 :49-51——三阶段闭环的 Boot 版）；**AutoConfigurationImportFilter 官方扩展点**（:53——自动配置排除——@ConfigurationProperty 注解属性落地 :55-59）；**默认属性家族**（DefaultPropertiesApplicationListener——ApplicationEnvironmentPreparedEvent 时从多源合并默认属性 :31-50 + OriginTrackedConfigurationPropertyInitializer——origin 跟踪 + BeanFactoryListenerAdapter 复用）
+- **my-xhs**：该用没用——自动配置排除/默认属性；官方 spring.autoconfigure.exclude 覆盖排除
 
 ---
 
