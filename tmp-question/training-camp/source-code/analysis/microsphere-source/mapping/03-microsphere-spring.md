@@ -1,8 +1,8 @@
 # microsphere-spring 知识点提取
 
 > 源码：`/data/workspace/java-training-camp/cloud-native-code/share/microsphere-spring`（依赖链第 3 站，microsphere-java 之后）
-> 提取时间：2026-08-12（批 1：beans/factory 40 核心；批 2：context/event 30 + context/annotation 14；批 3：config 24 + core/env 9 + core 14；批 4：cache 8 + net 10 + lifecycle 2 + config 4；批 5：web 58；后续：webmvc 35 / webflux 24 / jdbc 7 / guice 3）
-> 状态：批 1-5 已提取；MCP 索引已建（8605 节点/30925 边）
+> 提取时间：2026-08-12（批 1-5：context 161 + web 58；批 6：webmvc 35 + webflux 24 + jdbc 7 + guice 3——**microsphere-spring 288 生产文件全部完成**）
+> 状态：**仓库提取完成（288/288）**；MCP 索引已建（8605 节点/30925 边）
 > 关联：microsphere-java 是纯 JDK 工具；**本仓库是 Spring 扩展机制**——知识本体在 Spring 内部机制（BeanFactory/事件/配置），触发面完全不同
 
 ## 一、仓库定位
@@ -103,6 +103,8 @@
 | SpringProfilesURLConnectionAdapterTest / SpringPropertySourcesURLConnectionAdapterTest 等（net 测试） | URL 连接适配器 | KP-219 ✓ |
 | rule 17 测试（每规则一测试——WebRequestMethodsRuleTest/ParamsRuleTest/CompositeWebRequestRuleTest 等） | 请求匹配各规则 | KP-221 ✓ |
 | metadata 19 测试（WebEndpointMappingTest/Composite/Filtering 注册中心/工厂家族） | 端点映射元数据 + 注册体系 | KP-222 ✓ |
+| webmvc 测试（advice/annotation/config/context/handler/interceptor/metadata 等包） | MVC 扩展 | KP-225 ✓ |
+| jdbc p6spy 测试 | P6Spy 集成 | KP-226 ✓ |
 
 ### 包: `io.microsphere.spring.context.event`（批 2：30 文件）
 
@@ -271,3 +273,38 @@
 - **前置**：Web 请求事件、注解
 - **需求**：web 事件（请求生命周期）/注解/工具
 - **my-xhs**：**不该用**——Spring 官方覆盖
+
+### 模块: `webmvc` 35 + `webflux` 24 + `jdbc` 7 + `guice` 3（批 6：69 文件——仓库收官）
+
+#### KP-224 `EnableWebMvcExtension`/`EnableWebFluxExtension` 双扩展注解（EnableWebMvcExtension.java:78-182 + EnableWebFluxExtension.java:71-121）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（@Enable 扩展） | **置信度**：High
+- **前置**：@EnableWebMvc、@Import、@AliasFor、BeanSource 枚举（BEAN_FACTORY/SPRING_FACTORIES/JAVA_SERVICE_PROVIDER）
+- **需求**：**MVC/WebFlux 的模块化增强启用**——开关式启用端点注册/拦截/事件（MVC 与 WebFlux 对称设计）
+- **参考实现**：**对称双注解**（MVC :83 `@Import(WebMvcExtensionBeanDefinitionRegistrar.class)` / WebFlux :76 `@Import(WebFluxExtensionBeanDefinitionRegistrar.class)`——**同构 Registrar**）；**共享元注解**（:81/:74 `@EnableWebExtension`——**公共能力元注解实证**（EnableWebExtension.java:58-63——@Import(WebExtensionBeanDefinitionRegistrar) :62——**两级 Import 链**：EnableWebMvcExtension → EnableWebExtension → Registrar）；**@OverrideAnnotationAttributes 实证**（:82/:75——**自研注解**（OverrideAnnotationAttributes.java:79——`@Target(ANNOTATION_TYPE)` + **strategy 属性**（:89——默认 `ConfigurationPropertyOverrideAnnotationAttributesStrategy`——**可插拔覆盖策略**（注解属性覆盖的 SPI 化）——处理链实证：BeanCapableImportCandidate/ConfigurationPropertyOverrideAnnotationAttributesStrategy/ImportOptional 三处使用））；**@AliasFor 透传**（:97-182——registerWebEndpointMappings/interceptHandlerMethods/publishEvents/requestContextStrategy/sources 别名到 @EnableWebExtension——多属性透传）；**三源枚举**（:182 sources——BEAN_FACTORY/SPRING_FACTORIES/JAVA_SERVICE_PROVIDER——Bean 发现的三种来源）
+- **对比取舍**：**知识增量**：①**MVC/WebFlux 对称扩展**（同一能力两栈各一套 Registrar——WebRequestRule 的框架无关（KP-221）在此对称落地）；②**@OverrideAnnotationAttributes 是策略化注解覆盖**（非"合并"——**strategy SPI 决定如何覆盖**（可插拔），比固定合并更灵活——Spring 用 @AliasFor 固定合并，microsphere 是策略注入）；③**两级 Import 链**（Enable → Enable → Registrar——注解分层）；④sources 三源枚举（Bean 发现来源显式化）
+- **my-xhs**：**该用没用**——@Enable 模块化开关模式参考（my-xhs 可做自定义 EnableXxx）
+
+#### KP-225 拦截器与过滤链增强（webmvc：LazyCompositeHandlerInterceptor/AnnotatedMethodHandlerInterceptor/ContentCachingFilter + 存储型 Advice）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：HandlerInterceptor、RequestBodyAdvice/ResponseBodyAdvice、ContentCachingFilter
+- **需求**：**MVC 请求处理增强**——懒组合拦截器/注解方法拦截/请求体缓存
+- **参考实现**：**LazyCompositeHandlerInterceptor**（懒组合——多拦截器合并惰性初始化）；**AnnotatedMethodHandlerInterceptor**（注解驱动方法拦截）；**ContentCachingFilter**（内容缓存——日志/审计）；**StoringRequestBodyArgumentAdvice/StoringResponseBodyReturnValueAdvice**（存储型 Advice——**请求体存取**——RequestBodyAdvice/ResponseBodyAdvice 实现）
+- **my-xhs**：**该用没用**——请求日志/审计（ContentCachingFilter 模式）；Spring 官方 Filter 覆盖基础
+
+#### KP-226 `EnableP6DataSource` P6Spy 集成（EnableP6DataSource.java:38-47 + P6DataSourceBeanPostProcessor:41-50 + 家族）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式]（数据源代理） | **置信度**：High
+- **前置**：P6Spy（SQL 日志代理）、@Import 多类、BeanPostProcessor
+- **需求**：**SQL 日志代理**——启用 P6Spy 包装数据源（SQL 执行日志/慢 SQL）
+- **参考实现**：**@Import 多类装配**（:41-45——P6DataSourceBeanDefinitionRegistrar + SpringProtocolURLStreamHandler + SpringP6SpyURLConnectionFactory——**URL 协议复用**（KP-219 spring:// 协议挂 P6Spy 连接））；**P6DataSourceBeanPostProcessor**（:41——`extends GenericBeanPostProcessorAdapter<DataSource>`（**泛型 BPP 适配器实证**：GenericBeanPostProcessorAdapter.java:42——`implements BeanPostProcessor` + **泛型类型解析**（:47 "resolving the generic bean type"——构造时解析泛型实参限定 bean 类型——**类型化后处理器**（只处理匹配类型的 Bean，免强转）））+ `doPostProcessAfterInitialization` 包装 :50 + **排除名单**（:45 `microsphere.jdbc.p6spy.excluded-datasource-beans`——配置化排除））；CompoundJdbcEventListenerFactory
+- **对比取舍**：**知识增量**：①**泛型 BPP 适配器**（GenericBeanPostProcessorAdapter\<T>——类型化后处理器：构造解析泛型实参（:47）→ 只对匹配类型 Bean 生效——**类型过滤内建**）；②**@Import 多类装配 + URL 协议集成**（跨模块复用）；③P6Spy vs Druid/MyBatis SQL 日志（同功能不同代理层）
+- **my-xhs**：**该用没用**——SQL 日志/慢 SQL（my-xhs 可用 P6Spy 或 Druid 自带）
+
+#### KP-227 guice 集成 + webflux 配套（guice 3 + webflux 剩余）
+
+- **维度**：[工程问题] | **权重**：[边缘] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium（未深读）
+- **前置**：Guice 容器、@Inject
+- **需求**：**Guice 注入桥接**（EnableGuice + GuiceInjectAnnotationBeanPostProcessor——**@Inject 注解处理**）
+- **my-xhs**：**不该用**——my-xhs 用 Spring 不用 Guice
