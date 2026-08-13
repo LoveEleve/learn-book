@@ -139,3 +139,75 @@
 - [x] **⑤b 引用目标核对**：Boot 官方类（AutoConfigurationImportFilter/SpringApplicationRunListener/ConfigurationPropertiesBindHandlerAdvisor）存在 ✓
 - [x] **⑥ 诚实标注**：KP-311 Medium（部分深读）✓
 - [x] **⑦ 命名空间迁移**：N/A ✓
+
+### 模块: `microsphere-spring-boot-actuator`（批 2a：10 文件）
+
+#### KP-312 `ArtifactsEndpoint` 构件端点（ArtifactsEndpoint.java:18-51 + ConfigurationMetadataEndpoint + ConfigurationPropertiesEndpoint + WebEndpoints）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（Actuator 端点） | **置信度**：High
+- **前置**：Spring Boot Actuator（@Endpoint/@ReadOperation）、ArtifactDetector（microsphere-java KP-142）、配置元数据
+- **需求**：**Actuator 端点暴露生态能力**——通过 `/actuator/artifacts` 暴露 classpath 构件列表、`/actuator/configMetadata` 暴露配置元数据
+- **参考实现**：**三端点**（ArtifactsEndpoint——`@Endpoint(id="artifacts")` :18 + `@ReadOperation` :48——**构件探测的 HTTP 暴露**（复用 KP-142 ArtifactDetector :34）；ConfigurationMetadataEndpoint——:37 `@Endpoint(id="configMetadata")` 暴露编译期元数据（KP-307）；ConfigurationPropertiesEndpoint——配置属性端点）；**WebEndpoints**（端点注册工具）
+- **对比取舍**：**知识增量**：**生态能力 Actuator 化**——把内部工具（构件探测/元数据）暴露为运维端点（监控/诊断的生产化路径）
+- **my-xhs**：**该用没用**——classpath 构件审计端点（依赖冲突运维排查）；官方无此端点
+
+#### KP-313 `@ConditionalOnActuatorEndpointPresent` 端点存在条件（ConditionalOnActuatorEndpointPresent.java:39-44 + ConditionalOnConfigurationProcessorPresent + ActuatorAutoConfiguration）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式]（条件注解） | **置信度**：High
+- **前置**：@ConditionalOnClass（Boot 条件）、可选依赖
+- **需求**：**可选依赖条件下的自动配置**——actuator/注解处理器存在才启用（可选依赖不引入则跳过）
+- **参考实现**：**@ConditionalOnClass(name=...)**（:42——**按类名条件**——可选依赖探测）；**自动配置配对**（ActuatorAutoConfiguration/ActuatorEndpointsAutoConfiguration——条件装配）
+- **my-xhs**：**该用没用**——可选依赖自动配置；Boot 官方 @ConditionalOnClass 覆盖
+
+### 模块: `microsphere-spring-boot-compatible`（批 2b：10 文件）
+
+#### KP-314 `BootstrapContext` Boot 3 兼容层（BootstrapContext.java:34-92 + BootstrapRegistry + ConfigurableBootstrapContext + DefaultBootstrapContext + BootstrapContextClosedEvent）
+
+- **维度**：[规范] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（兼容层）+ [过时→Boot 3.2 官方 BootstrapContext] | **置信度**：High
+- **前置**：Boot 3 BootstrapContext/BootstrapRegistry（启动期注册表）、版本兼容
+- **需求**：**Boot 3 兼容**——Boot 2 项目使用 Boot 3 的 BootstrapContext API（**包名重实现**：`org.springframework.boot.BootstrapContext`）
+- **参考实现**：**官方包名重实现**（:17——`package org.springframework.boot`——**同名同包实现**（Boot 3 引入 BootstrapContext，Boot 2 无——兼容层补上））；**API 完整**（get :45/getOrElse :56/getOrElseSupply :67/getOrElseThrow :81/isRegistered :90——**五方法完整契约**）；**配套**（BootstrapRegistry/ConfigurableBootstrapContext/DefaultBootstrapContext/BootstrapContextClosedEvent——**注册表 + 关闭事件**）；**属性兼容**（JacksonProperties/ServerProperties/MultipartProperties/MultipartConfigFactory——**官方属性类的兼容版**）
+- **对比取舍**：**知识增量**：①**兼容层模式**（同名同包重实现——版本迁移的兼容策略）；②**BootstrapContext 机制**（Boot 3 启动期注册表——早期 Bean 的轻量替代）
+- **my-xhs**：**该用没用**——Boot 2→3 迁移兼容参考；官方 Boot 3.2 已内建
+
+### 模块: `microsphere-spring-boot-webflux` 3 + `webmvc` 3（批 2c：6 文件）
+
+#### KP-315 Web 条件自动配置（ConditionalOnWebFluxAvailable/ConditionalOnWebMvcAvailable + WebFluxAutoConfiguration/WebMvcAutoConfiguration）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：Web 类型探测、自动配置
+- **需求**：**按 Web 栈条件启用**（WebFlux vs WebMvc 探测）+ 自动配置
+- **参考实现**：**条件注解**（@ConditionalOnWebFluxAvailable/@ConditionalOnWebMvcAvailable——**Web 栈探测条件**）+ 自动配置（WebFluxAutoConfiguration/WebMvcAutoConfiguration）
+- **my-xhs**：**不该用**——Boot 官方 @ConditionalOnWebApplication 覆盖
+
+---
+
+## 四、深度 review 七项报告（批 2）
+
+> 2026-08-12 批判性 review：批 2 穷尽性核对先行（actuator 10 + compatible 10 + webflux 3 + webmvc 3 = 26 文件）。
+
+- [x] **① 源码行号精确核对**：KP-312:18-51/:34/:48、KP-313:39-44/:42、KP-314:17-92、KP-315（条件注解）——全部 grep 实证 ✓
+- [x] **② 穷尽性**：actuator 10/10 + compatible 10/10 + webflux 3/3 + webmvc 3/3 = **26/26 全覆盖**；**microsphere-spring-boot 73/73 生产文件全部完成** ✓
+- [x] **③ 空节标注**：N/A ✓
+- [x] **④ 过时三级**：15 KP 全部标注 ✓
+- [x] **⑤ 重复内容**：KP-312 ↔ KP-142（ArtifactDetector 复用）；KP-314 ↔ 版本兼容 ✓
+- [x] **⑤b 引用目标核对**：Boot 官方 BootstrapContext/Endpoint 类存在 ✓
+- [x] **⑥ 诚实标注**：KP-314 [过时→Boot 3.2 官方] ✓
+- [x] **⑦ 命名空间迁移**：BootstrapContext 同包名重实现（非迁移）标注 ✓
+
+#### KP-316 `MonitoredThreadPoolTaskScheduler` 监控线程池调度器（MonitoredThreadPoolTaskScheduler.java:43-104 + DelegatingScheduledExecutorService 包装）
+
+- **维度**：[性能优化] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（线程池监控） | **置信度**：High
+- **前置**：ThreadPoolTaskScheduler（Spring 调度）、DelegatingScheduledExecutorService（microsphere-java KP-145b）、SmartInitializingSingleton
+- **需求**：**可监控的线程池调度器**——包装真实 Executor 暴露监控（任务统计/状态）
+- **参考实现**：**createExecutor 覆写**（:82-86——**工厂钩子包装**（super.createExecutor 后包 DelegatingScheduledExecutorService :84——**委托包装 + 保留原 Executor**（:85 返回原对象——双轨设计））；**getScheduledExecutor 返回包装版**（:102-104——**外部获取的是可监控委托**）；**生命周期**（ApplicationContextAware + SmartInitializingSingleton :43）
+- **对比取舍**：**知识增量**：①**createExecutor 工厂钩子**（Spring 线程池的可监控化扩展点）；②**双轨 Executor**（内部原对象 + 外部包装版——监控透传设计）
+- **my-xhs**：**该用没用**——线程池监控（任务队列/拒绝统计）；Boot 官方 ThreadPoolTaskScheduler 无监控包装
+
+#### KP-317 boot-test 模块（4 文件：AutoConfigurationTest/AbstractAutoConfigurationTest/Web/ReactiveWeb 变体）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式]（测试基座） | **置信度**：Medium
+- **前置**：Spring Boot Test、自动配置测试
+- **需求**：**自动配置测试基座**——测试自动配置的基类（加载指定自动配置断言）
+- **参考实现**：AutoConfigurationTest（基类——自动配置加载测试）+ AbstractAutoConfigurationTest/WebAutoConfigurationTest/ReactiveWebAutoConfigurationTest 变体
+- **my-xhs**：**该用没用**——自动配置测试参考；Boot 官方 @SpringBootTest 覆盖
