@@ -64,8 +64,8 @@
 - **维度**：[分布式问题]（服务注册）| **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（注册可观测性） | **置信度**：High
 - **前置**：ApplicationEvent、AOP（@Aspect/@Around）、ServiceRegistry 生命周期
 - **需求**：**注册生命周期事件化**——注册前/后、注销前/后四态事件（服务上下线通知/审计）
-- **参考实现**：**事件家族**（RegistrationEvent 抽象 :41——extends ApplicationEvent + 持有 registry/source :59；四态子类——RegistrationPreRegisteredEvent :31 / RegistrationRegisteredEvent / RegistrationPreDeregisteredEvent / RegistrationDeregisteredEvent——**前后成对**（同 microsphere-spring KP-214 双钩模式））；**AOP 发布**（EventPublishingRegistrationAspect :45——@Aspect + **@Before 注册切面**（:82 publishEvent RegistrationPreRegisteredEvent——**AOP 拦截 ServiceRegistry.register 发布事件**——**官方接口无事件，AOP 补**））
-- **对比取舍**：**知识增量**：①**注册四态事件**（前后成对——生命周期事件的完整模式）；②**AOP 而非继承扩展**（官方 ServiceRegistry 无事件钩子——**用 AOP 切面发布**（无侵入）——**扩展官方接口的 AOP 方案**）
+- **参考实现**：**事件家族**（RegistrationEvent 抽象 :41——extends ApplicationEvent + 持有 registry/source :59；四态子类——RegistrationPreRegisteredEvent :31 / RegistrationRegisteredEvent / RegistrationPreDeregisteredEvent / RegistrationDeregisteredEvent——**前后成对**（同 microsphere-spring KP-214 双钩模式））；**AOP 发布**（EventPublishingRegistrationAspect :45——@Aspect + **@Before/@After 注册切面**（:77/:126——**AOP 拦截 ServiceRegistry.register 发布事件**——**官方接口无事件，AOP 补**））
+- **对比取舍**：**知识增量**：①**注册四态事件**（前后成对——生命周期事件的完整模式）；②**AOP 而非继承扩展**（官方 ServiceRegistry 无事件钩子——**用 AOP 切面发布**（无侵入）——**扩展官方接口的 AOP 方案**）；③**缺陷：@After 语义错误（历史 REQ D12 交叉验证）**——AspectJ `@After` 是 **finally 语义**（:126——register() 抛异常仍执行）→ **注册失败却发布 RegistrationRegisteredEvent（虚假"注册成功"事件）**——正确应 @AfterReturning（成功才发）或 @AfterThrowing（失败发失败事件）——**AOP 通知类型语义**（@Before/@After/@AfterReturning/@AfterThrowing/@Around 五型的 finally/成功/异常语义差异）
 - **my-xhs**：**该用没用**——服务上下线通知（my-xhs 服务治理监控）；官方无此能力
 
 #### KP-409 常量/自动配置/条件变体归组（*Constants 4 + *AutoConfiguration 8 + ConditionalOn*Enabled 3 + DefaultRegistration/SimpleAutoServiceRegistration/AbstractServiceRegistrationEndpoint/ConfigurationPropertyHasFeaturesAutoConfiguration）
@@ -92,9 +92,10 @@
 
 #### KP-408 服务工具与事件（ServiceInstanceUtils/DiscoveryUtils/RegistrationMetaData/ServiceInstancesChangedEvent/RegistrationCustomizer + 剩余）
 
-- **维度**：[分布式问题] | **权重**：[支撑] | **深度**：🟢 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium
+- **维度**：[分布式问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium
 - **前置**：服务实例工具、实例变更事件
 - **需求**：服务实例工具 + 实例变更事件（ServiceInstancesChangedEvent——**实例变化通知**）+ 注册定制器（RegistrationCustomizer）
+- **参考实现**：ServiceInstanceUtils.setProperties（:196-215——`(source, target)` 签名但实现**反向赋值**：`target.setInstanceId(source.getInstanceId())` 实际是 **target 当源、source 当目标**（参数语义颠倒——历史 REQ D01 交叉验证）+ **metadata 无效操作**（:211-212——`metadata.clear(); metadata.putAll(source.getMetadata())` 对 source 自己的 metadata 清空再复制自身——清空原数据 + 无效））；DiscoveryUtils 调用（:76 `setProperties(targetLocal, local)`——配合签名颠倒 → **数据流向错误**（历史 REQ D08 交叉验证）
 - **my-xhs**：**该用没用**
 ### 包: `io.microsphere.spring.cloud.fault`（批 2a：5 文件）
 
@@ -172,3 +173,27 @@
 | UnionDiscoveryClientTest / IntegrationTest | **内部列表含 Union/Simple/Dummy 三类**（:78-81）+ description（:86-87）+ getInstances 合并（:92）——**多 client 并存实证** | KP-401 ✓ |
 | WeightedRoundRobinTest | 权重/计数器断言（:45-73——getId :45/getWeight :51/increaseCurrent 累加 :57-59/sel 减法 :65/getLastUpdate :70-73）——**加权算法实证** | KP-410 ✓ |
 | MultipleRegistrationTest / EventPublishingRegistrationAspectTest / SimpleAutoServiceRegistrationTest 等 | 多注册/切面/自动注册 | KP-404/405 [待补扫] |
+
+### 历史 REQ 缺陷交叉验证清单（05-cloud 完整版）
+
+> 来源：`microsphere-analysis/05-microsphere-spring-cloud-analysis/05-REQ-requirements-spec.md` 16 项缺陷
+> 状态：✅ 已验证补入 KP / ⬜ 未验证（需后续源码确认）
+
+| # | 历史缺陷 | 验证 | 落点 |
+|---|---------|------|------|
+| D01 | ServiceInstanceUtils.setProperties source/target 混淆 | ✅ 证实（:197 反向赋值 + :211 无效 metadata） | KP-408 |
+| D02 | FeignClientConfigurationChangedListener 无子属性崩溃 | ✅ 证实（:82 substring(0,-1)） | KP-413 |
+| D03 | CompositedRequestInterceptor.refresh() NPE | ✅ 证实（:129 config.get null） | KP-413 |
+| D04 | UnionDiscoveryClient.getInstances 实例去重 | ✅ 证实（:88-98 addAll 无去重） | KP-401 |
+| D05 | AbstractServiceRegistrationEndpoint static running | ✅ 证实（:48 static） | KP-406 [待补] |
+| D06 | MultipleRegistration 同类型覆盖 | ✅ 证实（:53 put 覆盖） | KP-404 [待补] |
+| D07 | WeightedRoundRobin 不完整（无 select） | ✅ 证实（:98-166 仅两操作） | KP-410 |
+| D08 | DiscoveryUtils.setProperties 参数颠倒 | ✅ 证实（:76 + 签名颠倒） | KP-408 |
+| D09 | MultipleServiceRegistry fallback 映射错误 | ⬜ 描述详细（loadFactoryNames 误用 → ClassCastException） | [待验证] |
+| D10 | Feign 组件热刷新对默认组件退化 | ⬜ | [待验证] |
+| D11 | DecoratedErrorDecoder fallback 抽象类 | ⬜ 描述详细（instantiateClass(ErrorDecoder.Default) 抽象类 → InstantiationException） | [待验证] |
+| D12 | EventPublishingRegistrationAspect @After 语义错误 | ✅ 证实（@After finally 语义 → 注册失败发成功事件） | KP-405 |
+| D13 | ReactiveDiscoveryClientAdapter 阻塞事件循环 | ⬜ 设计权衡（toFuture().get()——阻塞语义是有意的适配，但事件循环场景危险） | [待验证] |
+| D14 | TomcatDynamicConfigurationListener source 依赖 | ⬜ | [待验证] |
+| D15 | endpoints.properties 入侵性默认关闭 SC 端点 | ⬜ 描述详细（jar 内属性文件） | [待验证] |
+| D16 | 双重注册风险（Multiple + Nacos 原生并存） | ⬜ 条件创建 @Primary 与原生并存风险 | [待验证] |

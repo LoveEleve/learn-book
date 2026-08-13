@@ -108,6 +108,7 @@
 - **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium（部分深读）
 - **前置**：自动配置、@ConfigurationProperties 绑定
 - **需求**：绑定配套（BindableConfigurationBeanBinder——**microsphere-spring KP-220 ConfigurationBeanBinder 的 Boot 级版**）+ 自动配置（ConfigurationPropertiesAutoConfiguration——**Boot 官方同名类对照** :39）+ SpringBootVersion（版本判断——配 KP-133 Compatible）+ env（DefaultPropertiesPostProcessor/SpringApplicationDefaultPropertiesPostProcessor——**默认属性后处理**）+ classloading（BannedArtifactClassLoadingListener——**KP-142 黑名单的 Boot 级监听**）
+- **缺陷（历史 REQ 交叉验证）**：①**BannedArtifactClassLoadingListener 继承已弃用类**（BannedArtifactClassLoadingListener.java:45——`extends SpringApplicationRunListenerAdapter implements Ordered`——历史 D05：RunListenerAdapter 标弃用但仍被继承 + spring.factories 注册矛盾）；②**ConfigurationPropertiesBeanContext 浅拷贝**（bind/ConfigurationPropertiesBeanContext.java:393/:432——`instanceof Cloneable` 浅拷贝 + deepEquals :338——**集合字段子元素变更检测不到**（历史 D06））
 - **my-xhs**：**不该用**——Spring Boot 官方覆盖
 #### KP-310 `ConfigurableAutoConfigurationImportFilter` 自动配置排除过滤（ConfigurableAutoConfigurationImportFilter.java:53-84）
 
@@ -201,7 +202,7 @@
 - **前置**：ThreadPoolTaskScheduler（Spring 调度）、DelegatingScheduledExecutorService（microsphere-java KP-145b）、SmartInitializingSingleton
 - **需求**：**可监控的线程池调度器**——包装真实 Executor 暴露监控（任务统计/状态）
 - **参考实现**：**createExecutor 覆写**（:82-86——**工厂钩子包装**（super.createExecutor 后包 DelegatingScheduledExecutorService :84——**委托包装 + 保留原 Executor**（:85 返回原对象——双轨设计））；**getScheduledExecutor 返回包装版**（:102-104——**外部获取的是可监控委托**）；**生命周期**（ApplicationContextAware + SmartInitializingSingleton :43）
-- **对比取舍**：**知识增量**：①**createExecutor 工厂钩子**（Spring 线程池的可监控化扩展点）；②**双轨 Executor**（内部原对象 + 外部包装版——监控透传设计）
+- **对比取舍**：**知识增量**：①**createExecutor 工厂钩子**（Spring 线程池的可监控化扩展点）；②**双轨 Executor**（内部原对象 + 外部包装版——监控透传设计）；③**缺陷：标准调度路径未监控（历史 REQ D02 交叉验证）**——包装只覆盖 `getScheduledExecutor()` **外部访问路径**（:102-104），但 **`@Scheduled` 注解的标准调度路径**（ThreadPoolTaskScheduler 内部 `scheduledExecutor` 字段直接使用）**未经包装**——afterSingletonsInstantiated 后父类内部仍是原始 executor——**内部任务无计时指标**（历史方案：覆写父类字段或提供 MonitoredScheduledThreadPoolExecutor）
 - **my-xhs**：**该用没用**——线程池监控（任务队列/拒绝统计）；Boot 官方 ThreadPoolTaskScheduler 无监控包装
 
 #### KP-317 boot-test 模块（4 文件：AutoConfigurationTest/AbstractAutoConfigurationTest/Web/ReactiveWeb 变体）
@@ -220,3 +221,16 @@
 | OnPropertyPrefixConditionTest | `assertEquals(matched, outcome.isMatch())`（:86——**前缀匹配结果断言**） | KP-301 ✓ |
 | ListenableConfigurationPropertiesBindHandlerAdvisorTest | MyBindListener 三回调（onStart :65/onSuccess :69——**绑定三阶段回调实证**）+ 多监听器注册（:42-44） | KP-303 ✓ |
 | LoggingOnceApplicationPreparedEventListenerTest | 一次性监听 | KP-302 ✓ |
+
+### 历史 REQ 缺陷交叉验证清单（04-boot 完整版）
+
+> 来源：`microsphere-analysis/04-microsphere-spring-boot-analysis/04-REQ-requirements-spec.md` 8 项缺陷（含 2 高危）
+
+| # | 历史缺陷 | 验证 | 落点 |
+|---|---------|------|------|
+| D01 | OnPropertyPrefixCondition 前缀边界 | ✅ 证实（:78 startsWith 无分隔符边界——`microsphere.` 误匹配 `microsphere2.`） | KP-301 |
+| D02 | MonitoredThreadPoolTaskScheduler 标准调度路径未监控 | ✅ 证实（:102-104 仅外部路径；@Scheduled 内部路径漏掉） | KP-316 |
+| D03 | SpringBootVersion 低版本 profile 编译修复 | ⬜ 构建期问题 | [待验证] |
+| D04 | WebEndpoints 聚合端点健壮性 | ⬜ | [待验证] |
+| D05 | BannedArtifactClassLoadingListener 继承弃用 RunListenerAdapter | ✅ 证实（:45 extends 弃用类） | KP-309 |
+| D06 | ConfigurationPropertiesBeanContext 浅拷贝/deepEquals 深度 | ✅ 证实（:393/:432 Cloneable 浅拷贝） | KP-309 |
