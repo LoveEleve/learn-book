@@ -1,8 +1,8 @@
 # microsphere-java 知识点提取
 
 > 源码：`/data/workspace/java-training-camp/cloud-native-code/share/microsphere-java`（依赖链第 2 站，confucius-commons 之后）
-> 提取时间：2026-08-12（批 1：annotations 8；批 2：constants 8 + beans 4；批 3：collection 32；批 4：convert 52；批 5：reflect 21）
-> 状态：批 1-5 已提取；MCP 索引已建（13165 节点/49189 边）
+> 提取时间：2026-08-12（批 1：annotations 8；批 2：constants 8 + beans 4；批 3：collection 32；批 4：convert 52；批 5：reflect 21；批 6：util 34）
+> 状态：批 1-6 已提取；MCP 索引已建（13165 节点/49189 边）
 > 关联：与 confucius-commons 同作者（mercyblitz）——工具类主题重叠时交叉引用（06 纪律）
 
 ## 一、仓库定位
@@ -157,6 +157,7 @@
 | ListsTest/MapsTest/MapUtilsTest/SetUtilsTest/ListUtilsTest/QueueUtilsTest | of 工厂 + equals + 专用方法 | KP-117~120 ✓ |
 | ConvertersTest / Converter 家族测试 | SPI 加载 + 转换断言（:40-50——**convertIfPossible Date 返回 null 实证**） | KP-121~124 ✓ |
 | reflect 测试（批 5） | JavaTypeTest/TypeUtilsTest/MethodUtilsTest 等 | KP-125~129 [待补扫断言] |
+| util 测试（批 6） | AssertTest/VersionTest/CompatibleTest/StopWatchTest/ClassLoaderUtilsTest 等 | KP-130~135 [待补扫断言] |
 
 ### 深度 review 七项
 
@@ -352,6 +353,64 @@
 - **需求**：动态代理创建 + 修饰符判断工具
 - **参考实现**：ProxyUtils（:41——基于 Predicate 过滤方法集后生成代理，与 MethodUtils 联动）；Modifier（修饰符判断封装）
 - **my-xhs**：**不该用**——JDK Proxy/Spring AOP 覆盖
+
+### 包: `io.microsphere.util`（批 6：34 文件/17275 行）
+
+> 主题：**生态标准工具库**——confucius-commons 的完整继任（类名大量同名，confucius KP-01~35 同主题扩展版）。核心：ClassLoaderUtils（2138 行）/ClassUtils（2327）/ArrayUtils（2186）/AnnotationUtils（1839）/StringUtils（963）大文件 + Assert/StopWatch/Version/Compatible 等特色工具。
+
+#### KP-130 `ClassLoaderUtils` 完整版（ClassLoaderUtils.java:107-993 等）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（类加载工具） | **置信度**：High
+- **前置**：confucius KP-01~05（同名类——**交叉引用**）、ClassLoader 层级、缓存
+- **需求**：类加载工具完整版——confucius 版（KP-01 反射 findLoadedClass）+ **null 安全 + 缓存 + 调用者感知** 扩展
+- **参考实现**：**五个扩展点**（对比 confucius）：①**null 安全**（nullSafeClassLoader :218/getDefaultClassLoader :244——**TCCL 优先降级**）；②**调用者加载器**（getCallerClassLoader :327——栈帧探测，配合 reflect 包）；③**类加载缓存**（loadClass(classLoader, className, cached) :589——**三参带缓存版本**——confucius 无）；④**资源字符串化**（getResourceAsString :876/:915——**资源读为字符串的便捷封装**）；⑤**ResourceType 复用**（getResources :669-707 同 confucius KP-04 设计）
+- **对比取舍**：**生态演进实证（同主题两代）**——confucius KP-01~05 vs 本包：null 安全（@Nullable 参数 :357 等）+ 缓存（:589）+ 调用者感知（:327）三扩展；**getCallerClassLoader 与 confucius KP-28（sun.reflect.Reflection）对照**——本仓库用 StackWalker 系 [待验证：实现方式]
+- **my-xhs**：**不该用**——Spring `ClassUtils`/`ResourceUtils` 覆盖；类加载机制知识本体保留（outline 已提炼）
+
+#### KP-131 `Assert` 断言工具（Assert.java:45-509）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[过时→Spring `Assert`] | **置信度**：High
+- **前置**：断言模式、Supplier 延迟求值
+- **需求**：**契约校验**——assertTrue/assertNull/assertNotEmpty/assertNotBlank + **Supplier<String> 消息延迟求值**（:79/:114 等——**错误消息只在失败时构造**）
+- **参考实现**：**双签名模式**（String message / Supplier<String> messageSupplier 每方法成对 :60-77/:79-94 等——**性能设计**：消息构造成本仅在断言失败时支付）；与 Spring `Assert` 完全同构
+- **对比取舍**：**Supplier 消息延迟求值是性能细节**（Spring 同款）；无知识增量但**是我方代码风格基准**（后续 KP 大量使用 assertNotNull + lambda）
+- **my-xhs**：**该用没用**——Spring `Assert` 已用（my-xhs 现状）；本包版是自研替代
+
+#### KP-132 `Version` 语义化版本模型（Version.java:91-791）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式]（版本比较） | **置信度**：High
+- **前置**：语义化版本（SemVer）、Comparable
+- **需求**：**版本比较与解析**——major/minor/patch/preRelease 的 Comparable 实现
+- **参考实现**：`implements Comparable<Version>`（:91）+ compareTo（:372）+ 静态工厂（of :441-493 重载链）；**被定义类家族引用**（reflect KP-127 的 MemberDefinition since 用 `ofVersion`——跨包引用实证）
+- **对比取舍**：SemVer 比较的时间无关模式；Spring 无内建（用 `Version` 类在 spring-boot）
+- **my-xhs**：**该用没用**——my-xhs 若做版本兼容判断（如接口版本）可用；或 Spring Boot `Version`/Maven `ComparableVersion`
+
+#### KP-133 `Compatible` 版本条件执行（Compatible.java:83-272）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（版本条件） | **置信度**：High
+- **前置**：版本比较（KP-132）、条件执行、Optional
+- **需求**：**按版本条件执行代码**——`Compatible.of(Class).on(">=", "2.0").call()` 模式：版本满足才执行回调
+- **参考实现**：**构建器链**（of :140 → on(operator, version) :166/:193 → call :220 返回 Optional<R> / get :272 / accept :247）；**算子枚举**（Operator :193——>=/</<= 等）；与 `@Since` 注解（KP-104）联动思路
+- **对比取舍**：**知识增量：版本条件执行是独特设计**——按运行环境版本动态分支（Spring 无直接等价；Java 用 `Runtime.version().feature()` + 手写 if）；**"声明式版本分支"**模式：把版本判断封装为链式 DSL
+- **my-xhs**：**该用没用**——my-xhs 若做多版本兼容（如第三方 SDK 适配）可参考；**DSL 链设计**值得学
+
+#### KP-134 `ShutdownHookUtils` 关闭钩子管理（ShutdownHookUtils.java:86-142 等 + ShutdownHookCallbacksThread）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式]（关闭钩子） | **置信度**：High
+- **前置**：Runtime.addShutdownHook、回调注册
+- **需求**：**关闭钩子的批量管理**——多个回调注册到一个专用线程
+- **参考实现**：**专用线程模式**（ShutdownHookCallbacksThread——所有回调在专用线程执行 + 过滤器 SHUTDOWN_HOOK_CALLBACKS_THREAD_FILTER :112 识别）+ **容量配置化**（shutdown-hook.callbacks-capacity 系统属性 + 默认 512 :86-107 三层）+ registerShutdownHook 懒注册（:137-142）
+- **对比取舍**：**专用线程 + 容量限制**是关闭钩子的工程化设计（防止单回调阻塞/无限注册）；Spring `ApplicationListener` 无此专门管理
+- **my-xhs**：**该用没用**——my-xhs 若有多个清理任务（连接池/线程池优雅关闭）可参考；Spring `@PreDestroy` 覆盖多数场景
+
+#### KP-135 `TypeFinder`/`StopWatch`/`Functional`/`Configurer` 特色工具
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式] | **置信度**：Medium
+- **前置**：类型层次遍历、计时、函数式包装
+- **需求**：类型相关查找（TypeFinder）、代码计时（StopWatch）、函数式值包装（Functional）、配置器（Configurer）
+- **参考实现**：TypeFinder（:86——Include 枚举 HIERARCHICAL/INTERFACES :64-72 + classFinder 工厂——**类型层次遍历**）；StopWatch（:44-48——**任务名 + 可重入控制** :36-38 非重入默认——比 Spring StopWatch 多可重入选项）；Functional（:62——**命名值包装** of(name, supplier) :239）；Configurer（:445——配置器模式）
+- **对比取舍**：**StopWatch 可重入控制**是超出 Spring 的设计（防止嵌套计时误用）；TypeFinder 与 Spring `ClassUtils.getUserClass`/`GenericTypeResolver` 部分重叠
+- **my-xhs**：**该用没用**——StopWatch 计时（my-xhs 压测场景 KP-132 同组）；Spring `StopWatch` 是替代
 
 #### KP-120 `QueueUtils`/`SetUtils`/`ListUtils` 专用工具（QueueUtils.java:52-146 + SetUtils.java:74-890 + ListUtils.java:73-738）
 
