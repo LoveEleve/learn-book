@@ -1,8 +1,8 @@
 # microsphere-java 知识点提取
 
 > 源码：`/data/workspace/java-training-camp/cloud-native-code/share/microsphere-java`（依赖链第 2 站，confucius-commons 之后）
-> 提取时间：2026-08-12（批 1：annotations 8；批 2：constants 8 + beans 4；批 3：collection 32；批 4：convert 52；批 5：reflect 21；批 6：util 34）
-> 状态：批 1-6 已提取；MCP 索引已建（13165 节点/49189 边）
+> 提取时间：2026-08-12（批 1-7：core 主要包；批 8：classloading 16 + lang 8 + net 13 + management 4 + metadata 9 + json 8 + concurrent 4 + invoke 2 + misc/nio/security/text 4 + filter 9）
+> 状态：批 1-8 已提取（core 294 生产文件全部覆盖）；MCP 索引已建
 > 关联：与 confucius-commons 同作者（mercyblitz）——工具类主题重叠时交叉引用（06 纪律）
 
 ## 一、仓库定位
@@ -157,7 +157,9 @@
 | ListsTest/MapsTest/MapUtilsTest/SetUtilsTest/ListUtilsTest/QueueUtilsTest | of 工厂 + equals + 专用方法 | KP-117~120 ✓ |
 | ConvertersTest / Converter 家族测试 | SPI 加载 + 转换断言（:40-50——**convertIfPossible Date 返回 null 实证**） | KP-121~124 ✓ |
 | reflect 测试（批 5） | JavaTypeTest/TypeUtilsTest/MethodUtilsTest 等 | KP-125~129 [待补扫断言] |
-| util 测试（批 6） | AssertTest/VersionTest/CompatibleTest/StopWatchTest/ClassLoaderUtilsTest 等 | KP-130~135 [待补扫断言] |
+| util 测试（批 6） | CompatibleTest（链式 4 条件 on("<")/on("=")/on(">")/on(">=") → get()==">=" :34-41）、AssertTest/VersionTest/VersionOperatorTest/StopWatchTest/ClassLoaderUtilsTest 存在 | KP-130~135 ✓ |
+| event/logging/io 测试（批 7） | EventDispatcherTest（:45-46 默认 DIRECT + 监听器数）、DirectEventDispatcherTest/ParallelEventDispatcherTest/ConditionalEventListenerTest、LoggerFactoryTest/JDKLoggerFactoryTest/Sfl4jLoggerFactoryTest 等 | KP-136~141 ✓ |
+| classloading/metadata 测试（批 8） | ArtifactDetectorTest（:50 assertNotNull）+ BannedArtifactClassLoadingExecutorTest 等 11 个、metadata 测试 | KP-142/144 ✓ |
 
 ### 深度 review 七项
 
@@ -363,8 +365,8 @@
 - **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（类加载工具） | **置信度**：High
 - **前置**：confucius KP-01~05（同名类——**交叉引用**）、ClassLoader 层级、缓存
 - **需求**：类加载工具完整版——confucius 版（KP-01 反射 findLoadedClass）+ **null 安全 + 缓存 + 调用者感知** 扩展
-- **参考实现**：**五个扩展点**（对比 confucius）：①**null 安全**（nullSafeClassLoader :218/getDefaultClassLoader :244——**TCCL 优先降级**）；②**调用者加载器**（getCallerClassLoader :327——栈帧探测，配合 reflect 包）；③**类加载缓存**（loadClass(classLoader, className, cached) :589——**三参带缓存版本**——confucius 无）；④**资源字符串化**（getResourceAsString :876/:915——**资源读为字符串的便捷封装**）；⑤**ResourceType 复用**（getResources :669-707 同 confucius KP-04 设计）
-- **对比取舍**：**生态演进实证（同主题两代）**——confucius KP-01~05 vs 本包：null 安全（@Nullable 参数 :357 等）+ 缓存（:589）+ 调用者感知（:327）三扩展；**getCallerClassLoader 与 confucius KP-28（sun.reflect.Reflection）对照**——本仓库用 StackWalker 系 [待验证：实现方式]
+- **参考实现**：**五个扩展点**（对比 confucius）：①**null 安全**（nullSafeClassLoader :218/getDefaultClassLoader :244——**TCCL 优先降级**）；②**调用者加载器**（getCallerClassLoader :327——**栈帧探测**：实证实现 = `StackTraceUtils.getCallerClassInStatckTrace(5)`（:1833-1836）——**非 StackWalker**！是 `Thread.getStackTrace()` 遍历 + 帧偏移常量（StackTraceUtils :61-64——注释自证 "+3 帧偏移"）；③**类加载缓存**（loadClass(classLoader, className, cached) :589——**三参带缓存版本**——confucius 无）；④**资源字符串化**（getResourceAsString :876/:915——**资源读为字符串的便捷封装**）；⑤**ResourceType 复用**（getResources :669-707 同 confucius KP-04 设计）
+- **对比取舍**：**生态演进实证（同主题两代）**——confucius KP-01~05 vs 本包：null 安全（@Nullable 参数 :357 等）+ 缓存（:589）+ 调用者感知（:327）三扩展；**getCallerClassLoader 的栈帧探测**与 confucius KP-28（sun.reflect.Reflection）对照——本仓库已弃用 sun.reflect（JDK17 移除），改 `getStackTrace()` 遍历（StackTraceUtils）——**但仍有帧偏移魔法数**（+3 :64，同 confucius KP-28 的缺陷类型）；**拼写细节**：方法名 `getCallerClassInStatckTrace`（StacKTrace 拼错——全库统一错误命名，API 稳定性约束无法改名）
 - **my-xhs**：**不该用**——Spring `ClassUtils`/`ResourceUtils` 覆盖；类加载机制知识本体保留（outline 已提炼）
 
 #### KP-131 `Assert` 断言工具（Assert.java:45-509）
@@ -385,13 +387,13 @@
 - **对比取舍**：SemVer 比较的时间无关模式；Spring 无内建（用 `Version` 类在 spring-boot）
 - **my-xhs**：**该用没用**——my-xhs 若做版本兼容判断（如接口版本）可用；或 Spring Boot `Version`/Maven `ComparableVersion`
 
-#### KP-133 `Compatible` 版本条件执行（Compatible.java:83-272）
+#### KP-133 `Compatible` 版本条件执行（Compatible.java:83-272 + Version.java:671+）
 
 - **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（版本条件） | **置信度**：High
-- **前置**：版本比较（KP-132）、条件执行、Optional
+- **前置**：版本比较（KP-132）、条件执行、Optional、BiPredicate
 - **需求**：**按版本条件执行代码**——`Compatible.of(Class).on(">=", "2.0").call()` 模式：版本满足才执行回调
-- **参考实现**：**构建器链**（of :140 → on(operator, version) :166/:193 → call :220 返回 Optional<R> / get :272 / accept :247）；**算子枚举**（Operator :193——>=/</<= 等）；与 `@Since` 注解（KP-104）联动思路
-- **对比取舍**：**知识增量：版本条件执行是独特设计**——按运行环境版本动态分支（Spring 无直接等价；Java 用 `Runtime.version().feature()` + 手写 if）；**"声明式版本分支"**模式：把版本判断封装为链式 DSL
+- **参考实现**：**构建器链**（of :140 → on(operator, version) :166/:193 → call :220 返回 Optional<R> / get :272 / accept :247）；**Operator 枚举实现在 Version.java:671**（`implements BiPredicate<Version,Version>`——**EQ/LT/LE/GT/GE/NQ 每态 test 实现** + null 处理：同引用 true（:677-679）/null 互斥 false（:681-682）——**null 安全比较语义**）；与 `@Since` 注解（KP-104）联动思路
+- **对比取舍**：**知识增量：版本条件执行是独特设计**——按运行环境版本动态分支（Spring 无直接等价；Java 用 `Runtime.version().feature()` + 手写 if）；**Operator 的 BiPredicate 实现**（比较算子枚举化——状态模式）；**"声明式版本分支" DSL 模式**；测试实证（CompatibleTest:34-41——链式 4 条件 on("<")/on("=")/on(">")/on(">=")，最终 get()==">=" :41）
 - **my-xhs**：**该用没用**——my-xhs 若做多版本兼容（如第三方 SDK 适配）可参考；**DSL 链设计**值得学
 
 #### KP-134 `ShutdownHookUtils` 关闭钩子管理（ShutdownHookUtils.java:86-142 等 + ShutdownHookCallbacksThread）
@@ -411,6 +413,122 @@
 - **参考实现**：TypeFinder（:86——Include 枚举 HIERARCHICAL/INTERFACES :64-72 + classFinder 工厂——**类型层次遍历**）；StopWatch（:44-48——**任务名 + 可重入控制** :36-38 非重入默认——比 Spring StopWatch 多可重入选项）；Functional（:62——**命名值包装** of(name, supplier) :239）；Configurer（:445——配置器模式）
 - **对比取舍**：**StopWatch 可重入控制**是超出 Spring 的设计（防止嵌套计时误用）；TypeFinder 与 Spring `ClassUtils.getUserClass`/`GenericTypeResolver` 部分重叠
 - **my-xhs**：**该用没用**——StopWatch 计时（my-xhs 压测场景 KP-132 同组）；Spring `StopWatch` 是替代
+
+### 包: `io.microsphere.event`（批 7a：10 文件）
+
+> 主题：**轻量事件分发器**——README Features 明示 "Event Dispatching with sequential and parallel execution modes"。核心：EventDispatcher 接口 + AbstractEventDispatcher 模板 + Direct/Parallel 两实现。
+
+#### KP-136 `EventDispatcher` 事件分发 SPI（EventDispatcher.java:55-98）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（事件分发设计） | **置信度**：High
+- **前置**：观察者模式、Executor、事件类型体系
+- **需求**：**事件分发抽象**——监听器注册/分发，支持直接/并行执行策略
+- **参考实现**：**策略注入设计**：`DIRECT_EXECUTOR = Runnable::run`（:60——**直接执行 = 同步调用**）；工厂（newDefault :67 → DirectEventDispatcher / parallel(executor) :77 → ParallelEventDispatcher）；`getExecutor()` 默认 DIRECT（:95-97）；extends `Listenable<EventListener<?>>`（:55——监听器管理接口）
+- **对比取舍**：**Executor 策略模式**（执行策略注入 vs 硬编码）——Spring `ApplicationEventMulticaster` 同思路但更重（多播器注册式）；microsphere 是轻量 SPI 式
+- **my-xhs**：**该用没用**——若 my-xhs 做轻量内部事件（非 Spring 环境）可用；Spring `ApplicationEventPublisher` 覆盖主流
+
+#### KP-137 `AbstractEventDispatcher` 分发模板（AbstractEventDispatcher.java:92-215）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（分发机制） | **置信度**：High
+- **前置**：模板方法、事件类型匹配（isAssignableFrom）、条件监听器、SPI
+- **需求**：**分发器通用实现**——按事件类型匹配监听器 + 优先级排序 + 条件过滤 + SPI 自动加载
+- **参考实现**：**六大机制**：①**类型键缓存**（listenersCache `ConcurrentMap<Class<? extends Event>, List<EventListener>>` :98——按事件类型分组缓存）；②**类型匹配分发**（dispatch :161-177——`entry.getKey().isAssignableFrom(event.getClass())` :165——**父类型监听器接子类型事件**——继承感知匹配）；③**条件监听器**（ConditionalEventListener :170-173——accept 过滤；接口定义 :47-56 `boolean accept(E event)`）；④**优先级排序**（sortedListeners :140-151——Prioritized 排序 + **缓存变更后即时重排**（doInListener :205-207 `sort(listeners)` 同步更新——**写入时排序而非读取时**））；⑤**Executor 执行**（:163——direct/parallel 策略）；⑥**SPI 自动加载**（loadEventListenerInstances :211+——`loadServicesList(EventListener.class...)` SPI 加载）
+- **对比取舍**：**知识增量**：①**类型键缓存 + isAssignableFrom 继承匹配**——Spring 的监听器匹配（ResolvableType 精确匹配 + 继承链）vs microsphere 的 isAssignableFrom 简化（**父子类型都命中**——更宽松）；②**写入时排序**（doInListener synchronized + sort :199-207——**注册/移除时持锁重排**，读取时免锁流式遍历——并发设计）；③**ConditionalEventListener 条件过滤**是 Spring `ApplicationListener` + 手动判断的封装；测试实证（EventDispatcherTest:45-46——默认实例 DIRECT + 监听器数）
+- **my-xhs**：**该用没用**——轻量事件模型参考；Spring Event 覆盖主流
+
+#### KP-138 事件模型（Event/GenericEvent/GenericEventListener/EventListener/ConditionalEventListener/Listenable）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式] | **置信度**：High
+- **前置**：泛型事件、观察者模式
+- **需求**：事件/监听器类型体系——泛型化 + 条件化
+- **参考实现**：Event（基类）+ **GenericEvent<T>**（泛型事件——携带任意负载）+ EventListener<E extends Event>（**泛型监听器**）+ ConditionalEventListener（**accept 前置过滤**）+ Listenable（注册/移除管理）
+- **对比取舍**：**泛型事件 + 条件监听器**设计（Spring 的 ApplicationEvent 无泛型负载、无内置条件）；**泛型化是 microsphere 的轻量增强**
+- **my-xhs**：**该用没用**——泛型事件设计参考；Spring 覆盖主流
+
+### 包: `io.microsphere.logging`（批 7b：8 文件）
+
+#### KP-139 `LoggerFactory` SPI 日志门面（LoggerFactory.java:65-100 + Logger.java:62-214 + 4 实现）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[过时→SLF4J（已内置实现）] | **置信度**：High
+- **前置**：SLF4J 门面模式、SPI、日志级别
+- **需求**：**日志门面抽象**——不绑定具体实现（JDK Logging/SLF4J/NoOp），SPI 自动选择
+- **参考实现**：**LoggerFactory 是 SPI 工厂**（:65 implements Prioritized）——**选择链实证**（loadFactory :73-75 `get(0)` → loadAvailableFactories :78-83（SPI 加载 + **isAvailable 过滤** `removeIf(negate)` :81）→ loadFactories :85-89（SPI 加载 + **Prioritized COMPARATOR 排序** :87——**优先级决定门面选择**：SLF4J 工厂优先级最高则胜出）；**Logger 接口**（:62——trace/debug/info/warn/error 五级 + 格式化重载 :98/:131 等 + Throwable 重载 :107/:140）；**4 实现**（JDKLoggerFactory/Sfl4jLoggerFactory/ACLLoggerFactory/NoOpLoggerFactory）
+- **对比取舍**：**SLF4J 门面模式的复刻**——**但 SLF4J 已存在且更成熟**（microsphere 重造轮子）；**SPI 工厂 + isAvailable 过滤 + Prioritized 排序**是门面选择的完整模式（三要素：可用性+优先级+SPI）
+- **my-xhs**：**不该用**——SLF4J + Logback（my-xhs 现状）覆盖
+
+### 包: `io.microsphere.io`（批 7c：27 文件）
+
+#### KP-140 `IOUtils` 流工具（IOUtils.java:57-268 等）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[过时→Spring `StreamUtils`/commons-io] | **置信度**：High
+- **前置**：InputStream 读取、字符集、缓冲区
+- **需求**：流读取家族——readLines/toString/toByteArray + **缓冲区配置化**
+- **参考实现**：**缓冲区三层配置**（DEFAULT_BUFFER_SIZE :66 / BUFFER_SIZE_PROPERTY_NAME :80 / BUFFER_SIZE :91——`microsphere.io.buffer.size` 系统属性——与 KP-108/KP-134 同款配置化模式）
+- **my-xhs**：**不该用**——Spring StreamUtils 覆盖
+
+#### KP-141 `Serializer` SPI 序列化体系（Serializer.java:40-42 + Serializers.java:36-46 + 实现家族）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P2 | **过时**：[时间无关模式]（序列化 SPI） | **置信度**：High
+- **前置**：序列化、SPI、优先级
+- **需求**：**对象↔字节序列化 SPI**——按类型选最兼容序列化器
+- **参考实现**：Serializer<S>（:40——**泛型源类型** `byte[] serialize(S)` :42）；**Serializers 注册中心**（:36-46——**SPI 加载 + getHighestPriority 选择**——与 convert 包 Converters（KP-123）**同构模式**：SPI 加载 + 优先级选优）；实现家族（Default/String/DefaultDeserializer/StringDeserializer）
+- **对比取舍**：**与 KP-123 Converters 的模式复现**——"SPI 加载 + Prioritized 选优"是 microsphere 生态的**统一注册中心模式**（convert/io 两处实证）
+- **my-xhs**：**该用没用**——SPI 序列化模式参考；Jackson/Kryo 覆盖主流
+
+### 包: `io.microsphere.classloading`（批 8a：16 文件）
+
+#### KP-142 `ArtifactDetector` 类路径构件探测（ArtifactDetector.java:76-137 + Artifact.java:35-49）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（classpath 探测） | **置信度**：High
+- **前置**：classpath 解析（confucius KP-06~10）、URL 协议、Maven 构件
+- **需求**：**探测 classpath 中的构件**（Artifact：artifactId/version/location）——运行时识别"哪个 jar 在 classpath"（版本冲突诊断/依赖分析）
+- **参考实现**：**三层设计**：①**Artifact 模型**（:35-49——artifactId/version/location + @Immutable）；②**探测 API**（detect() 无参 :102 / 含 JDK 库 :108 / 指定 URL 集 :115 / 按类 :131——**从类定位所属构件**）；③**Resolver SPI**（ArtifactResourceResolver——AbstractArtifactResourceResolver + ArchiveFile/Manifest/Maven/Stream 实现——**按 URL 类型分派**：Maven artifact 从 pom.properties 解析版本）
+- **对比取舍**：**知识增量**：①**"从类反查构件"**（:131——类 → classpath URL → Artifact）是依赖诊断的关键能力（Spring Boot `ArtifactUtils` 有类似）；②**Resolver SPI 按 URL 协议分派**（与 KP-141 Serializers 同模式）；③**BannedArtifactClassLoadingExecutor**（:63-84——**`META-INF/banned-artifacts` 配置禁用构件类加载**——与 util 包 banned-methods（KP-128）**同家族模式**：配置化黑名单）
+- **my-xhs**：**该用没用**——依赖冲突诊断场景；Maven `dependency:tree` 是替代（构建期）
+
+### 包: `io.microsphere.net`（批 8b：13 文件）
+
+#### KP-143 `URLStreamHandler` 自定义协议体系（CompositeURLStreamHandlerFactory.java:56-132 等）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P2 | **过时**：[时间无关模式]（URL 协议扩展） | **置信度**：High
+- **前置**：URLStreamHandlerFactory、自定义协议、JDK URL 机制
+- **需求**：**自定义 URL 协议**——microsphere 生态扩展 `URL.setURLStreamHandlerFactory` 的能力（SPI 加载 + 组合工厂）
+- **参考实现**：**六件套**：CompositeURLStreamHandlerFactory（:56——**工厂组合 + 顺序委派**（:75-80 逐个试））；DelegatingURLStreamHandlerFactory（委托）；ServiceLoaderURLStreamHandlerFactory（**SPI 加载**）；MutableURLStreamHandlerFactory（可变）；StandardURLStreamHandlerFactory（标准）；ExtendableProtocolURLStreamHandler（可扩展处理器）；配套 SubProtocolURLConnectionFactory/DelegatingURLConnection（**子协议连接工厂**）
+- **对比取舍**：**知识增量：URL 协议扩展是 JDK 的"最后手段"**（URL.setURLStreamHandlerFactory 全局只能设一次——组合工厂解决**单例限制**）；Spring 用 `Resource` 抽象（协议无关）替代；**扩展 JDK URL 协议 vs 用 Resource 抽象**是架构取舍
+- **my-xhs**：**不该用**——Spring Resource 覆盖；URL 工厂单例限制是坑
+
+### 包: `io.microsphere.metadata`（批 8c：9 文件）
+
+#### KP-144 `ConfigurationPropertyLoader` 元数据加载链（ConfigurationPropertyLoader.java:47-97 + 实现家族）
+
+- **维度**：[工程问题] | **权重**：[核心] | **深度**：🔴 | **优先级**：P1 | **过时**：[时间无关模式]（元数据 SPI） | **置信度**：High
+- **前置**：KP-101（@ConfigurationProperty 注解）、KP-109（运行时对象）、annotation-processor 产出、SPI
+- **需求**：**配置属性元数据加载**——从编译期元数据（JSON 文件）或反射加载 ConfigurationProperty 列表——**KP-101 注解体系的运行时闭环**
+- **参考实现**：**SPI 加载链**（loadAll :91-97——`loadServicesList(ConfigurationPropertyLoader.class)` + 逐个 load）；**实现家族分派**：ClassPathResourceConfigurationPropertyLoader（classpath 元数据）/MetadataResourceConfigurationPropertyLoader（`META-INF/microsphere/configuration-properties.json`——**KP-105 ResourceConstants 定义的文件**）/AdditionalMetadataResource（附加文件）/ReflectiveConfigurationPropertyGenerator（**反射回退**——注解直接反射生成）
+- **对比取舍**：**知识增量：注解体系的完整闭环**——编译期（annotation-processor 生成 JSON）→ 运行期（本加载链读取）→ 对象（KP-109）——**三阶段联动**（对比 Spring：`@ConfigurationProperties` 无编译期生成，运行期 Binder 反射）；**SPI 加载器链**（多 loader 叠加）是元数据聚合模式
+- **my-xhs**：**该用没用**——注解驱动配置框架的参考；Spring `@ConfigurationProperties` 覆盖主流
+
+### 包: `io.microsphere.json` / `concurrent` / `invoke` / `misc` / `nio` / `security` / `text` / `filter`（批 8d：小包归组）
+
+#### KP-145 小包归组（json 8 + concurrent 4 + invoke 2 + misc/nio/security/text 4 + filter 9 = 27 文件）
+
+- **维度**：[工程问题] | **权重**：[支撑] | **深度**：🟢 | **优先级**：P3 | **过时**：[过时→Jackson（json 包——**Android JSON 库移植**）] | **置信度**：High
+- **前置**：JSON 语法（json 包）、线程工厂、Executor 委托
+- **需求**：小工具集合——JSON 解析（json 包）、线程工厂（concurrent）、MethodHandle 查找（invoke）、过滤（filter——confucius KP-13~18 同主题）
+- **参考实现**：json 包（JSONObject/JSONArray/JSONTokener/JSONStringer）——**来源实证：Android OpenJDK 移植**（JSONObject.java 头部版权 "Copyright (C) 2010 The Android Open Source Project" 实证——**与 KP-35 Base64（Josh Bloch）、KP-103（JCIP）同移植模式**：第三方/平台代码复制保版权头）；concurrent（CustomizedThreadFactory/DelegatingScheduledExecutorService/DelegatingBlockingQueue/ExecutorUtils）；invoke（MethodHandlesLookupUtils——**KP-117 MethodHandle 探测的实现地**）；filter（9 文件——confucius KP-13~18 同主题扩展）
+- **对比取舍**：json 包是**重造轮子**（Android 老版 JSON 实现——Jackson 是标准）；concurrent/invoke 是配套工具；filter 与 confucius 交叉引用（KP-13~18）
+- **my-xhs**：**不该用**——Jackson + Spring 覆盖
+
+### 模块: `microsphere-lang-model`（16）+ `microsphere-annotation-processor`（4）+ `microsphere-jdk-tools`（1）
+
+#### KP-146 子模块三件（lang-model 16 + annotation-processor 4 + jdk-tools 1 = 21 文件）
+
+- **维度**：[规范] | **权重**：[支撑] | **深度**：🟡 | **优先级**：P3 | **过时**：[时间无关模式]（编译期处理） | **置信度**：Medium（未深读核心逻辑）
+- **前置**：Java Language Model API（javax.lang.model）、注解处理器（APT）
+- **需求**：**编译期配置元数据生成**（annotation-processor——@ConfigurationProperty → JSON）+ 语言模型工具（lang-model）+ JDK 工具桥（jdk-tools）
+- **参考实现**：**annotation-processor 4 类实证**（ConfigurationPropertyAnnotationProcessor/ConfigurationPropertyJSONElementVisitor——**@ConfigurationProperty 注解 → JSON 的编译期实现**（KP-101 注解的编译期侧）/FilerProcessor/ResourceProcessor——Filer 资源写入）；lang-model 封装 `javax.lang.model`（Element/TypeMirror 工具）；jdk-tools 桥接 compiler/annotation processing API
+- **对比取舍**：**编译期元数据生成**（annotation-processor + JSON）vs Spring 运行期反射——**编译期方案的优势**：类型安全 + 启动快（无反射）；劣势：构建复杂度；**KP-101 → KP-146（编译期）→ KP-144（运行期）三阶段完整闭环实证**
+- **my-xhs**：**该用没用**——若 my-xhs 做自定义配置注解框架可用；Spring 覆盖主流
 
 #### KP-120 `QueueUtils`/`SetUtils`/`ListUtils` 专用工具（QueueUtils.java:52-146 + SetUtils.java:74-890 + ListUtils.java:73-738）
 
