@@ -1,13 +1,13 @@
-# q1 — Session 日志(深度版:事件源 + Surface 投影 + 版本机制)
+# q1 — Session 日志(深度版:事件源 + Surface 投影 + 版本机制 + 测试契约)
 
-> 域:④知识库(事件源核心) | 文件:packages/core/session/src/(index.ts 1157/types.ts 436/surface.ts 460/chunk-rows.ts 346/invariant.ts 250/json.ts 190/repair.ts 133/request-header.ts 71)+ docs/architecture.md + docs/subsystems/session.md
-> review 轮次:2 轮(源码全文核心 + 架构文档)
+> 域:④知识库(事件源核心) | 文件:packages/core/session/src/(index.ts 1157/types.ts 436/surface.ts 460/chunk-rows.ts 346/invariant.ts 250/json.ts 190/repair.ts 133/request-header.ts 71)+ tests/session.spec.ts(1730)+ docs/architecture.md
+> review 轮次:3 轮(源码全文核心 + 架构文档 + 测试契约 60+)
 
 ---
 
 ## 假设
 
-Session 日志 = 追加写事件源(一切持久状态的唯一真相)。模型可见 ⟺ 已记录(运行时不变量)。Surface = 日志上的"模型可见视图"(3 种事件投影为 LLM 消息)。持久化/标题/遥测全是插件(订阅事件流)。
+Session 日志 = 追加写事件源(一切持久状态的唯一真相)。模型可见 ⟺ 已记录(运行时不变量)。Surface = 日志上的"模型可见视图"(3 种事件投影为 LLM 消息)。持久化/标题/遥测全是插件(订阅事件流)。**测试契约(60+)揭示追加不变性/JSON 严格性/冻结语义**。
 
 ## 验证
 
@@ -44,77 +44,78 @@ interface SessionEventMap {
 // ignorable: true 的枚举(未登记的构建拒绝写日志除非 ignorable)
 ```
 
-**产品启示**:④知识库事件 schema = 声明合并扩展(插件加事件不改核心)——与 OpenCode 的 durable manifest 相比,类型级更强(构建期强制)。
-
 ### 3. Surface 投影(设计 3:3 事件 → LLM 消息)
 
 ```ts
 // surface.ts:15-19,83-114
 SURFACE_EVENT_TYPES = user/message | assistant/message | tool/result
 deriveEventMessage(event):
-  user/message → event.data(verbatim 直通;framing 是调用方责任,如 agent-instructions 的 <system-reminder>)
+  user/message → event.data(verbatim 直通;framing 是调用方责任)
   assistant/message → data.message(空 content 跳过——只承载 usage 的 step)
   tool/result → data.message
   其他 → null(turn/step 边界、chunk、usage、error 只是 trace/replay 数据)
 // surfaceOp: append | replace(替换阴影)——模型可见 surface 故意阴影被替换范围
-// isAppendSurfaceEvent:人类转写的耐久来源;replacement 副本仅模型可见
-//   ("a landed replacement would erase conversation the user already saw")
 // deriveMessages() 折叠该函数:live surface 与 log 前缀重建的请求完全一致
 ```
-
-**产品启示**:④"模型视图 vs 人类转写分离"——replace 阴影只影响模型,append-origin 保人类可见——这是 OpenCode 没有的设计(OpenCode 的 system 消息是追加,无替换语义)。
 
 ### 4. 版本机制(设计 4:writer 决定 bump)
 
 ```ts
 // types.ts:51-91
 SESSION_FORMAT_VERSION = 0(单调整数,无 major/minor)
-bump 规则:由 WRITER 决定(不是 reader 能接受什么)
-  - "parses without error" ≠ 正确——静默跳过影响重建的内容 = 错误读
-  - 仅结构变化 bump:header 形状/SessionEvent 信封/核心事件语义/surface 机制(类型集+op 变体)
+bump 规则:由 WRITER 决定
+  - 仅结构变化 bump:header 形状/SessionEvent 信封/核心事件语义/surface 机制
   - 普通新增事件不 bump(ignorable 守卫覆盖词汇增长)
-  - 不确定就 bump(近身份升级近乎免费;漏 bump = 旧运行时静默读错新日志)
-// 持久化后端拒绝其他版本(无迁移)
-// Agent Note:session-log-version-mechanism(升级链/内存视图转换/migrate-on-continue)
+  - 不确定就 bump
 ```
 
-**产品启示**:④知识库版本策略——"写入方决定何时升级"比 OpenCode 的 versionedType 更严格(结构级 bump + ignorable 词汇级)。
-
-### 5. 运行时不变量(invariant.ts:250)
+### 5. 测试契约(设计 5:追加不变性 + JSON 严格性 + 冻结)★ review 轮 3
 
 ```ts
-// invariant.ts:每个包拥有 ./invariant——检查"事件/数据关系"(非服务存在性)
-// session 的不变量:模型可见 ⟺ 已记录(新模型可见输入 ⟹ 新 session 事件)
-// verify-package-invariants 门禁强制
+// tests/session.spec.ts(60+ 契约,关键):
+1. append-only 契约(spec:437):deriveMessages() 返回的消息 deep-frozen
+   ——消费方突变 → TypeError("HACKED"/"injected"/"extra" 全抛)
+   ——返回数组是调用方快照(可 reverse),但永不达缓存/日志;日志深等不变
+2. 非 JSON 拒绝(spec:471):BigInt/函数/Symbol/Map/undefined/Infinity/稀疏数组(JSON.stringify 写 null 的洞)/
+   密集数组含非序列化元素/嵌套非序列化/循环引用(seen-set 防爆栈)——全部拒绝且不入日志
+3. surfaceOp 运行时守卫(spec:498):union 拓宽绕过重载条件要求 → 运行时仍拒
+   ("surface-eligible and requires a surfaceOp marker")——防 union 拓宽漏洞
+4. seed 校验(spec:518-665):非 JSON/非连续 seq/surface 缺标记 → 拒;
+   getter 只读一次(验证与存储用同一事件);exotic 种子原型擦除防护
+5. 快照语义(spec:737-828):seed/append 后突变原对象不影响;嵌套 getter 一次;
+   非 JSON surface metadata 拒绝
+6. 深层冻结(spec:903-957):seed/append 事件深冻结;迭代冻结嵌套恢复;缓存数组快照不随 append 增长
+7. header 校验(spec:977-1060):exotic/非 JSON/不匹配/无效标量 → 拒
+8. SessionStore(spec:1094+):created/event 事件序;重复 id 拒绝;seed 支持;
+   enter() 拒绝过期准备(无覆盖)
 ```
 
-### 6. 存储行(chunk-rows.ts:346)
-
-```ts
-// decodeStorageRecord/packChunkRuns:chunk 运行打包(assistant/chunk 压缩存储)
-// StorageRecord:持久化记录格式
-```
+**设计要点**:追加不变性 + JSON 严格性是"可重建性"的基础(任何后端可持久化);surfaceOp 守卫防类型拓宽绕过;深冻结防消费方破坏日志。
 
 ## 结论
 
 | # | 设计 | 位置 | 产品映射 |
 |---|------|------|---------|
-| 1 | 事件四类(created veto/disposed/event feed/flush checkpoint) | index.ts:37-87 | ④存储插件化 |
+| 1 | 事件四类(created veto/event feed/flush checkpoint) | index.ts:37-87 | ④存储插件化 |
 | 2 | SessionEventMap 声明合并 + ignorable | types.ts:236-335 | ④事件 schema 扩展 |
 | 3 | Surface 投影(3 事件 + append/replace 阴影) | surface.ts:15-114 | ④模型视图 vs 人类转写 |
 | 4 | 版本机制(writer 决定 + 结构级 bump) | types.ts:51-91 | ④版本策略 |
-| 5 | 运行时不变量(模型可见⟺已记录) | invariant.ts | ④正确性强制 |
-| 6 | chunk 打包存储 | chunk-rows.ts | ④存储紧凑 |
+| 5 | 追加不变性 + JSON 严格性 + 深冻结(测试契约) | session.spec.ts:437-957 | ④不可变性强制 |
+| 6 | surfaceOp 运行时守卫(防 union 拓宽) | session.spec.ts:498 | ④类型安全兜底 |
+| 7 | chunk 打包存储 + 不变量 | chunk-rows.ts + invariant.ts | ④存储紧凑 |
 
 ## 面试弹药
 
-- "持久化是插件,不是核心":核心只发事件(created veto/event feed/flush checkpoint),JSONL/SQLite/标题/遥测全是订阅者——可替换性即架构
-- "模型可见 ⟺ 已记录":运行时不变量强制——比"应该记录"强一个量级
-- "Surface 双视图":append-origin 保人类转写,replace 阴影只影响模型——避免"替换抹掉用户看过的对话"
-- "writer 决定 bump":结构变化才 bump,词汇增长用 ignorable——版本策略精确到"谁该负责"
+- "持久化是插件,不是核心":核心只发事件(created veto/event feed/flush checkpoint),JSONL/SQLite/标题/遥测全是订阅者
+- "模型可见 ⟺ 已记录":运行时不变量强制
+- "追加不变性有测试证明":deriveMessages 返回深冻结消息,突变抛 TypeError;数组可 reverse 但永不达日志
+- "JSON 严格性含稀疏数组":every 跳过洞但 JSON.stringify 写 null——专门防
+- "surfaceOp 运行时守卫":union 拓宽绕过类型层 → 运行时仍拒——双保险
+- "Surface 双视图":append-origin 保人类转写,replace 阴影只影响模型
+- "writer 决定 bump":结构变化才 bump,词汇增长用 ignorable
 
 ## 待深挖
 
-- [ ] types.ts 的完整 SessionEventMap(TurnEndReason 变体)
-- [ ] repair.ts(中断 turn 闭合器/interruptedTurnClosers)
-- [ ] 持久化后端(jsonl vs sqlite)的差异
+- [ ] types.ts 的完整 SessionEventMap(TurnEndReason 变体)——loop.spec 963-1187 已示(completed/max-tokens/aborted/interrupted)
+- [ ] chunk-rows 的存储格式
+- [ ] 持久化后端契约(coordinator-contract.ts 1482 行)

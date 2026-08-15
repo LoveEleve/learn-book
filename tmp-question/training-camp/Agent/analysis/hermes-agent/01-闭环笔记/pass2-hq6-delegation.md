@@ -54,7 +54,7 @@ DELEGATE_BLOCKED_TOOLS:
 ```
 - leaf(默认):不能 delegate_task/clarify/memory/send_message/cronjob;保留 execute_code
 - orchestrator:保留 delegate_task,可 spawn 自己 worker
-- 深度上限 max_spawn_depth(默认 2);system prompt 注入"你深度 N,树封顶 M"
+- 深度上限 max_spawn_depth(默认 1——扁平:parent(0)→child(1),孙代默认拒绝,提高配置才允许;system prompt 注入"你深度 N,树封顶 M"
   ("深度说明是字面真相——LLM 不臆造不存在的嵌套能力")
 ```
 
@@ -80,7 +80,7 @@ DELEGATE_BLOCKED_TOOLS:
 
 ```
 - _parent_summary_char_budget:父剩余 headroom ÷ batch 数
-  (context_length - 已用 tokens - 输出预留) × 0.75 折 → 每摘要预算
+  (context_length - 已用 tokens - 输出预留) × 0.5 折(_SUMMARY_HEADROOM_FRACTION)→ 每摘要预算
 - 超预算 → _trim_summary_with_footer:head+tail(75/25,行对齐)+
   spill 全量到 cache/delegation 文件 + footer 指示 read_file offset 分页
 - 静态上限 delegation.max_summary_chars 取 min

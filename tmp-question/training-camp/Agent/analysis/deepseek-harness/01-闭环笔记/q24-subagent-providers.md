@@ -1,13 +1,13 @@
-# q24 — Subagent Providers(深度版:7 提供者光谱)
+# q24 — Subagent Providers(深度版:7 提供者光谱 + continuation 契约)
 
-> 域:②执行引擎(子任务) | 文件:packages/subagent/(subagent-acp 587/subagent-claude-code 604/subagent-codex 705/subagent-dsh-sdk 375/subagent-fork-in-process 124/subagent-in-process-driver 405/subagent-spawn-in-process 94)+ subagent/subagent/src
-> review 轮次:2 轮(源码结构 + 能力面)
+> 域:②执行引擎(子任务) | 文件:packages/subagent/(subagent-acp 587/subagent-claude-code 604/subagent-codex 705/subagent-dsh-sdk 375/subagent-fork-in-process 124/subagent-in-process-driver 405/subagent-spawn-in-process 94)+ subagent/subagent/tests/continuation.spec.ts(2523)
+> review 轮次:3 轮(源码结构 + 能力面 + continuation 测试契约 70+)
 
 ---
 
 ## 假设
 
-Subagent = 能力缝:7 提供者从"进程内最便宜"到"委托外部产品",共享 SubagentProvider 接口(capabilities + inheritsParentContext + start)。能力声明(CO 声明)决定协议面。
+Subagent = 能力缝:7 提供者从"进程内最便宜"到"委托外部产品",共享 SubagentProvider 接口(capabilities + inheritsParentContext + start)。能力声明(CO 声明)决定协议面。**continuation 测试契约(70+)揭示 Activation/接纳/排水/终端结果语义**。
 
 ## 验证
 
@@ -15,46 +15,38 @@ Subagent = 能力缝:7 提供者从"进程内最便宜"到"委托外部产品",�
 
 | Provider | 行数 | 能力 | 父上下文 | 本质 |
 |---------|:--:|------|:--:|------|
-| spawn-in-process | 94 | outputSchema/depthLimit/toolFilter/persona | 否 | 同 context 新鲜子 Agent(零父上下文) |
+| spawn-in-process | 94 | outputSchema/depthLimit/toolFilter/persona | 否 | 同 context 新鲜子 Agent |
 | fork-in-process | 124 | — | ? | 进程内 fork |
-| in-process-driver | 405 | 共享驱动(造 id/戳 cwd/lineage/depth) | 否 | 一次性运行驱动 |
-| dsh-sdk | 375 | **NO_START_CAPABILITIES** | 否 | 进程外 JSON-RPC(父强制能力;唯一读的东西) |
-| acp | 587 | — | 否 | 委托 ACP 自动化服务器 |
-| claude-code | 604 | **NO_START_CAPABILITIES** | 否 | 委托 Claude Code(hooks 桥) |
-| codex | 705 | — | 否 | 委托 Codex(hooks 桥) |
+| in-process-driver | 405 | 共享驱动 | 否 | 一次性运行驱动 |
+| dsh-sdk | 375 | NO_START_CAPABILITIES | 否 | 进程外 JSON-RPC |
+| acp | 587 | — | 否 | 委托 ACP |
+| claude-code | 604 | NO_START_CAPABILITIES | 否 | 委托 Claude Code |
+| codex | 705 | — | 否 | 委托 Codex |
 
-### 2. 能力声明(设计 2:capabilities 契约)
-
-```ts
-// spawn-in-process/src/index.ts:46-54:
-capabilities = { outputSchema: true, depthLimit: true, toolFilter: true, persona: true }
-  ——spawn 构造子 agent,可强制递归上限 + 作用域结构运行时 + restrict() + 作用域遮蔽 persona
-inheritsParentContext = false("a spawned child starts fresh — it never sees the parent conversation")
-// dsh-sdk:NO_START_CAPABILITIES——进程外无法父强制(只读一件事)
-// claude-code:NO_START_CAPABILITIES——外部工具不认 dsh 的能力
-```
-
-**产品启示**:②章节子任务 = 从"进程内新鲜子 agent"(零父上下文,能力全开)到"委托外部"(无能力声明)——**能力声明决定协议面**(CO 能做多少由能力表决定)。
-
-### 3. 共享驱动(设计 3:in-process-driver)
+### 2. continuation 测试契约(设计 2:Activation/接纳/排水/终端)★ review 轮 3
 
 ```ts
-// subagent-in-process-driver/src/index.ts:68:
-InProcessRunOptions:共享驱动选项
-"the shared driver mints ids,stamps cwd/lineage/depth,drives the one-shot
- (including the structured capture when the child supports outputSchema)"
-// ——spawn/fork 复用同一驱动(造 id/戳迹/一次性驱动)
+// tests/continuation.spec.ts(70+ 契约,关键):
+1. 接纳(171-310):inbox 接纳时双身份返回(不等 turn/日志);无 prepareContinuable 能力 → 无 id 拒绝;
+   持久化未配置 → 同步拒绝;保留子 id + 预 turn 描述符;abort 前/发布后回滚;
+   深度上限拒绝;未声明组合字段省略;tool filter/persona 记录并重施
+2. 冷恢复(367-440):不发明描述符未声明的模型路由;fork 前缀后续 turn 编号;persona 重施
+3. Activation 生命周期(440-754):运行中同 Activation 入队(单 FIFO);已结算子冷恢复;
+   初始 provider 注销后冷恢复;等待 Activation 唤醒而非冷恢复;非 durable 直接父拒绝;
+   无支持描述符不可恢复;未知 id 不可用
+4. 森林/排水(754-1050):manager teardown child-first 全森林;父森林排水不殃及兄弟;
+   排水保留 continuable 根;中间一次性 Agent 离注册表后找作用域后代;排水开始拒新物化/交付;
+   无自动重放(已接纳未记录消息);冷恢复后重查父存活
+5. 终端结果(1157-1330):子自身终止原因(非 teardown 成功);本 epoch 输出(子仍活时捕获);
+   空 usage-only 消息后保留早期文本;重施 epoch 未开 turn 无前一答案;handle/pre-disposal 失败独立保留
+6. 丢弃/拒绝(1385-1470):接纳后丢弃消息释放;旧 id 后期窗口丢弃释放;pre-step 拒绝报告为拒绝;
+   激活保持(已接纳消息仍在 inbox)
+7. 报告/通知(1528-1840):父收到子结束报告(未问也报);子已自报仍交付;策略拒绝交付 = declined 非 finished;
+   首 step 前失败/停止/祖先中断 = stopped;无法 durable 释放则扣留结果;空闲父一个普通 turn 看通知;
+   忙父批量通知为一步;维持父保持活直到读通知
 ```
 
-### 4. 委托外部(设计 4:claude-code/dsh-sdk)
-
-```ts
-// claude-code:inject = ['subagents', 'subprocess']——经 subprocess 执行 claude 命令
-// dsh-sdk:inject = ['subagents']——JSON-RPC 连接(dsh 自身 sdk 客户端)
-//   "parent-enforced start capabilities;the ONE thing it reads off"
-// acp:自动化 ACP 服务器委托
-// codex(705):最大的委托实现
-```
+**设计要点**:continuation 是"可恢复子任务"的完整状态机——接纳/回滚/排水/报告每步有契约;终端结果区分 finished/stopped/declined/refused。
 
 ## 结论
 
@@ -62,15 +54,17 @@ InProcessRunOptions:共享驱动选项
 |---|------|------|---------|
 | 1 | 7 档光谱(同 context → 委托外部) | subagent/* | ②子任务架构 |
 | 2 | capabilities 声明契约 | 各 provider | ②能力协商 |
-| 3 | 共享驱动(造 id/戳迹/一次性) | in-process-driver | ②子任务执行 |
-| 4 | 委托外部(hooks/JSON-RPC/ACP) | claude-code/dsh-sdk/acp | ②外部集成 |
+| 3 | Activation 状态机(接纳/回滚/排水) | continuation.spec:171-1050 | ②子任务生命周期 |
+| 4 | 终端结果四态(finished/stopped/declined/refused) | continuation.spec:1157-1470 | ③验收结果 |
+| 5 | 报告/通知语义(未问也报/批量) | continuation.spec:1528-1840 | ②父-子通信 |
 
 ## 面试弹药
 
-- "能力声明决定协议面":spawn 全开(outputSchema/depthLimit)vs 外部 NO_START_CAPABILITIES——父能强制多少由能力表定
-- "子 agent 零父上下文":spawn 子 agent 永远不见父对话——隔离是契约
-- "共享驱动复用":spawn/fork 共用一个驱动(造 id/戳 cwd/lineage/depth)——实现不重复
-- "7 档光谱":从 94 行(spawn)到 705 行(codex)——复杂度对应委托深度
+- "能力声明决定协议面":spawn 全开 vs 外部 NO_START_CAPABILITIES——父能强制多少由能力表定
+- "冷恢复不发明模型路由":描述符未声明的路由不猜测——恢复确定性
+- "排水不殃及兄弟":每父森林独立排水——隔离
+- "终端结果语义精确":finished/stopped/declined/refused——每个结局有触发路径
+- "未问也报":子结束主动报告父——无需轮询
 
 ## 待深挖
 

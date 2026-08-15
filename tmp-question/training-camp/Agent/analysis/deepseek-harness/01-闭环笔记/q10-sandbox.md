@@ -1,13 +1,13 @@
-# q10 — Sandbox/Subprocess(深度版:每调用政策 + 升级阶梯 + 方言检测)
+# q10 — Sandbox/Subprocess(深度版:每调用政策 + 升级阶梯 + 测试契约)
 
-> 域:②执行契约(隔离) | 文件:packages/sandbox/(sandbox 452/sandbox-local/sandbox-policy/sandbox-windows-acl)+ native/landlock-run + subprocess/(subprocess 428/subprocess-local)
-> review 轮次:2 轮(源码全文核心)
+> 域:②执行契约(隔离) | 文件:packages/sandbox/(sandbox 452/sandbox-local/sandbox-policy/sandbox-windows-acl + tests/escalation.spec + roots.spec + vocabulary.spec)+ native/landlock-run + subprocess/(subprocess 428/subprocess-local + tests/local.spec 404+)
+> review 轮次:3 轮(源码全文核心 + 测试契约)
 
 ---
 
 ## 假设
 
-Sandbox = 能力缝:消费者 spawn 前包装 argv(ctx.sandbox)。政策 **PER CALL**(不固定 provider)。升级 = 严格更宽阶梯 + user-approval 通道(一切执行前 fail-closed)。后端方言检测(每后端的拒绝签名)。
+Sandbox = 能力缝:消费者 spawn 前包装 argv(ctx.sandbox)。政策 **PER CALL**(不固定 provider)。升级 = 严格更宽阶梯 + user-approval 通道(一切执行前 fail-closed)。**测试契约揭示升级/根/失败语义**。
 
 ## 验证
 
@@ -16,51 +16,40 @@ Sandbox = 能力缝:消费者 spawn 前包装 argv(ctx.sandbox)。政策 **PER C
 ```ts
 // sandbox/src/index.ts:29-69:
 SandboxMode = 'read-only' | 'workspace-write' | 'danger-full-access'
-  read-only: 仅必需 sink(/dev/null);workspace-write: +workspace + 后端临时区
-  网络/进程可见性在词汇外
-SandboxPolicy 携带 PER CALL(不固定 provider):
-  "two consumers may confine under different policies at the same instant
-   (bash under read-only while a confined child agent needs its state directory writable)"
-  "an approved escalated retry is a NEW call with a wider policy"
-  Defaulting/resolution 是 consumer 边界的显式步骤;provider 视政策为完全指定
+SandboxPolicy 携带 PER CALL:两消费者可同时不同政策;批准升级重试 = 新调用更宽政策
 SandboxExecutionPolicy:mode + workspaceRoot + sessionId?(后端按会话键状态)
 ```
 
-**产品启示**:②学习模式(只读)vs 写书模式(workspace-write) = 每调用政策切换——比 OpenCode 的"授权层"多一层"文件效果隔离"。
-
-### 2. 升级阶梯(设计 2:严格更宽 + 执行时检查)
+### 2. 升级契约(设计 2:严格阶梯 + fail-closed 文本)★ review 轮 3
 
 ```ts
-// escalation.ts:
-WIDER_MODES: 'read-only' → [workspace-write, danger-full-access];'workspace-write' → [danger-full-access]
-  ——严格更宽阶梯(只能升,不能跳/横)
-"Checked at EXECUTION, never baked into a tool schema"
-  ——schema 枚举 = ESCALATION_TARGETS(registry-global);有效模式 = per-call truth
-approveEscalation:有序 fail-closed 序列——解析 sandbox_permissions 请求通过 user-approval 通道,
-  在一切执行前
-// 结构函数形状(EscalationAsk)而非审批服务类型:工具层闭包 ctx.approval.request(...)
-//   ——本包不依赖审批/agent 包(依赖方向干净)
+// tests/escalation.spec.ts(契约):
+1. 阶梯(21-27):read-only → 两个更宽模式;workspace-write → 仅 full access;
+   目标枚举 = 每会话可升级到的闭集(read-only 是地板)
+2. 字段对(33-38):两字段都要,或两者带非空理由;单字段/空白理由拒绝
+3. 标记(46-51):denial 标记命名模式;hint 标记命名家族主体
+4. grants(77):返回请求模式,经 approver 带审计理由
+5. fail-closed 文本(84-108):非拓宽请求不询问自带文本;缺审批服务/无 agent → 各自不同文本;
+   非 grant 结局映射独特逐字文本(主体在拒绝中);闭联合外结局触发穷尽守卫
+// tests/roots.spec.ts:符号链接解析(现有路径 realpath;无法解析原样保留——保守,直到存在);
+//   read-only 不授予;workspace-write 授予工作区根 + 平台临时区(规范 + 去重)
+// tests/vocabulary.spec.ts:词汇契约
 ```
 
-### 3. ConfinedArgv(设计 3:包装 + 方言)
+**设计要点**:fail-closed 文本逐结局不同(可诊断);roots 保守(无法解析 = 不匹配直到存在);枚举闭集防越界。
+
+### 3. Subprocess 契约(设计 3:生命周期/终结)★ review 轮 3
 
 ```ts
-// sandbox/src/index.ts:95-134:
-ConfinedArgv = { argv(包装后), enforcement: 'full'|'partial', denialSignatures, runnerFailureRules }
-enforcement:'partial' = 活跃后端/旧内核不能管辖每项文件效果;要求绝对边界的调用不得视为 full
-denialSignatures:每后端拒绝方言(EROFS bwrap 只读绑定 / EACCES Landlock / EPERM Seatbelt)
-  ——消费者按自己的后端匹配,不用跨后端并集(并集会声称后端从不产生的拒绝)
-runnerFailureRules:退出码从不证明 runner 失败;匹配致命 stderr 行(信息行排除后)
-  ——runner 失败 = 命令从未运行;denial = 限制工作并阻止了它
-SANDBOX_UNAVAILABLE:无可用后端 → provider fail-closed(区分缺隔离与命令失败)
-```
-
-### 4. 后端(设计 4:landlock + windows)
-
-```ts
-// native/landlock-run:Landlock 原生(landlock-run 启动器,packages 结构)
-// sandbox-local:本地后端;sandbox-windows-acl:Windows ACL(每 live session/workspace 随机私有临时目录 + SID)
-// subprocess:消费者包装 argv 前经 sandbox(架构:spawn 前包装)
+// tests/local.spec.ts(20+ 契约,关键):
+1. 宿主退出终结(24-82):host-exit finalizer 在服务前监听器之前;活跃到正常 disposal 达静止;
+   各宿主退出终结失败 contain 继续其他目标
+2. 可执行解析(112-138):绝对/PATH 解析 + 查找取消;Windows 候选大小写不敏感覆盖
+3. 终端(164-340):分配输入预校验;disposal 终结 + 加入 owned 终端;等每终端清理 + 聚合失败;
+   单失败不包装;强制终结剩余目标后释放失败 disposal;顶层退出达静止后释放终端;
+   自动清理失败的终端保留
+4. 句柄(385-404):注册 ctx.subprocess + spawn 托管句柄;disposal 杀仍运行进程等退出;
+   已结算进程离开 live 集(disposal 不重杀)
 ```
 
 ## 结论
@@ -68,18 +57,18 @@ SANDBOX_UNAVAILABLE:无可用后端 → provider fail-closed(区分缺隔离与�
 | # | 设计 | 位置 | 产品映射 |
 |---|------|------|---------|
 | 1 | 三模式 + 每调用政策 | sandbox/src/index.ts:29-69 | ②文件效果隔离 |
-| 2 | 严格升级阶梯 + 执行时检查 | escalation.ts | ②权限升级 |
-| 3 | ConfinedArgv(方言签名 + runner 规则) | index.ts:95-134 | ②失败归因 |
-| 4 | fail-closed(SANDBOX_UNAVAILABLE) | index.ts:124 | ②安全默认 |
-| 5 | Landlock 原生 + Windows ACL | native + windows-acl | ②平台 |
+| 2 | 严格升级阶梯 + 执行时检查 | escalation.ts + spec:21-27 | ②权限升级 |
+| 3 | fail-closed 逐结局文本(可诊断) | escalation.spec:84-108 | ②失败语义 |
+| 4 | roots 保守(不匹配直到存在) | roots.spec:20 | ②路径安全 |
+| 5 | Subprocess 终结/清理契约 | local.spec:24-404 | ②进程生命周期 |
 
 ## 面试弹药
 
-- "政策 per-call 不固定 provider":同一时刻 bash 只读 + 子 agent 写状态目录——每调用政策,升级 = 新调用
-- "严格更宽阶梯":只能升不能跳——升级路径受控
-- "方言签名不是并集":bwrap 报 EROFS,Landlock 报 EACCES——按后端匹配,并集声称不存在的拒绝
-- "退出码从不证明 runner 失败":runner 失败 = 命令没跑;denial = 限制生效——归因精确
-- "升级在一切执行前 fail-closed":approveEscalation 经 user-approval 通道,工具层闭包审批服务(依赖方向干净)
+- "政策 per-call 不固定 provider":同一时刻 bash 只读 + 子 agent 写状态目录
+- "fail-closed 文本逐结局不同":缺审批/无 agent/各拒绝都有独特文本——模型可诊断
+- "roots 保守":无法解析 = 原样保留(匹配 nothing 直到存在)——防错误授权
+- "disposal 不重杀已结算":settled 进程离开 live 集——幂等终结
+- "单失败不包装":cleanup 失败聚合,不包装掩盖——错误保真
 
 ## 待深挖
 

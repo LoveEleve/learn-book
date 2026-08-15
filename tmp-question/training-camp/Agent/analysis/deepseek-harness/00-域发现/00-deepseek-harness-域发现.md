@@ -1,12 +1,15 @@
-# DeepSeek Harness 域发现(深度探索版)— v6 完成
+# DeepSeek Harness 域发现(深度探索版)— v9 完成
 
 > 项目:deepseek-ai/deepseek-harness(@deepseek-ai/dsh-root v0.1.0-rc.5,47f943859b)
-> 版本:v6 — 2026-08-15(q1-q23 闭环笔记完成,95 设计)
-> v1→v2:Review 轮 1(MCP 图谱)+ 轮 2(core/session + core/agent-loop 源码验证)确认核心域 1-6;补充 session 组/session-title 族
-> v2→v3:q1-q12(58 设计)/ v3→v4:q13-q15(8 设计)/ v4→v5:q16-q20(16 设计)
-> v5→v6:q21-q23 闭环笔记(Inbox+Tool-Calls/Code-Mode+E2B+Workspace+Host/Agent 生命周期,13 设计)
-> 方法:Pass 0(AGENTS.md/README/architecture.md 全文)→ Pass 1(219 叶子包全扫描)→ MCP 索引(60,780 节点)→ 核心源码验证
-> 核心特征:**一切皆插件**(vendored Cordis)+ 能力缝三角色(Service Definition/Provider/Consumer)+ 会话日志即上下文源
+> 版本:v10 — 2026-08-15(q1-q26 闭环笔记,126 设计,收尾对账)
+> v1→v2:Review 轮 1-2(图谱 + 核心源码验证)/ v2→v3:q1-q12(58)/ v3→v4:q13-q15(8)/ v4→v5:q16-q20(16)
+> v5→v6:q21-q23(13)/ v6→v7:q24-q26(11)
+> v7→v8:测试契约轮 1(q1/q2/q3/q8/q15/q16,110→126 区间)
+> v8→v9:**测试契约轮 2**(q10/q20/q22/q24/q25 补契约:
+>   escalation/roots 升级与根、tool-session-query 时间精确与权限、code-mode 模式与调度、
+>   continuation 70+ 契约、compaction-basic 压力决策、workflow 跨线程生命周期)——设计数以上方 126 为准)
+> 方法:Pass 0(设计文档全文)→ Pass 1(219 包扫描)→ MCP 索引(60,780 节点)→ 核心源码 + 测试契约(734 文件 23 万行)
+> 核心特征:**一切皆插件**(vendored Cordis)+ 能力缝三角色 + 会话日志即上下文源 + **测试契约密度极高(per-file 100%)**
 
 ---
 
@@ -198,4 +201,15 @@
 | q22 | code-mode-e2b | 5 | run_code(语言感知 schema+run-scoped abort)/E2B 远程沙箱 POC/Code-Runtime 保留字安全/Workspace 实体/Host |
 | q23 | agent-lifecycle | 4 | 加载时身份冲突预校验/create-resume 工厂+abort 竞速/FactoryOwnership 有序 teardown/每读并行上限 |
 
-**合计:95 设计**(每份 2 轮 review 起,核心域含源码验证)
+### 第五轮(q24-q26,11 设计)
+
+| # | 笔记 | 设计数 | 关键发现 |
+|---|------|:--:|---------|
+| q24 | subagent-providers | 4 | 7 档光谱(spawn 94 行→codex 705 行)/capabilities 声明契约(CO 全开 vs 外部 NO_START)/共享驱动(造 id+戳迹)/委托外部 |
+| q25 | hooks-compaction | 3 | 合并语义(deny>ask>allow+stop)/解码+匹配+stderr 摘要/Compaction-Basic(区域+摘要) |
+| q26 | schedule-jobs-settings | 4 | Schedule 严格时间域+双错误分类/Jobs 注册表(owner 授权+快照只读)/Settings owner scope/Client 传输(WS 下行+升级拒绝) |
+
+**合计:126 设计**(26 份笔记;v10 收尾对账修正:
+- 精确统计:q1-q3 各 7、q4-q5 各 5、q6-q7 各 4、q8 6、q9-q10 各 5、q11 4、q12 5、q13-q14 各 4、
+  q15-q16 各 5、q17 4、q18 3、q19 4、q20-q22 各 5、q23-q24 各 4、q25 5、q26 4 → 合计 126
+- 此前 v5-v9 各轮汇总数字有对账误差(66/82/95/110/125/144),以本行 126 为准)

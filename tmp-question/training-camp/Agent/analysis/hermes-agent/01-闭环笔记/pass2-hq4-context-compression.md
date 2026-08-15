@@ -71,7 +71,7 @@ Phase 4(知识保留):技能幽灵防御 + 记忆注入 + 全程脱敏 + 推理�
 Phase 5:孤儿 tool 对清理 + 提交(栅栏)
 ```
 
-**预算设计**(`_compute_summary_budget`,3508):摘要预算随内容缩放(content × 5%,cap max_summary_tokens)——大上下文模型得到更丰富摘要;摘要器输入截断(6,000 chars/消息,头 4,000+尾 1,500)——**预算是摘要模型窗口,不是主模型**。
+**预算设计**(`_compute_summary_budget`,3508):摘要预算 = content_tokens × 20%(`_SUMMARY_RATIO=0.20`),cap 为 `max_summary_tokens`(= context_length × 5%,封顶 10K `_SUMMARY_TOKENS_CEILING`;`_MIN_SUMMARY_TOKENS` 2K 保底)——大上下文模型得到更丰富摘要;摘要器输入截断(6,000 chars/消息,头 4,000+尾 1,500)——**预算是摘要模型窗口,不是主模型**。
 
 **产品④映射**:章节摘要算法——章头保护+token 尾部+边界不拆证据链(类比不拆 file:line 引用组)+焦点压缩。
 

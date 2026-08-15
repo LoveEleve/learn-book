@@ -1,8 +1,8 @@
 # 交接文档 — Agent 源码分析项目(权威进度)
 
 > **本文件是 Agent 项目的唯一权威进度文档。** 接手前请**完整阅读**本文,再动任何文件。
-> 最后更新:2026-08-15
-> 分支:无 git 仓库(本地目录,不提交)
+> 最后更新:2026-08-15(OpenCode + deepseek-harness 完成,详见 HANDOVER-session003.md)
+> 分支:git 仓库(父仓 /data/workspace/source-code/book/成长之路,分支 fresh,远端 git@github.com:LoveEleve/learn-book.git)——Agent/ 资产已入库(fe02281,已推送)
 
 ---
 
@@ -26,18 +26,20 @@
 ```
 Agent/
 ├── progress/
-│   ├── methodology-v2-decisions.md      ← 方法论决策总纲(D1-D17)★必读
+│   ├── methodology-v2-decisions.md      ← 方法论决策总纲(D1-D18 + 支柱 4)★必读
 │   ├── jd-cross-analysis.md             ← 10 份 JD 交叉分析
-│   └── source-code-learning-agent-problems.md ← 23 问题 + 产品需求清单
+│   ├── source-code-learning-agent-problems.md ← 25 问题 + 产品需求清单(#21/#24/#25)
+│   └── HANDOVER-session00X.md          ← 各 session 详细交接(003 最新)
 ├── jd/                                  ← 10 份 JD 原文
 ├── methodology/zh/                      ← 正式方法论文件(尚未写!)
 ├── prompt/zh/                           ← 自约束契约(尚未写!)
 ├── skills/zh/                           ← 快速参考(尚未写!)
 ├── analysis/                            ← 各项目分析产出
-│   ├── pi/                              ← Pi 分析完成
-│   ├── reasonix/                        ← Reasonix 分析完成
-│   ├── hermes-agent/                    ← 未开始
-│   └── opencode/                        ← 未开始
+│   ├── pi/                              ← Pi 分析完成(127 域)
+│   ├── reasonix/                        ← Reasonix 分析完成(102 域)
+│   ├── hermes-agent/                    ← Hermes 分析完成(81 域,参考架构待写)
+│   ├── opencode/                        ← OpenCode 分析完成(53 域 278 设计 + 参考架构)
+│   └── deepseek-harness/                ← dsh 分析完成(51 域 126 设计 + 参考架构)
 ├── harness/                             ← 微缩复现(未开始)
 └── progress/                            ← 交接 + 进度
 ```
@@ -84,7 +86,7 @@ MCP 索引(全部已建):
 
 ---
 
-## 四、当前状态(2026-08-14)
+## 四、当前状态(2026-08-15,5 项目分析全部完成)
 
 ### 方法论:✅ 决策完成(D1-D18),正式文件未写
 
@@ -151,22 +153,18 @@ analysis/reasonix/
 └── 03-harness/(未开始)
 ```
 
-### Hermes 分析:✅ 域发现完成(80 域 + 30+ 契约深化),闭环笔记待重写
+### Hermes 分析:✅ 全部完成(81 域 + 41 笔记 262 设计 + 参考架构 v3)★ 2026-08-15
 
 ```
 analysis/hermes-agent/
 ├── 00-域发现/00-hermes-域发现.md    ← 80 域(v1-v11)+ v12-v46 深化(81 域 + 70+ 契约深化,排除面全确认)
 │   └── 00-hermes-域发现-v12~26补充.md ← 顶层大文件对账(gateway/run.py 29K 等 17 个 >5K 文件)
 │   └── 00-hermes-域发现-v27~46补充.md ← GoalGate/验证守卫族/区间全覆盖/moa_trace/tui_gateway/cron 蓝图/启动安全/排除复核/transports/契约测试面
-├── 01-闭环笔记/(7 份,83 设计)  ← 2026-08-15 深度重写完成(基于 81 域 + 70+ 深化)
-│   ├── hq1-memory(13 设计)     ← 记忆系统:双态快照/四操作/写门控/插件契约
-│   ├── hq2-skills-lifecycle(14)← 技能治理:三态状态机/来源分级/LLM 合并/干跑
-│   ├── hq3-sessiondb-search(14)← 大库存储:WAL/租约/FTS5 降级链/自愈
-│   ├── hq4-context-compression(12) ← 压缩:决策状态机/技能重注入/提交栅栏
-│   ├── hq5-agent-loop(12)      ← 主循环:预算/中断/工具批/fallback/分类学
-│   ├── hq6-delegation(11)      ← 委派:角色树/并发/摘要预算/心跳/生命周期
-│   └── hq7-verification-quality(11) ← 验收:verify/证据账本/GoalGate/守卫族
-├── 02-文章/                           ← 未开始
+├── 01-闭环笔记/(41 份,262 设计)  ← 2026-08-15 全域闭合:原 7 份 + 补充 34 份(每份深度 review)
+│   ├── hq1-hq7(87 设计)         ← 核心 7 份:记忆/技能/会话库/压缩/主循环/委派/验证
+│   ├── hq8-hq18(71 设计)        ← 补充 11 份:回合租约/交付账本/生命周期账本/检查点/背景审查/工具结果/文件协调/审批/ESTOP/秘密作用域/目标审查器
+│   └── hq19-hq43(104 设计)      ← 补充 25 份:缩放至零/停滞/流式分发/输出上限/自仓库/学习图谱/工具搜索桥/监控/洞察/MoA/辅助客户端/平台抽象/授权/进程注册表/浏览器/批量/MCP/SWE/Cron/插件/CLI/小件 4
+├── 02-文章/hermes-参考架构.md      ← 完成(v3:41 笔记 262 设计全对账 + 81 域全闭合 + 决策 20 条 + 弃用调和)★ 2026-08-15
 └── 03-harness/                        ← 未开始
 ```
 
@@ -193,20 +191,22 @@ analysis/opencode/
 └── 03-harness/(未开始)
 ```
 
-### DeepSeek Harness 分析:✅ 完成(51 域 + 15 份闭环笔记 66 设计 + 参考架构)★ 2026-08-15
+### DeepSeek Harness 分析:✅ 完成(51 域 + 26 份闭环笔记 126 设计 + 参考架构)★ 2026-08-15
 
 ```
 analysis/deepseek-harness/            ← 源码已拉(deepseek-ai/deepseek-harness,pnpm 11.7,60,780 节点 MCP 索引)
-├── 00-域发现/00-deepseek-harness-域发现.md ← 51 域 + 10 核心域(v1-v4 review:图谱/源码验证)
-├── 01-闭环笔记/(15 份,66 设计)
+├── 00-域发现/00-deepseek-harness-域发现.md ← 51 域 + 10 核心域(v1-v10 review:图谱/源码/测试契约/对账)
+├── 01-闭环笔记/(26 份,126 设计)
 │   ├── q1-q6:Session 日志/AgentLoop/Tools/Cordis/LLM/Profile-Bundle
 │   ├── q7-q12:能力缝/Session 持久化/Interaction/Sandbox/三缝样本/SDK-API-Typert
-│   └── q13-q15:Guard-Goal-Jobs/Settings-Credentials/支撑域收尾
+│   ├── q13-q19:Guard-Goal-Jobs/Settings-Credentials/支撑域/Repair-Terminal-LSP/投影/Web-Hooks/LLM 适配
+│   └── q20-q26:Session 查询/Inbox 工具调用/Code-Mode-E2B/Agent 生命周期/子代理 Provider/Hooks-Compaction/调度-Settings
 ├── 02-文章/deepseek-harness-参考架构.md ← 完成(四组件映射 + D17 5 问 + 决策清单 12 条 + 弃用 7 项 + 覆盖对账 + 缺口 4 项)
 └── 03-harness/(未开始)
 
 核心特征:一切皆插件(vendored Cordis)+ 能力缝三角色 + 模型可见⟺已记录(运行时不变量)
 产品价值:四组件插件化极端样本;重复提醒=收敛性检测;每调用沙箱政策;writer 决定版本 bump
+测试契约:734 测试文件 23 万行,11 份核心笔记已补行为契约(追加不变性/JSON 严格性/HMR/continuation 70+/压力决策)
 ```
 
 ---
@@ -218,12 +218,16 @@ analysis/deepseek-harness/            ← 源码已拉(deepseek-ai/deepseek-harn
 ```
 /data/workspace/source-code/book/成长之路/tmp-question/training-camp/Agent/
 ├── progress/HANDOVER.md   ← 本文件(权威进度——先读)
-├── progress/HANDOVER-session001.md ← 本 session 详细交接(建议读)
-├── progress/methodology-v2-decisions.md   ← 方法论决策总纲(先读)
+├── progress/HANDOVER-session003.md ← 最新详细交接(2026-08-15,OpenCode+dsh)
+├── progress/HANDOVER-session002.md ← Hermes/Pi/Reasonix 追挖 + 方法论 D18/支柱4
+├── progress/HANDOVER-session001.md ← session001 详细交接(参考)
+├── progress/methodology-v2-decisions.md   ← 方法论决策总纲(先读,D18 + 支柱 4)
 ├── progress/jd-cross-analysis.md          ← JD 分析
-├── progress/source-code-learning-agent-problems.md ← 问题清单
+├── progress/source-code-learning-agent-problems.md ← 问题清单(#21/#24/#25)
 ├── analysis/pi/02-文章/pi-参考架构.md      ← Pi 蓝本(参考)
-└── analysis/reasonix/02-文章/reasonix-参考架构.md ← Reasonix 蓝本(参考)
+├── analysis/reasonix/02-文章/reasonix-参考架构.md ← Reasonix 蓝本(参考)
+├── analysis/opencode/02-文章/opencode-参考架构.md ← OpenCode 蓝本(参考)
+└── analysis/deepseek-harness/02-文章/deepseek-harness-参考架构.md ← DS 蓝本(参考)
 ```
 
 ### JD 分析核心结论(下个 session 快速参考)
@@ -239,13 +243,16 @@ analysis/deepseek-harness/            ← 源码已拉(deepseek-ai/deepseek-harn
 面试准备优先级:Context Engineering 最厚 → Reasonix 必吃透 → 评测+可观测双核心
 ```
 
-### 问题清单核心(#21/#24 速记)
+### 问题清单核心(#21/#24/#25 速记)
 
 ```
 #21 会话交接:上下文满→写交接文档→新 session→读文档继续
   ——用户已手工验证,产品④"交接=日志"是自动化答案
 #24 收敛性验证:agent 说"完成"不可信,只有 review 循环可信
   ——"完成"= 连续 N 轮无新增 + 覆盖对账,不是 agent 主观声明
+#25 规范约束失效(2026-08-15 实证):交接文档写了 review 纪律,agent 仍批量跳过
+  ——质量门禁必须工程化,禁止依赖 LLM 自觉遵守文档规范(→ 支柱 4)
+  ——域发现层面:#24 加深 = agent 连 review 循环都会跳过,穷尽性靠体量排序对账(D18)
 ```
 
 ### 核心纪律
@@ -257,23 +264,26 @@ analysis/deepseek-harness/            ← 源码已拉(deepseek-ai/deepseek-harn
 5. **每轮 review 的含金量取决于打开哪个层面**——深挖"被多个域依赖的共享包"
 6. **收敛性**:连续 N 轮无新增才算完成;覆盖检查用"设计数对账"不是"感觉全了"
 7. **D17 落地性检查**:参考架构产出后必须过 5 问(数据流/时机/失败循环/大库/自证)
+8. **支柱 4(2026-08-15)**:质量门禁必须程序化强制——每份笔记写完 review 再推进,用户确认后再写下一份
+9. **D18(2026-08-15)**:穷尽性 = 文件体量排序 × 已打开清单对账,禁止按目录感觉扫描
 
 ### 下一步决策(用户确认)
 
-1. **Hermes 分析**(第三个项目,记忆/技能域)——**进行中**(另一侧)
-2. **OpenCode 分析** ✅ 已完成(278 设计 + 参考架构,2026-08-15)
-3. **DeepSeek Harness 分析** ✅ 已完成(66 设计 + 参考架构,2026-08-15)
+1. **讨论 Agent 产品** ← **下一步(下个 AI Session 讨论,本 session 不讨论)**:输入 = 5 份参考架构(Pi/Reasonix/OpenCode/dsh/Hermes)+ 5 项目闭环笔记
+2. **Hermes 参考架构** ✅ 完成(2026-08-15:v3,41 笔记 262 设计全对账 + 81 域全闭合)
+3. **跨项目沉淀**(5 项目参考架构合并 → 产品最终架构决策文档)——产品讨论后开工
 4. **方法论正式文件**(methodology/zh/ 00-13)——产品的前置质量规范
-5. **产品 MVP**(对齐模块 + 知识库日志原型)——4 项目参考架构已就绪(OpenCode + dsh 最新),可开工
+5. **产品 MVP**(对齐模块 + 知识库日志 + 验收器)——产品讨论定案后开工
+6. **git**:Agent/ 资产已入库(fe02281 已推送);Hermes 41 笔记 + 参考架构 v3 待本次提交
 
 ---
 
 ## 六、git 约定(本目录)
 
-- **本目录不是 git 仓库**——/data/workspace/source-code/book/成长之路 是 git 仓库(分支 fresh,远端 git@github.com:LoveEleve/learn-book.git)
-- 如需提交:只提交 Agent/ 相关文件,不碰其他项目未提交改动
-- 提交前 git status 确认只暂存自己的文件
-- 分析产出(闭环笔记/域发现/参考架构)建议随 session 及时提交,防丢失
+- **Agent/ 已在 git 仓库**——/data/workspace/source-code/book/成长之路(分支 fresh,远端 git@github.com:LoveEleve/learn-book.git)
+- **2026-08-15 已入库**:fe02281(236 文件,四项目分析资产 + JD + progress),已推送
+- 提交规则:只提交 Agent/ 相关文件,不碰其他项目未提交改动;提交前 git status 确认
+- 分析产出(闭环笔记/域发现/参考架构)随 session 及时提交,防丢失
 
 ---
 

@@ -1,13 +1,13 @@
-# q16 — Session 修复机制 + Terminal/LSP(深度版:崩溃恢复 + 执行面)
+# q16 — Session 修复机制 + Terminal/LSP(深度版:崩溃恢复 + 测试契约)
 
-> 域:④知识库(恢复)+ ②执行(终端/LSP) | 文件:core/session/src/repair.ts(133)+ terminal/(terminal 119?/terminal-bash/sanitize/session/tool-terminal)+ lsp/(lsp/brand/types)
-> review 轮次:2 轮(源码全文)
+> 域:④知识库(恢复)+ ②执行(终端/LSP) | 文件:core/session/src/repair.ts(133)+ tests/repair.spec.ts+ terminal/(terminal/terminal-bash/sanitize/session/tool-terminal)+ lsp/(lsp/brand/types)
+> review 轮次:3 轮(源码全文 + 修复测试契约)
 
 ---
 
 ## 假设
 
-修复机制 = 崩溃日志的确定性合成:扫描 → 未匹配调用收错误结果 → 合成 step/end + turn/end(interrupted)。这是"恢复语义定理"的 dsh 版(与 Pi 的 0/1/2 三态、OpenCode 的 failInterruptedTools 同族,但更完整——合成边界)。
+修复机制 = 崩溃日志的确定性合成:扫描 → 未匹配调用收错误结果 → 合成 step/end + turn/end(interrupted)。**测试契约(11+)验证边界:平衡/空/开 step/未记录调用/已结算/已闭 step/多调用**。
 
 ## 验证
 
@@ -19,44 +19,40 @@
   turn/start → 开 turn,清 pending;turn/end → 全清
   step/start → 开 step;step/end → 清 pending
   assistant/message → 工具调用块注册 pending
-  tool/call → 记 callSeq(合成结果的 sourceEventSeqs)
-  tool/result → 删除匹配调用
-// 平衡日志(无崩溃尾)→ 返回 []——"already balanced"
-// 合成序(repair.ts:89-131):
-  1. 未匹配调用 → tool/result(isError: true)——"Close calls before their step:
-     providers reject dangling assistant calls;Map insertion order preserves transcript order"
-  2. 开着的 step → step/end(不合成会违反不变量:turn/end 而 step 开着)
-  3. turn/end(reason: { kind: 'interrupted' })
-// seq 从 last.seq + 1;time 复用 last 真实事件时间(确定性,不发明未来)
+  tool/call → 记 callSeq;tool/result → 删除匹配
+// 平衡日志 → []("already balanced")
+// 合成序:未匹配调用 → tool/result(isError)→ 开 step → step/end → turn/end(interrupted)
+// seq 从 last.seq + 1;time 复用 last(确定性,不发明未来)
 ```
 
-### 2. 双恢复码(设计 2:模型可见指导)
+### 2. 测试契约(设计 2:边界全覆盖)★ review 轮 3
 
 ```ts
-// repair.ts:12-16,93-123:
-TOOL_NOT_STARTED:记录前中断 → "Retry it if it is still needed"
-TOOL_OUTCOME_UNKNOWN:记录后无持久结果 →
-  "Its outcome is unknown.Decide whether to retry from the tool semantics:
-   retry only if the operation is read-only or idempotent;if it may have side effects,
-   first verify external state or ask the user.Do not retry blindly."
-// sourceEventSeqs:合成结果引用真实 tool/call 的 seq(可追踪)
+// tests/repair.spec.ts(11+ 契约):
+1. 平衡日志 → 无事件(spec:19);空日志 → 无事件(spec:27)
+2. 开 turn 无开 step → 仅 turn/end{interrupted}(spec:31)
+3. 开 step → step/end 先于 turn/end(spec:40——不变量顺序)
+4. 未记录调用的 assistant 请求 → TOOL_NOT_STARTED(spec:50)
+5. 已有结果的 tool-call → 不合成(spec:88)
+6. 所属 step 已闭 → 不合成(spec:119)
+7. 只合仍然开着的 turn,不动已提交的早期 turn(spec:144)
+8. 多未应答调用 → 每调用一个结果,按日志序(spec:195)
+9. 已记录 tool/call 的合成结果带 surfaceOp + sourceEventSeqs(spec:229)
+10. tool/call 无匹配 assistant/message → 优雅处理(spec:263)
 ```
 
-**产品启示**:④崩溃恢复的"模型可见指导"——不是静默失败化,而是告诉模型"为什么/怎么重试"(只读/幂等才重试)。比 OpenCode 的 "Tool execution interrupted" 更有指导性。
+**设计要点**:合成只针对"仍然开着的 turn"——已提交边界永不改动;surfaceOp/sourceEventSeqs 保重放与追踪。
 
 ### 3. Terminal(设计 3:持久终端)
 
 ```ts
 // terminal/:terminal(Def)+ terminal-bash(bash 后端:config/sanitize/session)+ tool-terminal(Consumer + render)
-// sanitize.ts:输出消毒(终端转义?)
-// architecture.md:114:"Add persistent terminal execution:register a ctx.terminals backend plus dsh-tool-terminal"
 ```
 
 ### 4. LSP(设计 4:语言服务)
 
 ```ts
-// lsp/:lsp(Service Def)+ brand/types——语言服务器能力(brand 品牌 ID)
-// 与 OpenCode 的 LSP 类似(诊断/符号),但作为能力缝
+// lsp/:lsp(Service Def)+ brand/types——语言服务器能力(作为能力缝)
 ```
 
 ## 结论
@@ -65,16 +61,17 @@ TOOL_OUTCOME_UNKNOWN:记录后无持久结果 →
 |---|------|------|---------|
 | 1 | 修复算法(扫描→错误结果→合成边界) | repair.ts:27-131 | ④崩溃恢复 |
 | 2 | 双恢复码 + 模型可见指导(只读/幂等才重试) | repair.ts:12-16,93-123 | ④恢复语义 |
-| 3 | 确定性合成(seq 续 + 时间复用) | repair.ts:85-86 | ④重放确定性 |
-| 4 | Terminal 缝(Def/backend/tool) | terminal/* | ②持久执行 |
-| 5 | LSP 能力缝 | lsp/* | ②语言服务 |
+| 3 | 边界契约(已结算/已闭 step/早期 turn 不动) | repair.spec:88-263 | ④恢复正确性 |
+| 4 | 确定性合成(seq 续 + 时间复用) | repair.ts:85-86 | ④重放确定性 |
+| 5 | Terminal 缝 + LSP 能力缝 | terminal/* + lsp/* | ②执行面 |
 
 ## 面试弹药
 
-- "恢复 = 确定性合成":崩溃尾扫描 → 错误结果 + step/end + turn/end(interrupted)——不发明未来时间,seq 续接
-- "先关调用再关 step":providers 拒绝 dangling assistant calls——顺序是协议要求
-- "模型可见的恢复指导":只读/幂等才重试;有副作用先验证外部状态或问用户——防盲目重放副作用
+- "只合开着的 turn":已提交边界永不改动——恢复不重写历史
+- "恢复 = 确定性合成":seq 续接 + 时间复用,不发明未来
+- "模型可见的恢复指导":只读/幂等才重试;有副作用先验证或问用户——防盲目重放副作用
 - "sourceEventSeqs 可追踪":合成结果引用真实 tool/call seq
+- "边界契约全覆盖":平衡/空/未记录/已结算/已闭 step/多调用——恢复正确性有测试证明
 
 ## 待深挖
 

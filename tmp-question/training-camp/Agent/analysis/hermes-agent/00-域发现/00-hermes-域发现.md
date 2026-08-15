@@ -102,7 +102,7 @@ hermes-agent/
 | 36 | **生命周期账本(v6 新增)** | gateway/lifecycle_ledger.py + shutdown_forensics.py + shutdown_watchdog.py | **脏死检测状态机**:gateway.lifecycle.json 哨兵(phase=running/exited);SIGKILL/OOM 后下次启动发现"从未到达退出路径";内存采样(<1ms /proc)作临终遥测 |
 | 37 | **监控平面(v6 新增)** | agent/monitoring/(emitter/events/otlp_exporter/gateway_health) | **Content-free 事件**:只有 gateway_health/gateway_diagnostic(无 prompt/消息/工具参数);OTLP 导出可选依赖;dispatcher 线程 fail-isolated |
 | 38 | **会话洞察引擎(v6 新增)** | agent/insights.py(1,212 行) | 历史 session 数据 → token/成本/工具模式/活动趋势报告(Claude Code /insights 启发,多平台适配) |
-| 39 | **错误分类学(v6 新增)** | agent/error_classifier.py(1,905 行) | **FailoverReason 枚举(24 类)**:auth/billing/rate_limit/overloaded/timeout/context_overflow/payload_too_large/thinking_signature…每个失败→恢复策略(auth 永久→abort、context_overflow→compress 不是 failover、ssl→fail fast 不烧重试) |
+| 39 | **错误分类学(v6 新增)** | agent/error_classifier.py(1,905 行) | **FailoverReason 枚举(23 类)**:auth/billing/rate_limit/overloaded/timeout/context_overflow/payload_too_large/thinking_signature…每个失败→恢复策略(auth 永久→abort、context_overflow→compress 不是 failover、ssl→fail fast 不烧重试) |
 | 40 | **文件系统检查点(v6 新增)** | tools/checkpoint_manager.py(1,976 行) | **git-backed 自动快照**:每回合每目录最多一个;工具写前 ensure_checkpoint;restore/rollback;容量上限(500MB/20 快照)防爆炸;大小门槛(10MB 文件跳过) |
 | 41 | **背景审查 fork(v6 新增)** | agent/background_review.py(1,144 行) | **每轮后记忆/技能自动审查**:fork AIAgent 回放对话快照问"该存什么?";工具白名单限 memory/skill 管理工具,**其余运行时拒绝**;写直达记忆+技能库,主会话/缓存不动 |
 | 42 | **NeMo Relay 适配(v6 新增)** | agent/relay_llm.py + relay_runtime.py + relay_tools.py | 物理 provider 尝试的会话级代理:session 隔离/凭证 scope 旋转/subagent 注册/托管执行 |

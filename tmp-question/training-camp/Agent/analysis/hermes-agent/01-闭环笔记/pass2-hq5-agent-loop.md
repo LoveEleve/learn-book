@@ -141,12 +141,12 @@ redirect:
 
 **产品④映射**:多 provider 生存技能——schema 级参数强制。
 
-## 设计 8:失败分类学(FailoverReason 24 类)
+## 设计 8:失败分类学(FailoverReason 23 类)
 
 **位置**:`agent/error_classifier.py:24-77` + `classify_api_error`
 
 ```
-24 类:auth/auth_permanent/billing/rate_limit/upstream_rate_limit/overloaded/
+23 类:auth/auth_permanent/billing/rate_limit/upstream_rate_limit/overloaded/
 server_error/timeout/ssl_cert_verification/context_overflow/payload_too_large/
 image_too_large/model_not_found/provider_policy_blocked/content_policy_blocked/
 format_error/invalid_encrypted_content/multimodal_tool_content_unsupported/
@@ -193,7 +193,7 @@ run_conversation 尾部(预算总结/轨迹保存/会话持久化/响应转换/
 | 预算 | max_iterations | taskBudget+goalTokenBudget | consume/refund+grace call |
 | 中断 | handleRunFailure | 渐进收缩 | 每工具检查+取消占位 |
 | 纠偏 | steer/followUp 双队列 | goal loop+refs | steer 注入+redirect 竞争检测 |
-| 失败链 | 截断全失败 | 失败分类四类 | **fallback 链+24 类分类学+重装饰** |
+| 失败链 | 截断全失败 | 失败分类四类 | **fallback 链+23 类分类学+重装饰** |
 | 工具批 | 顺序/并行 | execute_one 门控链 | 三模式+桥接 unwrap+scope 门 |
 
 **结论**:产品②执行引擎——Pi 双层循环 + Hermes 预算(grace)/中断占位/fallback 重装饰/工具批三模式 + Reasonix fail-closed 门控链。
