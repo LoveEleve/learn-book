@@ -99,6 +99,7 @@
 - Extent(区): 64个页=1MB, 空间分配的基本单位 (B2/9.2.1)
 - Segment(段): 叶子节点段+非叶子节点段+回滚段→逻辑容器 (B2/9.2.2)
 - 系统表空间 vs 独立表空间: ibdata1 vs *.ibd (B2/9.3)
+- 数据压缩与编码 (🟢补, B3/3.4): 行级压缩/页级压缩(KEY_BLOCK_SIZE)→CPU换空间→注意点(不支持全文/需压缩前规划)
 
 ### 3.5 索引操作与维护 (🔴)
 - 页分裂(Page Split): 写入新记录→页满→分裂→更新父节点 (B1/7.5)
@@ -206,6 +207,7 @@
 - DATABASE级别: 按库分发→不同库的事务可并行 (B9/6.2)
 - LOGICAL_CLOCK: 基于组提交→同一组内的事务可并行 (B9/6.3)
 - WRITESET: 基于写集合冲突检测→更高并行度→无主键退化为LOGICAL_CLOCK (B9/6.4, B10/3.4)
+- WRITESET 源码细节 (🔴深度补, B10/3.4): write_set 生成(write_set_extraction算法: XXHASH64/MURMUR32)→last_committed判定(基于commit_parent事务)→WRITESET_SESSION(会话内冲突不并行)→无主键退化LOGICAL_CLOCK
 
 ### 5.5 MTS 多线程并行回放 (🔴)
 - Coordinator协调线程: 分发Event→Worker工作线程 (B10/4.1-4.2)
@@ -348,6 +350,7 @@
 - 连接池对比: HikariCP vs Druid vs c3p0 vs DBCP2→性能/代码复杂度/功能 (B14/2, B12/8.1)
 - 连接生命周期: borrow→requite→close→create→ConcurrentBag状态机 (B14/7)
 - leakDetectionThreshold: 连接泄露检测→超过阈值打印堆栈 (B14/8.4)
+- JDBC与SPI机制 (🟡补, B14/5.2-5.3): JDBC DriverManager→ServiceLoader SPI加载驱动→Driver接口(connect)→Connection/Statement/ResultSet三级→连接池对JDBC的包装层
 
 ### 9.4 ProxySQL 中间件 (🔴)
 - 读写分离: mysql_users→default_hostgroup(W)→read_hostgroup(R) (B12/10)

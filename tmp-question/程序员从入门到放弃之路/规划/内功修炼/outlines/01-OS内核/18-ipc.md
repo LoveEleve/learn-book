@@ -1,42 +1,150 @@
 # IPC 进程间通信 — 管道/共享内存/消息队列 + Binder + Netlink
 
 > Cluster E: 6 KPs | 依赖: 11-进程模型 + 02-分页机制 | 读者基线: 理解进程地址空间和 fd 概念
+> 读者处境: 已读完 11 篇（进程）和 02 篇（分页）；本篇回答"两个进程怎么交换数据——从最慢到最快、从最古老到最现代"
+> 打开新视角: IPC 的速度阶梯（管道→消息队列→共享内存）、Binder 一次拷贝的秘密、Netlink 的内核主动推送
 
 ---
 
+### 概念依赖链
+
+```
+11-进程(fd/地址空间) + 02-分页(映射) → 本篇: 进程间通信
+  ├─ §1 管道(内核缓冲字节流 — 依赖 11 fd 继承)
+  │    ├─ §3 消息队列(内核消息结构 — 对照 §1 管道)
+  │    └─ §2 共享内存(页表映射零拷贝 — 依赖 02 映射)
+  │         └─ §4 Binder(一次拷贝 + 身份验证 — 对照 §2 的同步代价)
+  └─ §5 Netlink(内核→用户态通道 — 依赖 15 socket 层)
+先讲: 流(管道) → 零拷贝(共享内存) → 结构化(消息队列) → 移动端(Binder) → 内核推送(Netlink)
+后续依赖: 19-内核架构(启动流程)
+```
+
+### 叙事顺序
+
+1. 问题引入——两个进程（没有共享内存）怎么交换数据？（**Aha: IPC 的速度阶梯=数据经过内核的次数——越少拷贝越快**）
+   - 过渡: 最朴素的方式？——管道
+2. 管道——内核环形缓冲；匿名/FIFO；阻塞语义
+   - 过渡: 字节流没有边界——要结构化消息呢？
+3. 消息队列——有类型+优先级；SysV vs POSIX
+   - 过渡: 有边界了但还是拷贝——能零拷贝吗？
+4. 共享内存——页表映射同一物理页；需同步
+   - 过渡: 零拷贝但同步麻烦——Android 的折中？
+5. Binder——一次拷贝 + UID 验证
+   - 过渡: 都是"进程↔进程"——内核怎么主动通知用户态？
+6. Netlink——内核→用户态的异步通道
+   - 过渡: 完整图景已齐——收束
+7. 收束——IPC 速度阶梯 + 各方案定位
+
 ### 1. 管道 — 单向字节流，Shell 的 `|`
-  - 匿名管道: `pipe(int fd[2])` → fd[0] 读端 / fd[1] 写端 → 内核环形缓冲区(底 16 页=64KB, 可调 `/proc/sys/fs/pipe-max-size`) → 写满阻塞 → 读空阻塞 → 父 fork 后子继承 fd 通信 (fs/pipe.c:723)
-  - FIFO(命名管道): `mkfifo(path, 0644)` → 文件系统节点 → 持久化(进程退出后 FIFO 还在) → 无亲缘关系进程通过路径 open → 与匿名管道相同的内核机制 → `O_NONBLOCK` 控制阻塞 (fs/pipe.c:1122)
-  - 实现: `struct pipe_inode_info` → `pipe_buffer` 环(每个 4KB) → `pipe_read/pipe_write` → `pipe_write` 写满 `wait_event` 睡眠 → `pipe_read` 唤醒写者
+
+场景提示: `ps aux | grep nginx`——两个进程的数据怎么流进流出？ [写作时展开]
+
+关键设计: 管道 = 内核环形缓冲区 + 两个 fd：
+
+```[pseudocode]
+pipe(int fd[2]) → fd[0] 读端 / fd[1] 写端
+内核环形缓冲(64KB, 可调 /proc/sys/fs/pipe-max-size)
+写满阻塞 / 读空阻塞 → 父 fork 后子继承 fd → 父子通信
+```
+
+- **FIFO（命名管道）**: `mkfifo(path, 0644)` → 文件系统节点 → 持久化（进程退出后还在）→ 无亲缘进程通过路径 open → 内核机制同匿名管道 → `O_NONBLOCK` 控制阻塞
+- **实现**: `struct pipe_inode_info` → `pipe_buffer` 环（每个 4KB）→ `pipe_read/pipe_write` → 写满 `wait_event` 睡眠 → 读端唤醒写者
+
+Why: 为什么管道"最快也最简单"？——管道是**无结构字节流 + 阻塞语义**：写者与读者之间天然"背压"（写满等读、读空等写）。Shell 管道（`|`）的魅力正是"简单"——生产者/消费者协议由内核缓冲 + 阻塞隐式实现，无需任何同步代码。代价：数据要复制两次（用户→内核缓冲→用户）。
+
+比喻锚点: 管道=两个杯子间的吸管——水（数据）从 A 杯（进程）经吸管（内核缓冲）流到 B 杯；吸管满了（写满）A 就得停（阻塞），吸管空了（读空）B 就等——中间不用约定，吸管自带"流量控制"。 [写作时展开]
 
 ### 2. 共享内存 — 最快 IPC，零拷贝
-  - System V: `shmget(key, size, IPC_CREAT|0666) → shmat(shmid, addr, 0)` → 物理页同时映射到两个进程 → 无需拷贝 → 需要额外同步(信号量/mutex 锁) — `ipcs -m` 查看 (ipc/shm.c:487)
-  - POSIX: `shm_open(name, O_CREAT|O_RDWR, 0666) → ftruncate → mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)` → `/dev/shm/` 路径下 tmpfs 文件(默认 RAM 一半大小) — 更现代
-  - 底层: 两个进程的页表项指向同一物理页帧 → 任一进程写立即可见(无拷贝无系统调用) → 速度快于其他 IPC(1-2 倍)
+
+场景提示: 两个进程频繁交换大块数据——管道复制太慢，有没有"不复制"的办法？ [写作时展开]
+
+关键设计: 共享内存 = **两个进程的页表指向同一物理页**（02 篇映射机制）：
+
+```[pseudocode]
+System V: shmget(key, size, IPC_CREAT|0666) → shmat(shmid, addr, 0)
+  → 物理页同时映射到两个进程 → 写立即可见(无拷贝无系统调用) → ipcs -m 查看
+POSIX:    shm_open(name, O_CREAT|O_RDWR, 0666) → ftruncate
+  → mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)
+  → /dev/shm/ 下 tmpfs 文件(默认 RAM 一半) — 更现代
+```
+
+- 任一进程写 → 立即可见（无拷贝、无系统调用）→ 速度快于其他 IPC（1-2 倍）
+- **代价：需要额外同步**（信号量/mutex——共享数据无内置互斥）
+
+Why: 为什么共享内存是"最快"？——其他 IPC 都要"复制两次"（发送方→内核→接收方）；共享内存让两个进程**直接看到同一份数据**（页表映射，零拷贝零系统调用）。代价是"共享 = 需同步"——两个进程同时写需要应用层锁（07 篇），而管道/消息队列的内核缓冲自带互斥。**速度换同步责任**——这是共享内存的取舍。 [内核: 共享内存复用 03 篇的 MAP_SHARED 映射——同一物理页进两个进程的页表]
+
+比喻锚点: 共享内存=合看一块白板——两个人都能直接看到/改写同一块板（零拷贝）；但两人同时写会花（需同步），而传纸条（管道）虽然慢但不会乱。 [写作时展开]
 
 ### 3. 消息队列 — 有类型 + 优先级
-  - System V: `msgget(key, IPC_CREAT|0666) → msgsnd/msgrcv → msgctl(IPC_RMID)` → 消息结构 `{long mtype; char mtext[];}` → `msgrcv` 可按类型过滤(非 FIFO) → 持久化到内核(进程退出后队列还在) — `ipcs -q` (ipc/msg.c:487)
-  - POSIX: `mq_open(name, O_CREAT|O_RDWR) → mq_send/mq_receive → mq_close/mq_unlink` → `mq_getattr` 获取属性(maxmsg/msgsize) → 有优先级(整数) → 可设持久化(但非内核持久, 仅在系统运行期间) (ipc/mqueue.c:852)
-  - 与管道对比: 消息有边界(管道是字节流) / 有类型(可按类型过滤, 管道是 FIFO) / 持久化(管道进程退出后消失)
+
+场景提示: 管道是字节流（没边界）——要传"一条条消息"（有类型、可过滤）怎么办？ [写作时展开]
+
+关键设计: 消息队列 = 内核维护的**结构化消息**：
+
+```[pseudocode]
+System V: msgget(key, IPC_CREAT|0666) → msgsnd/msgrcv → msgctl(IPC_RMID)
+  消息结构 {long mtype; char mtext[];} → msgrcv 按类型过滤(非 FIFO)
+  → 持久化到内核(进程退出后队列还在) → ipcs -q
+POSIX:    mq_open(name, O_CREAT|O_RDWR) → mq_send/mq_receive
+  → mq_getattr(maxmsg/msgsize) → 有优先级(整数)
+```
+
+与管道对比: 消息**有边界**（管道是字节流）/ **有类型**（可按类型过滤，管道是 FIFO）/ **持久化**（管道进程退出后消失）。
+
+Why: 为什么需要消息队列而非只用管道？——管道是"字节流"：接收方必须自己解析边界（"这条消息到哪结束？"）；消息队列把**边界和类型**交给内核——`msgrcv(type)` 直接取指定类型的消息。适用"生产者按类型分发、消费者按需取"的场景（如日志分级、任务分类）。
+
+比喻锚点: 消息队列=贴标签的信箱——管道是一卷纸条（没边界）；消息队列是每个信封都有标签（类型），收件人（进程）按标签取信（msgrcv(type)），而不是从头拆卷纸条找"这条到哪结束"。 [写作时展开]
 
 ### 4. Binder — Android 的 IPC 核心
-  - `/dev/binder` 驱动: `ioctl(BINDER_WRITE_READ)` → 一次拷贝(发送方→binder 内核驱动→接收方, 不用拷贝两次) → binder 驱动维护 userspace 的 binder_proc→binder_thread (drivers/android/binder.c:2419)
-  - Binder 上下文管理: service manager(binder context manager, `/dev/binder` 上的 server) → 注册服务(类似 DNS) → 客户端 `transact` 发送 binder 消息 → 服务端 `onTransact` 接收 → AIDL 定义接口
-  - 安全: UID/PID 验证(每个 binder 请求携带发送方身份, 不能伪造) → 一次拷贝(目标 mmap 到接收方地址空间, binder 直接写入) → 比 Socket+共享内存更高效
+
+场景提示: Android 每个 App 一个进程——跨进程调用服务（ActivityManager/IME）用什么？ [写作时展开]
+
+关键设计: Binder = **一次拷贝 + 身份验证**的移动端 IPC：
+
+```[pseudocode]
+/dev/binder 驱动: ioctl(BINDER_WRITE_READ)
+一次拷贝: 发送方 → binder 内核驱动 → 接收方(目标 mmap 到接收方地址空间, 直接写入)
+身份验证: 每个 binder 请求携带发送方 UID/PID, 不能伪造
+上下文管理: service manager(注册服务, 类似 DNS) → 客户端 transact → 服务端 onTransact
+接口定义: AIDL
+```
+
+Why: 为什么 Binder 优于 Socket/共享内存？——Socket 要**两次拷贝**（用户→内核→用户）+ 无身份验证；共享内存**零拷贝但同步麻烦 + 无权限控制**。Binder 取两者之长：一次拷贝（比 Socket 快）+ UID/PID 验证（比共享内存安全）——**Android 场景（高频小消息 + 严格权限）的最优解**。一次拷贝的关键：发送方数据写入内核，内核直接把接收方映射的地址空间作为目标（mmap 预映射）——省掉"内核→接收方"的第二次拷贝。
+
+比喻锚点: Binder=带门禁的专用快递通道——普通快递（Socket）要中转两次（发件→中转站→收件）；专用通道（Binder）中转一次直达（内核直接把件放进收件人信箱），且每件快递都盖着发件人印章（UID/PID），假件进不来。 [写作时展开]
 
 ### 5. Netlink — 内核与用户态通信
-  - 内核侧: `netlink_kernel_create → nlmsg_put → nlmsg_unicast` → 异步, 内核向用户态发送消息时无需用户态先请求 → 用于路由/ACPI/防火墙 (net/netlink/af_netlink.c:1856)
-  - 用户侧: `socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE) → bind → sendmsg/recvmsg` → `ip` 命令底层(`ip route add` 发送 Netlink 消息) → 优于 ioctl(异步, 支持多播)
-  - 场景: iproute2(路由) / udev(设备热插拔) / conntrack(连接跟踪) → 可以组播到多个用户态进程
+
+场景提示: 路由表变了/设备插拔了——内核怎么"主动"告诉用户态？（用户态没来问） [写作时展开]
+
+关键设计: Netlink = 内核→用户态的**异步/多播**通道：
+
+```[pseudocode]
+内核侧: netlink_kernel_create → nlmsg_put → nlmsg_unicast(异步, 无需用户先请求)
+用户侧: socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE) → bind → sendmsg/recvmsg
+场景: iproute2(路由) / udev(设备热插拔) / conntrack(连接跟踪) → 组播到多个进程
+```
+
+Why: 为什么需要 Netlink 而非 ioctl//proc？——ioctl 是"用户主动问"（拉模式）、/proc 是"用户主动读"（拉模式）；Netlink 是**内核主动推**（推模式）：路由变化/设备插拔时内核主动发消息，用户态进程"订阅"后实时收到——**事件驱动的内核通知机制**，与 09 篇中断的"回调而非轮询"哲学一致。
+
+比喻锚点: Netlink=小区广播喇叭——ioctl 是"住户打电话问物业"（拉）、/proc 是"住户去公告栏看"（拉）；Netlink 是"物业有事直接广播"（推）——订阅了广播的住户（进程）实时收到通知（路由变了/停电了）。 [写作时展开]
 
 ### 6. 收束
-  - IPC 三级: 管道(字节流, 阻塞) / 消息队列(有类型, 持久化) / 共享内存(零拷贝, 需同步)
-  - Binder: 一次拷贝 + UID 认证 = Android IPC 最优解
-  - Netlink: 内核→用户态的异步/多播通道(替代 ioctl 和 /proc)
+
+回到"两个进程怎么交换数据"：
+- 管道 = 字节流 + 阻塞（简单背压）
+- 消息队列 = 有边界 + 类型过滤（结构化）
+- 共享内存 = 零拷贝（最快但需同步）
+- Binder = 一次拷贝 + 身份验证（移动端最优）
+- Netlink = 内核主动推（事件通知）
+
+**Aha Moment**: "IPC 的速度阶梯是'数据经过几次拷贝'：管道 2 次、消息队列 2 次、共享内存 0 次（但你自己负责同步）、Binder 1 次（最优平衡）。而 Netlink 提醒我们：通信不只是'进程找进程'——内核也可以主动找你。"
+**回答读者三问**: ①Shell 管道怎么工作=内核环形缓冲+阻塞；②共享内存为何最快=页表映射零拷贝；③内核怎么通知用户=Netlink 异步多播。
 
 ---
 
 ### 核心悬念
+
 **"Linux 内核本身是怎么启动的？宏内核和微内核有什么区别？strace/perf/ftrace/bpftrace 这些工具怎么用？"**
 
-→ 引出 19-内核架构(宏/微核) + 启动流程 + 内核模块 + strace/perf/ftrace/bpftrace
+→ 引出 19-内核架构(宏/微核) + 启动流程 + 内核模块 + strace/perf/ftrace/bpftrace——进程之间怎么通信讲完了，最后讲内核本身怎么运转、怎么调试。

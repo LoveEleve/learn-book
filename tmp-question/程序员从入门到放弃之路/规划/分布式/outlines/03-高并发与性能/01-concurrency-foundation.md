@@ -1,52 +1,191 @@
-# 单线程写代码是多线程在跑 — 你真的知道自己的程序在并发什么吗?
+# 并发基础 — 线程、线程池、连接池与锁究竟在哪里排队
 
-> Cluster A: 10 KPs | 依赖: 域1-01 (CAP理论) | 读者基线: 写过Java多线程代码, 用过线程池但不清楚内部细节
+> Cluster A: 10 KPs | 依赖: 分布式理论 01 CAP/一致性、系统编程线程/锁 | 读者基线: Java 多线程、线程池、数据库连接池
+> 读者处境: 高并发与性能开篇；本篇回答线程池满、数据库连接耗尽、锁竞争和 CPU 加核无效之间的关系
+> 打开新视角: 高并发不是“创建更多线程”，而是**在 CPU、任务队列、连接池、数据库和共享数据之间选择正确的排队位置**
 
 ---
 
-### 1. 并发 vs 并行 — 你的4核CPU在"同时"跑100个线程吗?
-  线上服务挂了, 日志显示线程池满了 — 你以为是CPU不够, 加机器后依然满。
-  - 并发≠并行: 并发(concurrency)是逻辑同时(时间片轮转), 并行(parallelism)是物理同时 — 单核也能并发, 多核才能并行 (B5 Ch2 §2.3, B6 Ch2 §2.1)
-  - Amdahl定律: speedup = 1/((1-P) + P/N) — 20%串行部分=最多5x加速, 无论加多少核 [理论: Amdahl定律揭示了并行化的根本限制 — 串行部分是不可逾越的天花板]
-  - 上下文切换开销: 线程数>CPU核数 → 每个切换保存/恢复寄存器+刷新TLB+Cache污染 → 8-15μs/次 (B3 Ch4 §4.2)
-  - 关键设计: 为什么异步模型线程数少? — 同步: 线程=请求数(1000请求=1000线程+1000次switches), 异步: 线程=CPU核数(4核=4线程, 事件循环不阻塞)
+### 概念依赖链
 
-### 2. Java线程模型的真相 — Thread.start()到底触发了什么?
-  你new Thread().start(), 底层是怎么映射到CPU的?
-  - 线程模型演变: 1.1 用户态线程(绿色线程, 1:1→1:N映射)→1.3 Native Thread(内核级线程, 1:1映射) — 现在的Thread=内核线程的wrapper (B1 Ch5 §5.2)
-  - Thread生命周期: NEW→RUNNABLE(syscall通知内核注册)→BLOCKED(竞争锁)→WAITING(wait/join/park)→TIMED_WAITING→TERMINATED — 注意RUNNABLE≠Running, 可能在内核就绪队列等待 (B1 Ch5 §5.2)
-  - Java线程内存开销: 每个Thread ≈ 1MB栈内存(默认) + tcb + tid — 1000线程=1GB虚拟内存, 实际物理内存按需分配但栈深度过大会OOM (B5 Ch8 §8.5, B4 Ch5 §5.3)
-  - 协程/虚拟线程: Project Loom的VirtualThread — 用户态调度+栈按需分配(几百字节)→可以创建百万虚拟线程而物理线程只有CPU核数个 (B1 Ch5 §5.2)
+```
+系统编程线程/锁 + 分布式 CAP → 本篇: 并发/线程池/连接池/锁
+  ├─ §1 并发 vs 并行(Amdahl/上下文切换)
+  ├─ §2 Java Thread/Virtual Thread(执行实体)
+  ├─ §3 ThreadPoolExecutor(任务排队/拒绝)
+  ├─ §4 连接池(数据库资源背压)
+  └─ §5 锁/原子操作(共享状态安全)
+先讲: 并发概念 → 线程实体 → 任务池 → 连接池 → 锁
+后续依赖: 02-concurrent-data-structures(并发容器与低锁结构)
+```
 
-### 3. 线程池 — 为什么newCachedThreadPool是OOM的祸首?
-  线上堆栈: "java.lang.OutOfMemoryError: unable to create new native thread" — 谁在无限制创建线程?
-  - ThreadPoolExecutor核心参数: corePoolSize(常驻)→maxPoolSize(上限)→keepAliveTime(空闲回收)→workQueue(任务缓冲)→handler(拒绝策略: Abort/CallerRuns/Discard/DiscardOldest) (B1 Ch5 §5.2)
-  - 任务调度流程: 提交任务→当前线程数<corePoolSize(创建新线程)→workQueue未满(入队)→线程数<maxPoolSize(创建新线程)→执行拒绝策略 [工程: 线程池参数调优公式 — 最佳线程数 = CPU核数 * 目标CPU利用率 * (1 + 等待时间/计算时间)]
-  - 四种内置池的坑: newFixedThreadPool(Integer.MAX_VALUE)的LinkedBlockingQueue→堆OOM; newCachedThreadPool(Integer.MAX_VALUE)的SynchronousQueue→线程OOM (B1 Ch5 §5.2)
-  - 关键设计: 队列选型决定行为 — SynchronousQueue(直接提交, 0缓冲)→LinkedBlockingQueue(无限缓冲, 易内存溢出)→ArrayBlockingQueue(有限缓冲, 需预估容量)
+### 叙事顺序
 
-### 4. 连接池 — 为什么你的数据库连接数总打到上限?
-  并发上来后数据库报"too many connections" — 连接池没生效还是配置太小?
-  - 连接池本质: 复用长连接(免去TCP握手+TLS+MySQL认证三轮RTT)→连接池=有限资源池, 本质是流量控制器 (B1 Ch5 §5.2, B5 Ch8 §8.5)
-  - HikariCP为什么快: 字节码级精简(≤JIT内联阈值35字节)+ConcurrentBag(无锁设计)+FastList替代ArrayList(remove不扫描) (B1 Ch5 §5.2, B6 Ch5 §5.3)
-  - 连接数公式: connections = ((core_count * 2) + effective_spindle_count) — 但实际需要压测确定, 连接池大小≠QPS上限 [案例: 某系统连接池从20调到200, QPS没涨, 锁竞争从0.2%涨到15%－连接池太大反而慢]
-  - 关键设计: 连接泄漏检测 — HikariCP的leakDetectionThreshold(超时未归还打印堆栈), Druid的removeAbandoned
+1. 问题引入——线程池满、连接池满、CPU 加核后仍慢，真正排队在哪里？
+2. 并发/并行与上下文切换
+3. Java Thread/Virtual Thread
+4. 线程池参数与队列
+5. 连接池与数据库背压
+6. 锁升级/CAS 与共享状态
+7. 收束
 
-### 5. 锁升级 — synchronized为什么现在不比ReentrantLock慢?
-  你面试时背过"synchronized重量级很慢" — 但JDK15之后这句话不准了。
-  - 锁升级路径: 无锁→偏向锁(同一个线程反复获取, CAS设置ThreadID)→轻量级锁(多线程交替执行, 自旋CAS)→重量级锁(自旋失败, 膨胀→OS mutex→线程阻塞) (B4 Ch5 §5.4)
-  - 偏向锁的撤销代价: 到达safepoint→暂停线程→检查是否存活→撤销偏向→STW — 这就是JDK15默认关闭偏向锁的原因(高并发下撤销>收益) (B4 Ch5 §5.4)
-  - CAS无锁: AtomicInteger的compareAndSet → CPU的CMPXCHG指令 → Unsafe.compareAndSwapInt (B4 Ch5 §5.4, B3 Ch4 §4.3)
-  - 关键设计: 为什么有锁升级机制? — 大部分锁是线程不竞争的(偏向锁), 偶尔竞争的(轻量级锁), 竞争激烈的(重量级锁), 自适应调整 > 一刀切
+### 1. 并发与并行 — 逻辑同时不等于物理同时
 
-### 6. 收束 — 从线程到锁到池, 三者构成并发铁三角
-  - 线程池控制"多少人干活"(资源管理), 连接池控制"多少人访问数据库"(资源瓶颈), 锁控制"多少人能同时动同一份数据"(安全保证)
-  - 三者互相关联: 线程池开太大→竞争加剧→锁升级→性能下降; 连接池开太小→线程等连接→线程池假满
-  - 并发性能的本质是"在哪里排队"的选择 — 让CPU排队(线程池队列)还是DB排队(连接池)还是内存排队(锁)?
+场景提示: 4 核 CPU 上运行 100 个线程，究竟有多少线程在同一时刻执行？加机器为什么可能不改善线程池超时？ [写作时展开]
+
+关键设计: 并发是任务交错/同时存在，并行是多个执行核同时执行；Amdahl 和调度成本限制加核收益：
+
+```[pseudocode]
+concurrency:
+  多个任务在时间窗口内推进
+  → 单核也可通过时间片交错
+
+parallelism:
+  多核同时执行多个任务
+
+Amdahl:
+  speedup <= 1 / ((1-P) + P/N)
+  → 串行部分限制总体上限
+
+线程过多:
+  runnable queue + context switch
+  → 保存/恢复状态、缓存/TLB扰动
+  → 不一定提高吞吐
+```
+
+Why: 为什么线程池满不一定是 CPU 核数不够？——**线程可能在等连接、锁、I/O 或下游，线程数增加只会增加排队和上下文切换**；并行化前要知道 workload 是 CPU bound 还是等待 bound。上下文切换延迟也不能用固定微秒数跨平台断言。 [系统性能: Amdahl/等待分析/USE 先定位瓶颈再加并发]
+
+比喻锚点: 并发像多个订单同时在处理，只有并行才是多个工位同时加工；增加订单不等于增加工位。 [写作时展开]
+
+### 2. Java Thread 与 Virtual Thread — 执行实体的不同成本
+
+场景提示: `Thread.start()` 后 JVM 和操作系统分别创建/管理什么？ [写作时展开]
+
+关键设计: 平台线程、用户态调度线程和虚拟线程的栈、调度、阻塞语义不同：
+
+```[pseudocode]
+platform thread:
+  JVM thread ↔ OS schedulable thread
+  → 独立栈/寄存器/调度实体
+  → 可真正多核并行
+
+Java thread states:
+  NEW → RUNNABLE/BLOCKED/WAITING/TIMED_WAITING → TERMINATED
+  RUNNABLE 不保证当前正在 CPU 上运行
+
+virtual thread:
+  用户态任务/continuation
+  → 由少量 carrier/platform threads 承载
+  → 阻塞可被 runtime 处理时让出 carrier
+  → 仍受 pinning、CPU、内存和同步模型限制
+```
+
+Why: 为什么虚拟线程能创建很多，却不能把 CPU 密集任务无限并行？——**它减少了阻塞任务的线程栈/调度成本，但 CPU 核数、锁、数据库连接和下游容量仍是瓶颈**；“百万虚拟线程”是模型能力，不是业务吞吐承诺。 [JVM: 虚拟线程行为依赖 JDK 版本、调度器、pinning 和阻塞调用兼容性]
+
+### 3. ThreadPoolExecutor — 队列策略决定系统如何过载
+
+场景提示: `newCachedThreadPool` 运行一段时间后 OOM，`newFixedThreadPool` 又把任务无限堆在内存里，为什么？ [写作时展开]
+
+关键设计: 线程池是“线程数 + 工作队列 + 拒绝策略”的联合状态机：
+
+```[pseudocode]
+submit(task)
+  → worker < corePoolSize?
+      创建 worker
+  → 否则 queue 未满?
+      入队
+  → 否则 worker < maximumPoolSize?
+      创建额外 worker
+  → 否则 rejection handler
+
+队列:
+  SynchronousQueue → 无容量, 直接交给 worker
+  bounded queue → 有限背压
+  unbounded queue → 可能隐藏内存/延迟无限增长
+
+拒绝:
+  Abort / CallerRuns / Discard / DiscardOldest
+  → 不同的数据丢失/背压语义
+```
+
+Why: 为什么“最大线程数”在使用无界队列时可能几乎不起作用？——**任务先进入队列，池不会轻易扩展到 maximum**；队列策略实际上决定请求在何处排队。线程数公式只能作为初始估计，最终要按 CPU/等待比例、任务时长、下游容量和尾延迟压测。 [JVM: ThreadPoolExecutor 参数组合决定拒绝/背压，不存在所有业务通用最佳值]
+
+比喻锚点: 线程池像餐厅：先开固定桌位，再排队；队列无限长看起来不拒客，却会让客人和食材一起过期。 [写作时展开]
+
+### 4. 连接池 — 数据库连接是稀缺资源和背压阀
+
+场景提示: 线程池有 500 个线程，数据库连接池只有 20 个，为什么系统表现为线程大量等待而不是吞吐提升？ [写作时展开]
+
+关键设计: 连接池复用连接并限制进入数据库的并发：
+
+```[pseudocode]
+request
+  → borrow connection
+  → 无空闲连接?
+      等待/超时
+  → 执行 SQL/事务
+  → reset state
+  → return connection
+
+池太小:
+  应用线程在池前排队
+
+池太大:
+  数据库锁/CPU/I/O/上下文竞争增加
+  → QPS 未升, P99 变差
+```
+
+Why: 为什么连接池大小不等于 QPS 上限？——**QPS 还受事务时间、数据库并发、锁、I/O 和 SQL 成本影响**；连接数调大可能只是把应用等待搬进数据库。HikariCP 等实现的内部优化不能替代容量模型，leak detection 也需结合正常长事务/流式读取判断。 [分布式架构: 16 连接池篇与本篇共同说明“有限资源池就是流量控制器”]
+
+### 5. 锁升级与 CAS — 共享状态安全也有竞争成本
+
+场景提示: `synchronized` 为什么不必然比 `ReentrantLock` 慢，CAS 又为什么不是无成本无锁？ [写作时展开]
+
+关键设计: JVM 锁实现会根据竞争形态优化，但具体升级路径随 JDK 版本变化；CAS 则通过原子比较交换处理短冲突：
+
+```[pseudocode]
+synchronized/monitor:
+  进入/退出对象监视器
+  → 低竞争与高竞争可能走不同快速/阻塞路径
+
+CAS:
+  compare(expected, desired)
+  → 成功更新
+  → 失败重试/退避
+
+高竞争:
+  CAS 重试/缓存一致性流量上升
+  锁膨胀/线程阻塞/调度成本上升
+```
+
+Why: 为什么不能背“偏向锁→轻量锁→重量锁”当作所有现代 JDK 的固定实现？——**锁实现、偏向锁策略和 JVM 版本持续变化，性能取决于竞争、临界区、线程调度和数据布局**；CAS 也会遭遇 ABA、活锁、饥饿和缓存线 bouncing。优化前需用锁/CPU/等待工具证明热点。 [系统编程: C++ atomic/MESI 与 JVM 锁共同体现硬件一致性和语言同步语义]
+
+### 6. 收束
+
+并发铁三角：
+
+```[pseudocode]
+线程池:
+  控制执行任务数量/任务队列
+
+连接池:
+  控制进入数据库/下游的并发
+
+锁/原子:
+  保护共享状态
+
+池/锁/线程任一过载:
+  → 其他层可能出现假满/排队/超时
+  → 需要统一观测与容量建模
+```
+
+**Aha Moment**: "高并发优化的本质不是把线程数调大，而是**决定在哪里排队、在哪里背压、哪些资源必须串行，以及如何让队列不会无限增长**。"
+**回答读者三问**: ①并发和并行差在哪=逻辑同时与物理同时；②线程池为什么会 OOM=队列/线程上限和任务速率不匹配；③连接池为什么是流控=它限制下游资源并把压力转成可见等待。
 
 ---
 
 ### 核心悬念
-**"ConcurrentHashMap说有读不用加锁, 那它怎么保证你读的时候不读到写到一半的数据?"**
 
-→ 引出 并发数据结构: ConcurrentHashMap/CopyOnWrite/Disruptor/BlockingQueue — 这些并发容器到底是如何实现无锁或低锁的 (02-concurrent-data-structures)
+**"线程、线程池、连接池和锁已经建立；ConcurrentHashMap、CopyOnWrite、Disruptor 和 BlockingQueue 如何在共享数据上实现低锁并发？"**
+
+→ 引出 02-concurrent-data-structures — 并发数据结构与无锁/低锁实现。

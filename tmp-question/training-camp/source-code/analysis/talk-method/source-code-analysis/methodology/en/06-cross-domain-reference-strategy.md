@@ -101,6 +101,43 @@ DON'T: Reference domains not yet analyzed (violates 01's "no 'covered later'" ru
 
 ---
 
+## 2.5 Reuse ≠ Omission — Layered Perspective and the Five-Things Check
+
+> The biggest risk in cross-domain referencing is not "duplication" but "omission." When referencing a lower-layer mechanism, saying only "see domain A" and stopping there drops key information from this layer's perspective. **Reuse the mechanism core, but always expand the usage perspective.**
+
+### Core Principle
+
+The "same mechanism" has **completely different emphases** at different layers and perspectives. Lower-layer domains explain "the mechanism itself"; upper-layer domains explain "how this mechanism is used, assembled, configured, and integrated here." Overlapping mechanism cores are referenced to the lower layer; this layer's usage perspective must be expanded.
+
+### Judgment Criteria
+
+| Situation | Treatment |
+|------|------|
+| Pure mechanism core (details irrelevant to current domain's perspective) | **One-line reference**: see {domain A} §{section} + one-sentence conclusion |
+| This layer's usage/assembly/configuration/lifecycle/differences | **Must expand** — this is the domain's incremental value |
+| 80% identical but 20% differs (mechanism used differently at this layer) | **Expand the 20% difference + explicit contrast**, reference the 80% core |
+
+### The Five-Things Check (prevent omission)
+
+Even when the mechanism is identical to the lower layer, this layer must at least expand these five things; only after checking all five with no increment is a pure reference allowed:
+
+1. **Entry**: how requests/calls reach here (this layer's entry path)
+2. **Configuration**: where configuration comes from, how it maps (e.g., `server.port` → Connector parameters)
+3. **Lifecycle**: integration points with this layer's lifecycle (e.g., container refresh vs WebServer.start)
+4. **Differences**: key differences from the lower-layer mechanism (explicit contrast is itself knowledge)
+5. **Boundaries**: how exceptions/edge cases are handled at this layer
+
+### Bottom Line
+
+**When in doubt, expand rather than reference** — duplication is inefficiency; omission is risk, and the latter costs more.
+
+### Example (Boot embedded container vs Tomcat outline)
+
+- **Reference** (pure core): Connector's internal NioEndpoint connection handling → "see Tomcat T-2, not repeated here"
+- **Expand** (this layer's increment): `TomcatServletWebServerFactory` assembling Tomcat (new/setPort/addContext), `TomcatWebServer.start()`, lifecycle integration with refresh, `server.tomcat.*` configuration mapping — none of these exist in the Tomcat outline
+
+---
+
 ## 3. New Discovery Feedback
 
 > This is distinct from 01's "Discovered → Back to Pass 1" (which is about missing classes in the SAME domain during Pass 2). This section handles cross-domain discoveries only — new information about a DIFFERENT domain uncovered during current domain's analysis.
@@ -170,7 +207,40 @@ Domains analyzed with approaches C or D don't produce Pass 3 articles. Handle cr
 
 ---
 
-## 5. Quality Gate
+## 6. Knowledge Network Graph Output (Obsidian Bidirectional Links)
+
+> The **visualized output form** of cross-domain references: convert all domains' cross-references into Obsidian bidirectional links, presenting the knowledge network via Graph View. All frameworks (netty/tomcat/spring/boot, etc.) share one vault.
+
+### Goal
+
+Make "domains are not islands" **visible**: in the graph, each outline is one note, and edges between nodes = prerequisite/reuse/lead-out relationships. Cross-outline edges (e.g., Spring → Tomcat t7) visualize "framework integration."
+
+### Bidirectional Link Format (in each outline's header block)
+
+```
+Prerequisite: [[{prereq domain dir name}]] ...
+Reuse: [[{reused domain}]] ...
+Leads to: [[{next domain}]] ...
+```
+
+- Information source: the ←/→/Also-see of this methodology and §2.5 reuse annotations — the links are their Obsidian form
+- Node naming: directory names (e.g., `s8-refresh`, `t7-springboot-integration`, `C-6`), guaranteeing uniqueness across directories
+- Graph coloring suggestion: tag by framework layer (e.g., #core #context #aop #web #test #boot), color by tag in Graph View
+
+### Production Timing
+
+- Doesn't block outline analysis — add link lines as soon as each domain's outline passes the six-layer review
+- Batch conversion (e.g., 65+ domains to a vault) is an independent task, can be done at Stage wrap-up
+- Graph uses: dependency backtracking (what a domain depends on), gap discovery (isolated node = broken link), teaching navigation (roam from entry node)
+
+### Quality Gate Addition
+
+- [ ] Each outline has Prerequisite/Reuse/Leads-to links (or states: root/leaf/no-reuse)
+- [ ] Linked domains already exist (must not link unanalyzed domains — same "DON'T" rule as §2)
+
+---
+
+## 7. Quality Gate
 
 Before presenting a domain's article as "done," verify:
 

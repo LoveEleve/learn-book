@@ -1,43 +1,151 @@
 # 页缓存 I/O 路径 — 页缓存读写 + Direct I/O + mmap I/O + 零拷贝
 
 > Cluster D: 4 KPs | 依赖: 13-VFS + ext4 | 读者基线: 理解页缓存结构和 VFS 路径解析
+> 读者处境: 已读完 13 篇，知道文件怎么存（VFS/extent/日志）；本篇回答"数据怎么从磁盘到用户程序——经过多少拷贝？"
+> 打开新视角: 读/写路径的缓存命中、预读的窗口策略、四种 I/O 方式的拷贝次数对比、数据库为何绕过页缓存
 
 ---
 
+### 概念依赖链
+
+```
+13-VFS(文件系统层) + 04-页缓存(缓存层) → 本篇: I/O 路径
+  ├─ §1 页缓存读(读路径的缓存命中 — 依赖 04 页缓存)
+  │    └─ §2 页缓存写(写路径的延迟分配 — 依赖 §1 的脏页)
+  │         ├─ §3 Direct I/O(绕过页缓存 — 对照 §1/§2)
+  │         ├─ §4 mmap I/O(映射共享页缓存 — 依赖 03 mmap + §1)
+  │         └─ §5 零拷贝(sendfile/splice — 依赖 §1 页缓存 + DMA)
+先讲: 读(缓存命中) → 写(延迟分配) → 绕过(直写) → 映射(mmap) → 零拷贝(DMA)
+后续依赖: 15-块设备层(bio/request)、04 篇已铺垫页缓存
+```
+
+### 叙事顺序
+
+1. 问题引入——`read()` 一个 100MB 文件——数据从磁盘到你的 buffer，中间经过了几次拷贝？（**Aha: read 一次要 2 次拷贝，但大部分时间第 1 次可省（缓存命中）**）
+   - 过渡: 读路径怎么命中缓存？——四级状态
+2. 页缓存读——not present/uptodate/locked/dirty 四态；预读窗口
+   - 过渡: 写呢？——写不立即落盘
+3. 页缓存写——用户 buffer→页缓存→脏标记→异步回写；delalloc
+   - 过渡: 缓存不总是好事——数据库为什么绕过？
+4. Direct I/O——O_DIRECT 直达磁盘；对齐约束；数据库场景
+   - 过渡: 另一种省拷贝的方式——mmap
+5. mmap I/O——文件映射共享页缓存；拷贝次数对比
+   - 过渡: 还能更省吗？——完全跳过 CPU
+6. 零拷贝——sendfile/splice/SO_ZEROCOPY；DMA 搬运
+   - 过渡: 四种方式怎么选？——回到拷贝次数
+7. 收束——读/写/直写/映射/零拷贝 = 五种 I/O 路径
+
 ### 1. 页缓存读 — 四级缓存命中
-  - `do_generic_file_read → find_get_page` → 检查 address_space 的 xarray(folio 索引) (mm/filemap.c:2265)
-  - 页面状态: not present(需 readpage 磁盘 IO) / uptodate(内容有效, 直接返回) / locked(正在 IO, 等待) / dirty(有未写回数据)
-  - 预读(readahead): 顺序读检测 → `page_cache_sync_readahead` → 预测下 N 页 → 异步预读 → 减少同步等待 → `ondemand_readahead` 动态调整预读窗口大小(最小窗口 4 页 → 逐步扩大) (mm/readahead.c:489)
-  - 预读参数: `/sys/block/sda/queue/read_ahead_kb`(内核默认 128KB)
+
+场景提示: 顺序读文件（日志/数据导入）——为什么第一次慢、之后快？预读怎么知道你要读下一页？ [写作时展开]
+
+关键设计: 读路径 `do_generic_file_read → find_get_page`（查 address_space 的 xarray/folio 索引），页面四种状态：
+
+| 状态 | 含义 | 动作 |
+|------|------|------|
+| not present | 页不在缓存 | readpage 磁盘 IO |
+| uptodate | 内容有效 | 直接返回（零 IO） |
+| locked | 正在 IO | 等待 |
+| dirty | 有未写回数据 | 读可用（脏页内容仍有效） |
+
+[内核: 页状态由 PG_ 标志位管理（PG_uptodate/PG_locked/PG_dirty）——folio 的 flags 字段]
+
+**预读（readahead）**: 顺序读检测 → `page_cache_sync_readahead` → 预测下 N 页 → 异步预读 → 减少同步等待；`ondemand_readahead` 动态调整窗口（最小 4 页 → 逐步扩大）。参数: `/sys/block/sda/queue/read_ahead_kb`（默认 128KB）。
+
+Why: 为什么预读能大幅提升顺序读？——磁盘 IO 的固定成本（寻道/延迟）与数据量无关；预读把"读 N 页"的 N 次小 IO 合并成"读 2N 页"的 1 次大 IO——**IO 次数从 N 降到 1，吞吐提升靠批量化**。窗口动态扩大（4→8→16...）是因为顺序读是"可信信号"：你读 3 页了，第 4 页大概率也要。
+
+比喻锚点: 预读=自动续杯——服务员（内核）看你在喝咖啡（顺序读），不等你叫就先把下一杯备好（预读窗口）；你喝得快（顺序信号强）备得更多（窗口扩大）。 [写作时展开]
 
 ### 2. 页缓存写 — 延迟分配 + 脏页回写
-  - `generic_perform_write` → 分配页缓存页面 → 用户数据从用户 buffer 拷贝到页缓存 → mark_buffer_dirty(标记块脏) → set_page_dirty(标记页脏) → 至此 write() 返回(无磁盘 IO) → 异步回写 (mm/filemap.c:3408)
-  - 延迟分配(delayed allocation): ext4 的 `delalloc` → 不立即分配磁盘块 → 只分配页缓存 → 回写时才决定物理块位置 → 更好的 extent 连续性(连续分配) (fs/ext4/inode.c:3430)
-  - 回写触发: `dirty_expire_interval`(30s 过期) / `dirty_background_ratio`(10% 脏页触发后台回写) / `sync/fsync`(手动同步) → flusher 线程异步回写
+
+场景提示: `write()` 返回了但数据还在内存——断电就丢？内核凭什么"胆大"？ [写作时展开]
+
+关键设计: 写路径 `generic_perform_write`：
+
+```[pseudocode]
+分配页缓存页面 → 用户数据从用户 buffer 拷贝到页缓存
+→ mark_buffer_dirty(标记块脏) → set_page_dirty(标记页脏) → write() 返回(无磁盘 IO)
+→ 异步回写(flusher 线程)
+```
+
+**延迟分配（delalloc）**: ext4 的 `delalloc`——写时不立即分配磁盘块，只分配页缓存；**回写时才决定物理块位置** → 更好的 extent 连续性（连续分配，13 篇）。 [内核: delalloc 依赖回写时一次分配多块——分配器尽力找连续块, 让 extent 尽量大]
+
+回写触发: `dirty_expire_interval`（30s 过期）/`dirty_background_ratio`（10% 脏页后台回写）/`sync/fsync`（手动同步）。
+
+Why: 为什么"写返回"不等落盘？——写落盘（fsync）代价是磁盘延迟（ms 级）；应用高频小写若每次都等，性能崩溃。**写缓冲 + 后台批量落盘**（04 篇）把"每次写"的延迟摊平成"批量写"的吞吐；代价是断电丢失窗口（30s）——关键数据用 fsync 显式落盘。delalloc 进一步把"分配"也推迟到回写——让批量落盘时能分配连续块（extent 最大化）。
+
+比喻锚点: 写缓冲=餐厅后厨备菜——客人点菜（write）服务员先记下（脏标记）就送客走（返回）；后厨（flusher）攒一批再炒（批量落盘）；delalloc 是"先收菜后买食材"（回写时才定食材位置）——买得齐（连续块）才下锅。 [写作时展开]
 
 ### 3. Direct I/O — 绕过页缓存直接到磁盘
-  - 打开: `open(path, O_DIRECT)` → `do_direct_IO` → 用户 buffer 直接 DMA 到磁盘 → 无页缓存中转 (fs/direct-io.c:1158)
-  - 约束: buffer 必须对齐(通常 512 字节) → 无预读(readahead) → 无写合并(需应用自己 batch) → `fio --direct=1 --bs=4k` 测试
-  - 数据库场景: MySQL/PostgreSQL 常用 Direct I/O → 数据库自己管理缓存(比内核页缓存更适合工作负载, B+tree 预读) → `innodb_flush_method=O_DIRECT`
+
+场景提示: MySQL 的 `innodb_flush_method=O_DIRECT`——数据库为什么要绕开内核缓存？ [写作时展开]
+
+关键设计: `open(path, O_DIRECT)` → `do_direct_IO` → 用户 buffer 直接 DMA 到磁盘——**无页缓存中转**。
+
+约束与代价:
+- buffer 必须对齐（通常 512B）
+- **无预读**（readahead 失效）
+- **无写合并**（需应用自己 batch）
+- 测试: `fio --direct=1 --bs=4k`
+
+Why: 为什么数据库用 Direct I/O？——**双缓存是浪费**：数据库自己管理缓冲池（B+tree 预读/LRU 比内核页缓存更懂工作负载），内核页缓存变成"第二份拷贝"（内存浪费 + 一致性维护开销）。Direct I/O 让数据库独占内存控制权——**代价是放弃内核的缓存优化**（预读/写合并），所以只适合"自己会缓存"的应用。
+
+比喻锚点: Direct I/O=自带厨师开餐厅——大厨（数据库）不信任中央厨房（内核页缓存）的备菜（缓存），坚持自己采购自己炒（自管缓冲池）；效率高但厨房设备（预读/合并）都自己买。 [写作时展开]
 
 ### 4. mmap I/O — 文件映射直接到用户地址空间
-  - `do_mmap → addr → 缺页异常 → filemap_fault → readpage → page cache` → 共享页缓存(同一文件 mmap 和 read 共享同一页面) (mm/filemap.c:3180)
-  - 拷贝次数对比: read = 页缓存(磁盘→内核) + 内核→用户 buffer = 2 次拷贝 / mmap = 仅一次(磁盘→页缓存, 页表直接映射到用户空间) — 节省一次 CPU 拷贝 (mm/mmap.c:1610)
-  - `msync`(刷回): 确保 mmap 修改写入磁盘 / `munmap`(解除映射但不保证回写) / `MADV_DONTNEED`(标记不需要此映射, 回收内存)
+
+场景提示: 大数据框架（Spark/文件索引）为何爱用 mmap——少一次拷贝省在哪？ [写作时展开]
+
+关键设计: `do_mmap → 缺页异常 → filemap_fault → readpage → page cache`——**mmap 与 read 共享同一页缓存页**（同一文件两种方式访问同一份数据）。
+
+拷贝次数对比:
+
+| 方式 | 拷贝路径 | 次数 |
+|------|---------|:---:|
+| read | 磁盘→页缓存 → 页缓存→用户 buffer | 2 次（1 CPU 拷贝） |
+| mmap | 磁盘→页缓存（页表直接映射到用户空间） | 1 次（0 CPU 拷贝） |
+
+- `msync`: 确保 mmap 修改写入磁盘 / `munmap`: 解除映射（不保证回写）/ `MADV_DONTNEED`: 标记不需要回收内存
+
+Why: 为什么 mmap 少一次拷贝？——read 必须"从页缓存复制到用户 buffer"（用户 buffer 是独立内存）；mmap 把**页缓存页直接映射进用户页表**——用户代码访问的就是页缓存页本身（03 篇的映射机制），无需复制。代价：页缓存不可随意回收（映射关系存在）、写后需 msync 显式同步。
+
+比喻锚点: mmap=共享文件柜——read 是把文件从柜里**抄一份**给你（复制）；mmap 是把柜子的**钥匙**给你（映射），你直接在柜子里读写——省了抄写，但别人要用柜子得等你锁门（映射释放）。 [写作时展开]
 
 ### 5. 零拷贝 — sendfile + splice 绕过 CPU
-  - `sendfile(out_fd, in_fd, &offset, count)`: 文件到 socket → DMA 磁盘→内核 buffer → DMA 内核 buffer→网卡 → CPU 零参与 → 比 read+write 减少一次内核→用户拷贝和一个系统调用 (fs/read_write.c:1378)
-  - `splice(fd_in, &off_in, pipefd[1], NULL, len, SPLICE_F_MOVE)`: 管道零拷贝 → 数据只在内核空间流转(页引用) → 不拷贝 → `tee` 复制管道内容为两个 → 适合文件→socket 或 socket→文件
-  - `SO_ZEROCOPY`: send 零拷贝 → 用户 buffer 被 pin 住(DMA 直接读取) → 复用 socket buffer → 适合高吞吐发送
+
+场景提示: 文件传输（静态资源/下载服务）——read+write 两次拷贝，能不能一次都不拷？ [写作时展开]
+
+关键设计: 三种零拷贝：
+
+```[pseudocode]
+sendfile(out_fd, in_fd, &offset, count): 文件→socket
+  DMA 磁盘→内核 buffer → DMA 内核 buffer→网卡 → CPU 零参与
+  （比 read+write 减少 1 次内核→用户拷贝 + 1 个系统调用）
+```
+
+- **splice**: 管道零拷贝——数据只在内核空间流转（页引用，不拷贝）；`tee` 复制管道内容为两个——适合文件↔socket
+- **SO_ZEROCOPY**: send 零拷贝——用户 buffer 被 pin 住（DMA 直接读）→ 复用 socket buffer——高吞吐发送
+
+Why: 为什么能"CPU 零参与"？——拷贝的本质是"CPU 搬数据"；DMA 让设备控制器直接搬运（磁盘↔内存、内存↔网卡）。零拷贝的关键是**让数据全程留在内核/DMA 路径**，不经过用户态（一旦进用户态就要 CPU 搬一次）。sendfile 把"磁盘→内核→用户→内核→网卡"压成"磁盘→内核→网卡"——中间的用户态往返整个删除。
+
+比喻锚点: 零拷贝=工厂传送带直连——产品（数据）从原料仓（磁盘）经传送带（DMA）直接上货车（网卡），不经仓库管理员（CPU）手搬；read+write 是每段都要管理员搬一次。 [写作时展开]
 
 ### 6. 收束
-  - 四级缓存命中(not present/uptodate/locked/dirty) + 预读 = 顺序读性能靠预读
-  - Direct I/O(无缓存, 数据库) vs mmap I/O(少一次拷贝, 适合大数据) vs 零拷贝(无 CPU 拷贝, 适合文件传输)
-  - 拷贝次数: read=2 次(磁盘→内核→用户) / mmap=1 次 / sendfile=0 次(DMA 直接搬运)
+
+回到"read 100MB 几次拷贝"：
+- 读 = 缓存命中免磁盘（4 态）→ 未命中预读批量化
+- 写 = 缓冲+延迟分配（delalloc 连续块）
+- Direct I/O = 绕过缓存（数据库自管）
+- mmap = 映射共享页缓存（少 1 次 CPU 拷贝）
+- 零拷贝 = DMA 全程搬运（CPU 零参与）
+
+**Aha Moment**: "I/O 的性能密码是'减少拷贝'：read 2 次 → mmap 1 次 → sendfile 0 次。而每条路径的本质都是'让数据离 CPU 越远越好'——缓存命中免磁盘、mmap 免复制、DMA 免 CPU。数据库绕过缓存不是反叛，是'自己会管理的人不需要管家'。"
+**回答读者三问**: ①顺序读为何快=预读批量化；②数据库为何 O_DIRECT=双缓存浪费；③sendfile 为何 0 拷贝=DMA 全程不经过用户态。
 
 ---
 
 ### 核心悬念
+
 **"文件通过 ext4+VFS+页缓存读写 — 网络 IO 这边, epoll 怎么用红黑树+就绪链表做事件监控？bio 和 request 在块设备层怎么分层？"**
 
-→ 引出 15-I/O 调度器 + blk-mq + bio/request + epoll 实现 + Netfilter
+→ 引出 15-I/O 调度器 + blk-mq + bio/request + epoll 实现 + Netfilter——数据到了页缓存，落盘的最后一公里在块设备层。

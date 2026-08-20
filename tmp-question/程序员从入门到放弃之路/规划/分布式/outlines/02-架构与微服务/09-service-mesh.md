@@ -1,45 +1,193 @@
-# 每个服务都内嵌一个Sentinel来做限流, 100个服务=100份配置 — Service Mesh承诺"一次配置, 全局生效"
+# Service Mesh — Sidecar、Envoy、Istio 如何把治理下沉到基础设施
 
-> Cluster C: 10 KPs | 依赖: 08-resilience-patterns, 07-microservices-design | 读者基线: 用过微服务框架(Spring Cloud/Dubbo), 对K8s有基本了解
+> Cluster C: 10 KPs | 依赖: 08-resilience-patterns、07-microservices-design | 读者基线: 微服务/RPC、Kubernetes 基础、限流熔断与可观测性
+> 读者处境: 08 篇已经为每个服务设计限流、熔断、重试；本篇回答当服务变成多语言、多团队、百实例后，怎样避免每个应用重复实现一套治理逻辑
+> 打开新视角: Service Mesh 不是“应用不再有网络问题”，而是**把部分流量治理交给数据面代理，把配置与策略交给控制面，同时支付额外资源、延迟和运维复杂度**
 
 ---
 
-### 1. 从内嵌SDK到基础设施层代理 — 为什么要把限流从应用代码中剥离?
-  你团队每个Java服务都加了Hystrix→代码耦合(Sentinel代码散落在业务逻辑中)+运维复杂(每个服务各自Sentinel控制台)+语言绑定(Go/Python服务无法复用)
-  - B1 Ch8 §4: Service Mesh起源 — 云原生时代服务数暴增→SDK嵌入模式(每个服务各自框架)暴露出更新/升级/多语言支持的困境 — 把流量治理能力抽象到独立进程(Sidecar)中, 应用不感知
-  - 核心变换: SDK模式(应用内部→Java限定→每次应用升级→全流程测试) → Sidecar模式(独立进程→任何语言→基础设施独立→应用不修改) [理论: Service Mesh=把7层网络功能从单体应用拆分为独立服务, 用代理模式实现透明化]
-  - B4 Ch8 §2: 为什么需要Service Mesh — 微服务间通信逻辑(负载均衡/重试/超时/熔断)与业务逻辑耦合→多语言栈无法复用→Sidecar模式将通信逻辑下沉为基础设施层的独立代理
-  - 关键设计: Sidecar模式本质=把流量治理变成"OS级别"的服务 — 就像TCP/IP对应用透明, Service Mesh对微服务透明
+### 概念依赖链
 
-### 2. Envoy + Istio — C++高性能代理 + 控制面的组合
-  Envoy是数据面(实际处理每个TCP/HTTP包), Istio是控制面(定义规则→转换为Envoy配置)
-  - B1 Ch8 §4.2: Envoy — C++编写/7层代理/动态配置API/可观测性(Metrics+Logging+Tracing) / 支持Filter Chain(L4/L7过滤器链)
-  - B1 Ch8 §4.3: Istio架构 — Pilot(服务发现+流量配置→转Envoy配置), Mixer(策略(Telmetry→Prometheus) + 遥测 + 配额检查→已废弃用WasmPlugin替代), Citadel(安全, mTLS自动证书轮换) [案例: Istio最初使用Mixer集中做策略检查导致API延迟显著增加, v1.5重构为WasmPlugin嵌入Envoy消除网络跳]
-  - B4 Ch8 §2.3: Istio流量管理 — VirtualService(路由规则, v1:v2=90:10灰度), DestinationRule(服务子集定义/负载均衡策略/连接池配置), Gateway(边缘入口) (B4 Ch8 §2.4)
-  - 关键设计: 为什么需要控制面? — 100个Envoy同时改配置=灾难, 控制面统一生成配置并分发到所有Envoy, 运营改Istio配置→Pilot转Envoy配置→热更新到所有Sidecar
+```
+07 服务边界 + 08 韧性 → 本篇: Service Mesh
+  ├─ §1 SDK → Sidecar(治理下沉)
+  ├─ §2 Envoy/Istio(数据面/控制面)
+  ├─ §3 Metrics/Tracing/Logging(可观测性)
+  ├─ §4 灰度/流量切分(策略落地)
+  └─ §5 成本与适用边界
+先讲: 为什么下沉 → 代理/控制面 → 观测 → 灰度 → 成本
+后续依赖: 10-container-orchestration(容器/Pod/声明式编排)
+```
 
-### 3. 可观测性 — Metrics/Tracing/Logging, 三根支柱缺一根都"看不清"
-  你第一线上"用户说页面慢", 但没有数据的你真的只能猜 — 是订单服务? 还是库存服务? 还是MQLAG?
-  - B4 Ch3 §5: 监控(Metrics) — Prometheus(Pull模式+PromQL+AlertManager→Grafana面板), 指标: 黄金四指标(延迟/流量/错误/饱和度) (B4 Ch3 §5.4-5.5)
-  - 链路追踪(Tracing) — OpenTelemetry: Trace→Span→SpanContext, Jaeger/Zipkin存储+可视化; 采样率(全量太贵, 0.1%抽样→常见但可能丢异常, 强制100%错误+随机正常) (B4 Ch3 §5)
-  - Logging — ELK(Elasticsearch+Logstash+Kibana), 结构化日志(JSON, requestId串联所有Span), 日志收集(Filebeat/Fluentd→Kafka→ES) (B4 Ch3 §5)
-  - 关键设计: 分布式追踪的关键=全链路一个traceId — 入口生成traceId→每个服务继承+生成自己的spanId→最后Jaeger把整个调用树拼出来
+### 叙事顺序
 
-### 4. 灰度发布与流量切分 — Service Mesh的最佳实践场景
-  发布v2版本 → 先5%流量到v2 → 观察错误率(QPS/RT) → 如果正常→50%→最终100%, 如果异常→立刻15%→5%→0
-  - B4 Ch4 §2.3: 灰度/金丝雀 — 从最小影响开始, 持续监控, 发现异常→立即回滚(改流量权重回0%)
-  - Istio实现: VirtualService weight=v1(95):v2(5) → 调整weight→v2(100), 无需应用改代码, 完全基础设施层控制 (B4 Ch8 §2.4)
-  - B1 Ch8 §4.4: Envoy Sidecar注入 — K8s Mutating Admission Webhook, 创建Pod时自动注入envoy容器→拦截所有入站/出站流量
-  - 关键设计: 灰度发布=发布+监控+回滚三合一 — 如果没有监控(Metrics)的灰度发布就是闭眼开车, Service Mesh的灰度发布也依赖Prometheus/Grafana
+1. 问题引入——100 个服务分别配置重试、熔断和追踪，为什么治理策略会逐渐漂移？
+2. SDK 与 Sidecar——多语言治理的变化
+3. Envoy/Istio——数据面与控制面
+4. 可观测性——指标、追踪、日志如何关联
+5. 灰度发布——流量切分和回滚
+6. 成本与边界——什么时候不该上 Mesh
+7. 收束
 
-### 5. 收束 — 回到统一治理的承诺
-  - Service Mesh让"应用不关心流量治理" — 但代价是额外的Sidecar开销(CPU+内存+延迟) + 整个控制面运维复杂度
-  - 如果你的团队规模小(<20服务) + 语言统一(Java), Spring Cloud/Dubbo + Sentinel足够了 — Service Mesh在>50服务+多语言时才显价值
-  - 可观测性是Service Mesh的核心收益 — 无缝的Metrics+Tracing+Logging, 比限流/熔断更值得采用
+### 1. SDK 到 Sidecar — 把通信治理从应用代码移出来
+
+场景提示: Java 服务里有 Sentinel，Go 服务里有另一套限流，Python 服务又有自己的重试；怎样统一？ [写作时展开]
+
+关键设计: SDK 嵌入应用进程，Sidecar 则作为同 Pod/实例的独立代理拦截流量：
+
+```[pseudocode]
+SDK:
+  application → library governance → network
+  → 语言/版本/发布绑定
+
+Sidecar:
+  application → localhost proxy
+  → remote proxy → destination sidecar → application
+  → 代理处理路由/重试/指标/mTLS 等
+
+应用:
+  继续调用普通 HTTP/gRPC/TCP
+  → 不必理解所有治理策略
+```
+
+Why: 为什么 Sidecar 不等于“免费透明层”？——**每次流量多经过代理，增加 CPU、内存、连接、队列和延迟；应用原本的超时/重试与代理策略也可能叠加放大请求**。它降低多语言重复实现，换来数据面部署和故障边界。 [分布式架构: 治理逻辑从代码移到基础设施，不代表业务重试/幂等责任消失]
+
+比喻锚点: SDK 是每家工厂自己雇一个安全员，Sidecar 是每个工厂门口统一配一个安检站；标准统一了，但每个门口都要占空间和维护。 [写作时展开]
+
+### 2. Envoy + Istio — 数据面和控制面如何协作
+
+场景提示: 100 个代理都要更新路由、证书和灰度权重，为什么不能人工逐个改配置？ [写作时展开]
+
+关键设计: Envoy 处理数据面流量，Istio 控制面把服务发现、策略和证书配置分发到代理：
+
+```[pseudocode]
+控制面:
+  Service/VirtualService/DestinationRule 等声明
+  → 控制面生成代理配置
+  → xDS/动态配置分发
+
+数据面:
+  Envoy listener/cluster/route/filter
+  → 接收连接、路由、负载均衡、TLS/mTLS、指标
+
+Kubernetes:
+  Admission/Webhook 或平台机制注入 sidecar
+  → Pod 内应用与代理共同运行
+```
+
+Why: 为什么控制面不能直接替每个代理处理业务请求？——**控制面负责一致的配置/拓扑/证书管理，数据面负责低延迟转发**；把请求都绕到中心控制面会形成新的单点和延迟瓶颈。控制面配置传播也存在版本、收敛、冲突和回滚边界。旧版 Mixer 等组件已被淘汰/替换，架构必须按 Istio 目标版本核对。 [云原生: xDS/控制面收敛与 Envoy 数据面是不同生命周期]
+
+比喻锚点: 控制面像交通指挥中心，Envoy 是每个路口的信号灯；指挥中心下发规则，但车辆不会每次经过路口都先绕回指挥中心。 [写作时展开]
+
+### 3. Metrics、Tracing、Logging — 代理带来的可观测性不是自动完整
+
+场景提示: 用户说页面慢，怎样判断是订单服务、库存服务、代理重试还是数据库？ [写作时展开]
+
+关键设计: Service Mesh 可以统一采集网络层遥测，但仍需应用 trace 和业务字段：
+
+```[pseudocode]
+Metrics:
+  请求率/错误率/延迟分位/饱和度
+  → Prometheus/Grafana
+
+Tracing:
+  trace_id
+  → gateway span
+  → sidecar span
+  → application/db spans
+  → Jaeger/Tempo 等
+
+Logging:
+  结构化 access/error log
+  → request/trace id 关联
+  → 日志系统检索
+
+注意:
+  代理能看网络请求
+  业务失败原因/订单号/重试语义仍需应用埋点
+```
+
+Why: 为什么“装了 Mesh 就有完整链路追踪”是误解？——**代理看到的是网络边界，无法自动理解所有业务语义；采样、header 传播、异步消息、批处理和高基数标签仍需应用与平台配合**。全量追踪也会产生存储和 CPU 成本，错误路径应采用优先采样/保留策略。 [系统性能/可观测性: Metrics/Tracing/Logging 的维度与采样边界需单独设计]
+
+### 4. 灰度与流量切分 — 发布、观测、回滚三件事必须一起做
+
+场景提示: v2 先接 5% 流量，发现错误率上升，怎样快速切回 v1？ [写作时展开]
+
+关键设计: Mesh 的路由策略可以按权重、Header、用户、地域或版本切分，但上线动作必须由观测驱动：
+
+```[pseudocode]
+Deployment:
+  v1/v2 同时运行
+
+VirtualService/route:
+  v1=95%, v2=5%
+  → 观测错误率/P99/资源/业务指标
+
+正常:
+  逐步扩大 v2
+异常:
+  权重降回 0
+  → 停止/回滚 v2
+
+灰度安全:
+  兼容 API/schema
+  → 控制重试/超时
+  → 确认有状态迁移/回滚方案
+```
+
+Why: 为什么灰度权重本身不等于安全发布？——**流量比例不能替代代表性用户、数据分布、状态兼容和业务成功率**；代理重试还可能把 5% 的原始流量变成更高的实际请求量。灰度必须同时验证基础设施和业务指标，并保留即时回滚路径。 [分布式架构: 灰度是发布、监控和回滚闭环，不是单个路由字段]
+
+比喻锚点: 灰度像先让新桥承载 5% 车辆，同时检查结构和事故率；没有监控和紧急封路，5% 也可能造成事故。 [写作时展开]
+
+### 5. 成本与适用边界 — 什么时候不要上 Service Mesh
+
+场景提示: 20 个服务、单一 Java 技术栈和简单流量，是否值得部署一整套 Mesh？ [写作时展开]
+
+关键设计: Mesh 适合需要统一多语言治理、mTLS、流量策略和可观测的平台，但不是服务数量越多越应该上：
+
+```[pseudocode]
+收益:
+  多语言统一治理
+  mTLS/证书轮换
+  流量切分/重试/指标
+  → 应用改动较少
+
+成本:
+  每 Pod sidecar CPU/内存/连接/延迟
+  控制面/证书/xDS 运维
+  策略叠加/调试复杂
+  版本升级和故障排查
+
+决策:
+  先量化治理重复/安全需求/多语言需求
+  → benchmark sidecar 开销
+  → 小范围试点/故障演练
+  → 再扩面
+```
+
+Why: 为什么不能给“20 服务以下不用、50 服务以上必须用”这样的固定门槛？——**复杂度取决于语言数量、合规/mTLS、治理一致性、团队平台能力和流量规模，而不是服务数单变量**。统一治理若没有可观测和回滚，可能只是把应用内复杂度换成平台复杂度。 [系统性能: Sidecar 资源消耗应按真实流量和 P99 实测]
+
+### 6. 收束
+
+Service Mesh 闭环：
+
+```[pseudocode]
+应用请求
+  → sidecar data plane
+  → Envoy 路由/负载/重试/mTLS
+  → 目标 sidecar/服务
+  → Metrics/Trace/Log
+  → 控制面更新策略/证书/拓扑
+  → 灰度观测与回滚
+```
+
+**Aha Moment**: "Service Mesh 不是让网络消失，而是**把一部分网络治理从应用代码下沉到可统一配置的数据面代理**；获得多语言与平台一致性，同时承担每跳开销、策略叠加和控制面运维。"
+**回答读者三问**: ①Sidecar 为什么有价值=统一多语言治理；②控制面/数据面差在哪=前者分发策略，后者处理请求；③什么时候不上 Mesh=治理收益小而平台复杂度/资源成本更高。
 
 ---
 
 ### 核心悬念
-**"Service Mesh解决了应用层的治理, 但你的服务还跑在物理机上——怎么做到'今天10个服务扩容到明天100个'而不被人肉运维拉垮?"**
 
-→ 引出 容器与编排: Docker → Kubernetes(Pod/Service/Deployment) — 把微服务部署从人肉运维变为声明式基础设施 (10-container-orchestration)
+**"Service Mesh 已能统一服务流量治理，但服务仍需要被调度、扩缩、滚动升级和自愈；容器编排如何把这些操作变成声明式控制循环？"**
+
+→ 引出 10-container-orchestration — Docker、Kubernetes Pod、Service、Deployment 与控制器。

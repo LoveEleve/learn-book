@@ -1,56 +1,171 @@
-# 五种IO模型 + select/poll 内核实现对比
+# I/O 模型与 select/poll — 数据没到时，线程到底在做什么
 
-> Cluster C: 6 KPs | 依赖: 05-收包, 06-发包 | 读者基线: 内核网络路径 + socket
+> Cluster C: 6 KPs | 依赖: 05-kernel-recv-path、06-kernel-send-path | 读者基线: 内核网络路径、socket、等待队列
+> 读者处境: 05/06 篇已经讲完数据如何进出 socket；本篇转向用户态并发：当数据还没准备好时，线程是睡眠、轮询、等多个 fd，还是收到通知？
+> 打开新视角: “五种 I/O 模型”真正的区别不是 API 名称，而是**数据未就绪时，线程把等待成本交给谁**
 
 ---
 
-### 1. 阻塞IO — 最简单的模型, 最低的效率
-  - 调用recv: 数据未就绪→进程进入TASK_INTERRUPTIBLE睡眠→加入sk_sleep等待队列→收到数据内核唤醒 (net/core/sock.c → sock_def_readable → wake_up)
-  - 等待队列: wait_queue_head_t sk_sleep, 放入socket→sk_sleep, 收到数据时回调唤醒 (include/net/sock.h → sk_sleep)
-  - 问题: 一个线程只能处理一个连接 — recv阻塞时无法处理其他连接的到达数据 (net/ipv4/tcp.c → tcp_recvmsg 阻塞路径)
-  - 适用: 短连接/单连接场景, 模型简单但无法并发
+### 概念依赖链
 
-### 2. 非阻塞IO — 轮询的代价
-  - 设置O_NONBLOCK: fcntl(sockfd, F_SETFL, O_NONBLOCK)→recv无数据立即返回EAGAIN而不是阻塞 (fs/fcntl.c → setfl)
-  - 内核路径: tcp_recvmsg检查sk_receive_queue为空→返回EAGAIN而非sleep (net/ipv4/tcp.c → tcp_recvmsg nonblock路径)
-  - 轮询(select/poll): 用户态循环调用select检查哪些fd可读→逐个处理 (fs/select.c → do_select)
-  - 问题: N个连接→每轮遍历N个fd→O(N)复杂度→CPU大量浪费在无数据fd上
+```
+05 收包/06 发包(socket readiness) → 本篇: I/O 模型与 select/poll
+  ├─ §1 阻塞 I/O(线程睡眠等待 socket)
+  ├─ §2 非阻塞 I/O(EAGAIN + 用户轮询)
+  ├─ §3 select/poll(一次等待多个 fd)
+  ├─ §4 信号驱动/异步 I/O(通知与完成事件)
+  └─ §5 select/poll 内核实现(每轮注册/遍历/睡眠)
+先讲: 睡眠 → 轮询 → 多 fd 等待 → 信号/异步 → 内核实现瓶颈
+后续依赖: 08-epoll-reactor(就绪事件持久化与 Reactor)
+```
 
-### 3. IO多路复用 — 一次等待多个fd
-  - 核心思想: 一次系统调用等N个fd, 返回可操作的fd子集 — 内核负责监听, 用户态负责处理 (fs/select.c / fs/eventpoll.c)
-  - select: 传入读/写/异常fd_set→内核检查→返回可读/可写/异常集合 (fs/select.c → core_sys_select)
-  - select局限: fd_set最大1024(受FD_SETSIZE限制), 每次调用需拷贝整个fd_set(内核→用户), 内核遍历fd_set O(N) (include/linux/posix_types.h → __FD_SETSIZE)
-  - poll: 传入pollfd数组(无fd数量限制)→内核遍历→返回revents (fs/select.c → do_sys_poll)
-  - poll vs select: poll无1024限制(仅受RLIMIT_NOFILE), 但仍需O(N)遍历+用户/内核拷贝
+### 叙事顺序
 
-### 4. 信号驱动IO + 异步IO — 理论vs实践
-  - 信号驱动IO: fcntl/sigaction设置SIGIO信号→数据就绪时内核发信号通知→信号处理函数中recv — 但信号上下文不可靠 (fs/fcntl.c → fcntl_setlease)
-  - POSIX AIO(aio_read): 提交读请求→立即返回→内核完成后通知, 但实现复杂实际少用 (fs/aio.c → aio_read)
-  - 问题: 信号驱动IO在TCP中不稳定(SIGIO在高速包下可能丢失), POSIX AIO内核实现是glibc线程模拟
+1. 问题引入——一个服务同时管理 1 万个 socket，数据没到时，线程应该阻塞、不断问，还是一次等一批？（**Aha: I/O 模型的核心是等待策略，不是“同步/异步”四个字本身**）
+2. 阻塞 I/O——线程睡在 socket 等待队列
+3. 非阻塞 I/O——立即 EAGAIN，用户态自己轮询
+4. select/poll——一次系统调用等待多个 fd
+5. 信号驱动与异步 I/O——通知事件 vs 等待完成
+6. select/poll 内核实现——为什么每轮仍要 O(N)
+7. 收束——epoll 悬念
 
-### 5. select内核实现 — 深度走读
-  - 入口: sys_select→core_sys_select→do_select 大循环 (fs/select.c → core_sys_select)
-  - 核心逻辑: 遍历3个fd_set的每个bit, 对每个fd调用f_op->poll(ref: tcp_poll)检查状态 (fs/select.c → do_select内层循环)
-  - tcp_poll: 根据sk_receive_queue(可读?), sk_write_queue空间(可写?), sk_err(异常?) 设置对应mask返回 (net/ipv4/tcp.c → tcp_poll)
-  - 睡眠等待: 所有fd无就绪→poll_schedule_timeout等待超时或被唤醒 (fs/select.c → poll_schedule_timeout)
-  - 唤醒机制: 数据到达→sock_def_readable→pollwake→唤醒select等待的进程 (net/core/sock.c)
-  - 返回: 统计就绪fd数, 拷贝fd_set回用户态, 返回就绪数量
+### 1. 阻塞 I/O — 把等待交给内核调度器
 
-### 6. poll内核实现 — 对select的修复
-  - 入口: sys_poll→do_sys_poll→do_poll (fs/select.c → do_sys_poll)
-  - 数据结构: 用户传入pollfd数组(每个struct pollfd{fd, events, revents}) — 无fd数量硬限制 (include/uapi/asm-generic/poll.h → pollfd)
-  - 内核遍历: do_poll遍历poll_list, 每个pollfd调f_op->poll(tcp_poll)检查 (fs/select.c → do_poll)
-  - 优于select: 不限1024, 返回revents(无需用户态遍历fd_set重建就绪集合), 但O(N)遍历本质未变
-  - 共同局限: 都需要用户态→内核拷贝fd列表, 都需O(N)遍历 — 10000个fd时select/poll性能显著下降
+场景提示: 线程调用 `recv()` 时数据还没到，为什么 CPU 不会一直空转？ [写作时展开]
 
-### 7. 收束
-  - 五种IO模型本质是"数据未就绪时线程做什么": 阻塞(睡)、非阻塞(轮询)、多路复用(等)、信号(通知)、异步(回调)
-  - select和poll都陷入O(N)遍历陷阱 — N增大时线性退化, poll仅解决1024上限未解决遍历成本
-  - 根本问题: select/poll每次都重新注册等待 → 有状态的监听才是解(epoll)
+关键设计: 阻塞 socket 没有可读数据时，当前线程进入等待状态，由 socket 数据到达路径唤醒：
+
+```[pseudocode]
+recv(fd)
+  → tcp_recvmsg
+  → sk_receive_queue 有数据?
+      有: copy_to_user, 返回
+      无:
+        加入 sk_sleep 等待队列
+        schedule() 让出 CPU
+        收包路径 sk_data_ready 唤醒线程
+        被唤醒后重新检查条件
+```
+
+Why: 为什么唤醒后还要重新检查，而不是直接假设一定有数据？——**等待队列唤醒只代表条件“可能发生变化”，还要防止竞争、信号、超时和其他线程先取走数据**。阻塞 I/O 简单可靠，但一个线程长时间等一个 fd 时，不能同时处理其他连接；实际服务通常用线程池或多路复用解决。 [内核: 05 篇的 `sk_data_ready → wake_up` 是阻塞 I/O 结束等待的同一条链]
+
+比喻锚点: 阻塞 `recv` 像在窗口前排队并坐下等叫号，没轮到你时不会一直站起来问“好了没”。 [写作时展开]
+
+### 2. 非阻塞 I/O — 把等待成本退回用户态
+
+场景提示: 把 socket 设为 `O_NONBLOCK` 后，`recv()` 没数据为什么不睡眠，而是马上返回 `EAGAIN`？ [写作时展开]
+
+关键设计: 非阻塞模式改变的是“无数据时的等待动作”，不是 TCP 接收队列本身：
+
+```[pseudocode]
+fcntl(fd, F_SETFL, O_NONBLOCK)
+
+recv(fd)
+  → tcp_recvmsg
+  → sk_receive_queue 有数据?
+      有: 返回数据
+      无: 返回 -EAGAIN/EWOULDBLOCK
+
+用户循环:
+  while (true):
+    recv(fd)
+    没数据 → 继续轮询/处理其他任务
+```
+
+Why: 为什么非阻塞 I/O 常被说成“浪费 CPU”？——**如果用户程序无论有没有事件都不断扫描所有 fd，就会把 CPU 花在重复询问上**；它的优点是控制流简单、不会被单个 socket 卡住，缺点是需要自己设计退避、定时器或进一步使用多路复用。 [man 2 fcntl: `O_NONBLOCK` 改变 I/O 无数据时的返回语义，不保证操作一定完成]
+
+比喻锚点: 非阻塞像不坐在窗口前等，而是每隔一会儿回来问一次；问得太勤快就把时间全耗在问路上。 [写作时展开]
+
+### 3. select/poll — 一次等待多个 fd
+
+场景提示: 线程要管理 1 万个连接，能不能让内核一次告诉它“哪些 fd 现在可读/可写”？ [写作时展开]
+
+关键设计: select/poll 把多个 fd 的等待注册交给一次系统调用，但每次调用仍需让内核检查这批 fd：
+
+```[pseudocode]
+select:
+  用户传入 readfds/writefds/exceptfds
+  → 内核检查每个 fd 的 f_op->poll
+  → 没有就绪? 睡眠直到事件/超时/信号
+  → 有就绪? 修改 fd_set 并拷回用户态
+
+poll:
+  用户传入 pollfd[{fd, events, revents}]
+  → 内核检查每个 fd
+  → 返回 revents 标出当前就绪事件
+```
+
+Why: 为什么 poll 没有 select 的 `FD_SETSIZE=1024` 硬限制，却仍会在大规模连接上变慢？——**它修复了输入数据结构限制，但没有消除每轮遍历**：每次调用仍要处理 N 个 fd，用户态/内核态也要交换这份列表。`select` 的 1024 是典型 libc/kernel 接口限制，poll 的数量仍受内存、进程 fd 上限和系统调用成本约束。 [内核: `do_select`/`do_poll` 都通过文件的 `f_op->poll` 检查 readiness]
+
+比喻锚点: select/poll 像每轮把一整张候车名单交给调度员，让他逐个打电话确认；名单变大，调度员每轮都要付线性成本。 [写作时展开]
+
+### 4. 信号驱动 I/O 与异步 I/O — 通知“可做”还是通知“已完成”
+
+场景提示: 如果线程不想反复调用 select/poll，能不能让内核主动通知它？通知到达后，数据是不是已经拷贝到用户缓冲区？ [写作时展开]
+
+关键设计: 信号驱动 I/O 通常通知“fd 可进行 I/O”，POSIX AIO/真正异步接口的目标则是通知“操作完成”，两者不能混成一类：
+
+```[pseudocode]
+信号驱动 I/O:
+  设置 O_ASYNC / F_SETOWN
+  → fd 状态变化时发送 SIGIO
+  → 信号处理函数或主循环再调用 recv
+  → 收到的是“可以尝试”, 不是用户 buffer 已填满
+
+异步 I/O:
+  提交读请求
+  → 调用立即返回
+  → 内核/运行时完成数据搬运
+  → 完成事件/回调/信号通知
+```
+
+Why: 为什么信号驱动 I/O 在高并发服务器里不如 epoll 常见？——**信号是进程级异步通知，合并、重入、信号队列和处理上下文都会增加复杂性**；而异步 I/O 还要区分内核真正支持的完成语义与用户库线程模拟。选择模型时要问清楚：通知的是“可读”，还是“数据已经完成拷贝”。 [man 7 signal: 信号处理具有异步上下文约束；[man 7 aio: POSIX AIO 的接口语义与实现方式需区分]
+
+比喻锚点: 信号驱动像快递员按门铃说“可以去取了”，异步完成事件像快递员把包裹放到你桌上后再通知“已经放好了”。 [写作时展开]
+
+### 5. select/poll 内核实现 — 为什么仍然是 O(N)
+
+场景提示: select/poll 看起来已经“让内核帮忙等待”，为什么 1 万个 fd 仍然可能拖慢每次调用？ [写作时展开]
+
+关键设计: 每轮调用都要建立等待上下文、遍历 fd、调用各文件对象的 `poll` 方法，并在无事件时睡眠：
+
+```[pseudocode]
+select:
+  sys_select → core_sys_select → do_select
+  → 遍历 read/write/except fd_set 的有效 fd
+  → fd->f_op->poll(tcp_poll)
+  → 有事件? 记录结果
+  → 全无事件? poll_schedule_timeout 睡眠
+  → 返回并拷回 fd_set
+
+poll:
+  sys_poll → do_sys_poll → do_poll
+  → 遍历 pollfd 数组
+  → 每项调用 f_op->poll
+  → 有事件? 填 revents
+  → 全无事件? 睡眠/超时后重查
+```
+
+Why: 为什么睡眠本身没有消除 O(N)？——**唤醒时和返回前仍要知道哪一个 fd 发生了什么，下一轮也要重新提交整批监听集合**：select/poll 的等待是“本次调用期间的临时注册”，不是长期保存的就绪事件集合。epoll 的关键改进正是把监听关系持久化，并在事件到达时直接把就绪项放入 ready list。 [内核: 05 篇的 `sock_def_readable` 会触发等待者；select/poll 通过各 fd 的 `poll` 方法把它接入当前等待上下文]
+
+比喻锚点: select/poll 像每趟列车都重新登记整张乘客名单；epoll 则像长期保存名单，谁到站谁直接进入“已到达”列表。 [写作时展开]
+
+### 6. 收束
+
+五种模型可以压缩成一个问题：“数据没准备好时，线程把等待交给谁？”
+- 阻塞：交给内核调度器，线程睡眠
+- 非阻塞：交给用户循环，自己反复询问
+- select/poll：一次等待多个 fd，但每轮检查 N 项
+- 信号驱动：内核发“可尝试”通知，应用再读
+- 异步：提交后等待“完成”通知，语义依赖实现
+
+**Aha Moment**: "select/poll 的瓶颈不是它们不会睡眠，而是**每次调用都要重新提交并遍历整批 fd**；epoll 的突破点，是把监听关系变成长期状态，把就绪 fd 直接积累到 ready list。"
+**回答读者三问**: ①阻塞和非阻塞差在哪=无数据时睡眠还是返回 EAGAIN；②select/poll 为什么变慢=每轮 O(N) 检查；③信号驱动和异步差在哪=可操作通知与完成通知不是同一语义。
 
 ---
 
 ### 核心悬念
-**"epoll是怎么做到O(1)返回就绪事件, 而不是像select/poll那样O(N)遍历的?"**
 
-→ 引出 epoll内核实现与Reactor模型(08-epoll-reactor)
+**"epoll 如何把监听关系持久化、把就绪事件直接放进 ready list，从而避免 select/poll 每次都扫描全部 fd？Reactor 又如何把这个机制组织成高并发事件循环？"**
+
+→ 引出 08-epoll-reactor — epoll 内核实现与 Reactor 模型——下一篇进入多路复用的真正突破。

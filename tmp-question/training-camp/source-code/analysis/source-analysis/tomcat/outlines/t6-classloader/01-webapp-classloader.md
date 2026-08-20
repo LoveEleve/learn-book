@@ -26,12 +26,12 @@
 
 ### 3. 串行 vs 并行加载 — WebappClassLoader vs ParallelWebappClassLoader
 
-场景: 应用启动 — Tomcat 需要在 `WEB-INF/lib` 里扫描 50 个 JAR — 每个 JAR 加载 100 个类 → 5000 个类需要加载。Java 7+ 支持并行类加载 — 但需要 ClassLoader 声明自己支持并行。`ParallelWebappClassLoader` 在 static 块调用 `registerAsParallelCapable()`(L31) — Java 会对每个不同类名的加载使用不同的锁 → 50 个类可以同时被多个线程加载。非并行变体 `WebappClassLoader` — `getClassLoadingLock()` 返回 `this`(L38-40) → 所有类共享同一把锁 → 串行加载。
+场景: 应用启动 — Tomcat 需要在 `WEB-INF/lib` 里扫描 50 个 JAR — 每个 JAR 加载 100 个类 → 5000 个类需要加载。Java 7+ 支持并行类加载 — 但需要 ClassLoader 声明自己支持并行。`ParallelWebappClassLoader` 在 static 块调用 `registerAsParallelCapable()`(L30) — Java 会对每个不同类名的加载使用不同的锁 → 50 个类可以同时被多个线程加载。非并行变体 `WebappClassLoader` — `getClassLoadingLock()` 返回 `this`(L54-57) → 所有类共享同一把锁 → 串行加载。
 
 源码路径:
-- `ParallelWebappClassLoader.java:31-35` — **static 块**: `registerAsParallelCapable()` 注册 → 每类独立锁
-- `WebappClassLoader.java:38-40` — **getClassLoadingLock()**: 返回 `this` — 所有类串行
+- `ParallelWebappClassLoader.java:28-35` — **static 块**: `registerAsParallelCapable()` 注册 → 每类独立锁
+- `WebappClassLoader.java:54-57` — **getClassLoadingLock()**: 返回 `this` — 所有类串行
 
-关键设计: **Spring Boot 用哪个？** `TomcatEmbeddedWebappClassLoader`(Spring Boot 自定义) — 继承自 `WebappClassLoaderBase` — 默认并行加载(L57-61 的 `WebappClassLoader` 是 Tomcat standalone 的默认 — 嵌入式走了自定义路径)。
+关键设计: **Spring Boot 用哪个？** `TomcatEmbeddedWebappClassLoader`(Spring Boot 自定义) — 继承自 `WebappClassLoaderBase` — 默认并行加载(L54-58 的 `WebappClassLoader` 是 Tomcat standalone 的默认 — 嵌入式走了自定义路径)。
 
 → 引出 T-7 Spring Boot 集成 — ClassLoader 是 Web 应用隔离的核心 — Spring Boot 嵌入式 Tomcat 如何配置 `TomcatEmbeddedWebappClassLoader`？`TomcatServletWebServerFactory` 如何把 Context/ClassLoader/Connector/Engine 全部组装起来？

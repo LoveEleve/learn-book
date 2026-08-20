@@ -1,38 +1,140 @@
 # MESI 缓存一致性 + 伪共享 + Store Buffer + 内存模型
 
 > Cluster B: 5 KPs | 依赖: 01-物理内存管理 | 读者基线: 理解多核 CPU 共享主存的基础概念
+> 读者处境: 已读完 01-04 篇（单核视角的内存管理）；本篇切换到多核——"每个核的缓存都看到同一份内存吗"
+> 打开新视角: 多核下"同一变量"为何不同值、伪共享的性能黑洞、x86 为何只需要少数屏障、写操作为何可能"乱序"
 
 ---
 
+### 概念依赖链
+
+```
+01-物理内存(共享主存) → 本篇: 多核缓存一致性
+  ├─ §1 MESI(缓存行状态协议 — 依赖 01 主存模型)
+  │    ├─ §2 Store Buffer(写加速但破坏顺序 — 依赖 §1 的 invalidate-ack 等待)
+  │    │    └─ §4 缓存架构(硬件组织 — 依赖 §1 状态机, 正文在 §3 后)
+  │    └─ §3 伪共享(§1 协议在真实场景的性能灾难 — 依赖 §1, 正文在 §2 后)
+先讲: 协议(状态) → 缓冲(顺序) → 灾难(伪共享) → 硬件(架构) → [🟢 inline: 异步存储模型]
+后续依赖: 06-原子操作(屏障修复 §2 的顺序问题)
+```
+
+### 叙事顺序
+
+1. 问题引入——两个核同时 `x++`，x 从 1 变 2 还是 1？（**Aha: 每个核看到的是自己缓存的副本，'同一变量'是多核的错觉**）
+   - 过渡: 副本之间怎么保持"看起来一致"？——缓存行状态协议
+2. MESI 四状态——Modified/Exclusive/Shared/Invalid + 状态转换矩阵
+   - 过渡: M→S 的写回等待让写变慢——怎么不等？
+3. Store Buffer——写不等待 invalidate-ack，先进缓冲；TSO 模型
+   - 过渡: 两个核写"不同变量"也在同一缓存行打架——伪共享
+4. 伪共享——性能暴跌 10-100x；检测 perf c2c；修复对齐
+   - 过渡: 这些机制跑在什么硬件结构上？——缓存层次
+5. 多级缓存架构——L1/L2/L3 组织、VIPT/PIPT、Inclusive（末尾 🟢 inline: 异步存储模型）
+   - 过渡: 顺序问题已经出现——x86 怎么修复？06 篇揭晓
+6. 收束——协议/缓冲/伪共享/架构 = 多核一致性的四块拼图
+
 ### 1. MESI 四种状态 — 每个缓存行的身份
-  - Modified(已修改, 独占): 本核修改过, 主存已过时, 其他核 Invalid → 只有唯一缓存副本 (arch/x86/include/asm/atomic.h:22)
-  - Exclusive(独占, 干净): 本核独占, 与主存一致 → 可直接 Modify 无需通知总线 (arch/x86/include/asm/processor.h → X86_FEATURE constant area)
-  - Shared(共享): 多核有副本, 与主存一致 → 需先 Invalidate 其他核才能 Modify (Documentation/memory-barriers.txt → CACHE COHERENCY)
-  - Invalid(无效): 被其他核 Invalidate → 访问需重新从主存或其他核读取
-  - 状态转换: Local Read(M→M/S→S/I→E via Read Miss) → Local Write(S→I→M or E→M) → Remote Read(M→S, 写回主存) → Remote Write(任何→I) — snooping 总线嗅探每个事务 (Documentation/memory-barriers.txt → CACHE COHERENCY)
+
+场景提示: 双核程序 `x++` 结果不确定——各核缓存副本的经典对账问题。 [写作时展开]
+
+关键设计: 每个缓存行（64 字节）有四种状态，表示"这个副本在全系统中的身份"：
+
+| 状态 | 含义 | 主存一致性 |
+|------|------|-----------|
+| **Modified** | 本核改过，独占 | 主存已过时（本核是唯一权威） |
+| **Exclusive** | 本核独占，干净 | 与主存一致（可升级 Modified 无需通知） |
+| **Shared** | 多核有副本 | 与主存一致 |
+| **Invalid** | 被其他核作废 | 访问需重新读 |
+
+状态转换 (snooping 总线嗅探每个事务):
+- Local Read: M→M / S→S / I→E（Read Miss 读回）
+- Local Write: S→M（**先向其他核发 Invalidate 并等 ack，再升级**）/ E→M（独占可直接升级，无需通知）
+- Remote Read: M→S（写回主存后共享）
+- Remote Write: 任何状态→I（被作废）
+
+**关键因果链**: S→M 的 invalidate-ack 等待正是 §2 Store Buffer 诞生的动机——缓存行从 Shared 升级 Modified 必须等所有其他核确认作废，这个等待让写变慢。
+
+比喻锚点: MESI=图书借阅系统——M=你独阅并批注（主存记录已过时）、E=你独占但干净、S=多人传阅同本、I=书已下架（要重新借）。 [写作时展开]
+
+Why: 为什么需要状态协议而非"每次访问都查主存"？——缓存的意义就是绕过慢速主存；但多核共享主存时，各核缓存可能互相矛盾。MESI 让"每个核的缓存操作"成为总线可见的事务（snooping），保证任意时刻全系统的缓存状态一致——读到的要么是最新副本（M/S），要么主动重读（I）。
 
 ### 2. Store Buffer — 写操作不必等待
-  - Store Buffer 原理: CPU 写不等待 invalidate-ack → 先写 store buffer → 继续执行后续指令 → Store Forwarding(本核读先查 store buffer, 若命中直接返回) → StoreLoad 屏障清空 (Documentation/memory-barriers.txt:356)
-  - TSO(Total Store Order): x86 的内存模型 → 写被 store buffer 缓冲 → 读可越过写 → 其他核看到"乱序写" → 需要 `mfence` 强制全局可见 (arch/x86/include/asm/barrier.h → __smp_mb/mb)
-  - Store Buffer 容量: ~几十项 → 满了必须等待 → 性能悬崖
+
+场景提示: M→S 写回需要等总线确认——每次写都等，写密集程序的性能怎么办？ [写作时展开]
+
+关键设计: **Store Buffer**——CPU 写不等待 invalidate-ack，先写入 store buffer 就继续执行：
+
+```[pseudocode]
+写 X: 数据进 store buffer → 继续执行（不等 invalidate 确认）
+读 X: 先查 store buffer（Store Forwarding，命中直接返回）→ 再查缓存
+屏障: mfence 等待 store buffer 排空（所有 pending store 全局可见）→ 后续 load 才能执行
+```
+
+TSO (Total Store Order): x86 的内存模型——写被 store buffer 缓冲，**本核读可越过写**（store forwarding），但其他核看到的写顺序可能"乱序"。x86 只需要 `mfence`（StoreLoad 屏障）等待缓冲排空，因为 store-store 天然有序。
+
+容量: store buffer ~几十项——满了必须等待，这是写密集场景的性能悬崖。
+
+Why: 为什么不用"写透"（write-through，每次写直达主存）？——写透模式下写主存有固定延迟；而**写回（write-back）+ MESI** 模式下，缓存行从 Shared/Modified 被其他核改写需 invalidate-ack——**等待这个总线确认才是写慢的根源**。store buffer 让"写"变成异步（先记账后结算），付出代价是**内存序**——后续屏障（06 篇）正是为此而生。 [x86: TSO 模型仅需 mfence——store-store 天然有序，只有 store-load 需要清缓冲]
+
+比喻锚点: Store Buffer=餐厅先记账后结账——顾客（写操作）不用等厨房（其他核）确认，先记在本上继续接待，账本满（缓冲满）才暂停。 [写作时展开]
 
 ### 3. 伪共享 — 最隐蔽的性能杀手
-  - 发生条件: 两个 CPU 写不同变量但位于同一缓存行(64 字节=`L1_CACHE_BYTES`) → 一个写导致另一 CPU 的缓存行 Invalid → MESI 往返 → 无法并行 → 性能暴跌 10-100x
-  - 检测: `perf c2c`(cache-to-cache) → HITM 计数(Hit In Modified → 本核读时另一核是 Modified → 必然发生过伪共享) → 热点缓存行地址 (tools/perf/builtin-c2c.c → perf_c2c__hists_browser)
-  - 修复: `____cacheline_aligned`(内核, `include/linux/cache.h → ____cacheline_aligned`) → padding 填充到 64 字节边界 → Java `@Contended` → `__attribute__((aligned(64)))` → 测试 `perf stat -e cache-misses`
 
-### 4. 缓存类型与多级缓存架构
-  - L1 缓存: 通常每核 32KB/32KB(I-cache/D-cache) → VIPT 映射(虚拟索引物理标记, Way 数限制) (arch/x86/kernel/cpu/common.c:1520)
-  - L2 缓存: 每核 256KB-512KB → PIPT → L3(LLC) 共享 8-32MB → 通常 Inclusive(包含 L1/L2 内容) 或 NINE(非包含非排他) (arch/x86/kernel/cpu/cacheinfo.c → init_intel_cacheinfo)
-  - 缓存行假共享: 加上 `__cacheline_aligned` 后测试 → `perf stat` 确认 cache-misses 下降
+场景提示: 多线程计数器程序扩展到 8 核反而变慢——每核各写各的变量，为何互相拖累？ [写作时展开]
+
+发生条件: 两个 CPU 写**不同变量**但位于**同一缓存行**（64 字节 = L1_CACHE_BYTES）。**关键点：缓存一致性的粒度是缓存行（64B），不是变量**——两个相邻变量天然共用一行，MESI 按行作废：
+
+```[pseudocode]
+核0 写 arr[0] → 缓存行变 M → 核1 的同一行被 Invalidate
+核1 写 arr[1] → 缓存行变 M → 核0 的同一行被 Invalidate
+→ MESI 乒乓往返 → 两核"看起来并行"实则串行等待 → 性能暴跌 10-100x
+```
+
+检测: `perf c2c`（cache-to-cache 分析）→ **HITM 计数**（本核读时另一核是 Modified，必然发生过伪共享）→ 定位热点缓存行地址。
+
+修复: 填充到 64 字节边界——内核 `____cacheline_aligned`（include/linux/cache.h）/ Java `@Contended` / C `__attribute__((aligned(64)))` → `perf stat -e cache-misses` 验证下降。
+
+Why: 为什么这是"最隐蔽"的性能杀手？——代码逻辑完全正确（每核写不同变量），性能却崩溃；profile 时 CPU 看起来都在忙（其实在等缓存行）。它不报错、不崩溃、不产生 lock 竞争——只有 perf c2c 能照出真凶。
+
+比喻锚点: 伪共享=两邻桌各写各的作业，却共用一张桌子（缓存行）——一人动笔，另一人就得等桌子腾空；桌子够大（对齐填充）才能并行写。 [写作时展开] [内核: ____cacheline_aligned 宏将字段填充到 64B 边界]
+
+### 4. 多级缓存架构 — L1/L2/L3 的硬件组织
+
+场景提示: 查看 `/sys/devices/system/cpu/cpu*/cache/`——现代 CPU 缓存到底怎么组织的？ [写作时展开]
+
+关键设计:
+
+| 缓存 | 容量 | 组织 | 特点 |
+|------|------|------|------|
+| L1 | 每核 32KB/32KB (I/D) | VIPT（虚拟索引物理标记） | Way 数限制，命中最快 |
+| L2 | 每核 256KB-512KB | PIPT（物理索引物理标记） | 无别名问题 |
+| L3 (LLC) | 共享 8-32MB | 通常 Inclusive | 包含 L1/L2 内容（一致性检查点） |
+
+- VIPT 的 Way 数限制：虚拟索引必须覆盖缓存大小，Way 少则容量受限 [x86: L1 VIPT 的 Way 数限制是 L1 容量难以做大（>32KB）的硬件原因]
+- Inclusive L3：缓存行被逐出 L3 时必须同步逐出 L1/L2（保证包含性）——一致性实现简单但容量利用率低
+- NINE（Non-Inclusive Non-Exclusive）：折中方案
+
+Why: 为什么 L3 要共享且 Inclusive？——多核一致性（§1 MESI）需要"全系统缓存状态"的协调点；共享 L3 让 snooping 检查只在 L3 做（而非总线广播到所有 L1），Inclusive 保证"L1 里有的 L3 一定有"——检查 L3 即可知道全系统状态。
+
+比喻锚点: L3=小区公告栏——每户（核）自己有黑板（L1），但"谁家改了什么"的确认统一在公告栏（L3）对账；公告栏保留所有户的记录（Inclusive），查公告栏即知全小区状态。 [写作时展开]
+
+🟢 inline: 异步存储模型 (B6 Ch13§4-5)——Store Buffer/Write-Combining Buffer 的共同本质是"写操作可缓冲，CPU 不等主存确认"→ 顺序被打破 → 内存模型弱化 → 屏障随之而生。这是 06 篇三种屏障（StoreLoad/StoreStore/LoadLoad）诞生的根源：每种屏障修复一种被打破的顺序。
 
 ### 5. 收束
-  - MESI 是多核数据一致性的基础协议，Store Buffer 是延迟写入的性能优化但引入了内存序问题
-  - 伪共享是最常见的高性能退化根因 — 一个 `__cacheline_aligned` 能解决问题
+
+回到双核 `x++` 场景：
+- MESI = 缓存行状态协议（一致性基础）
+- Store Buffer = 写加速但破坏顺序（TSO 模型）
+- 伪共享 = 协议在真实场景的性能灾难（对齐修复）
+- 多级缓存 = 硬件组织（L3 作一致性协调点）
+- 🟢 inline = "缓冲写"的泛化（屏障诞生的根源）
+
+**Aha Moment**: "多核下根本没有'同一变量'——每个核有自己的缓存副本，MESI 只是让副本之间'看起来一致'；而为了性能，写操作还被缓冲（Store Buffer），让'看起来一致'变成'最终一致'。伪共享是这套协议最讽刺的产物：各写各的变量，却因缓存行共享而互相踩踏。"
+**回答读者三问**: ①`x++` 结果不定=缓存副本+缓冲；②多线程越扩越慢=伪共享（perf c2c 查 HITM）；③x86 屏障少=TSO 模型天然有序。
 
 ---
 
 ### 核心悬念
+
 **"Store Buffer 导致写入对其他核不立即可见 — 那 x86 的 LOCK 前缀和内存屏障到底做了什么？CAS 自旋锁怎么不安全了？"**
 
-→ 引出 06-原子操作(LOCK 前缀/CAS) + 内存屏障(mfence/lfence/sfence)
+→ 引出 06-原子操作(LOCK 前缀/CAS) + 内存屏障(mfence/lfence/sfence)——一致性协议与缓冲已经讲完，接下来是在其上构建"原子性"。

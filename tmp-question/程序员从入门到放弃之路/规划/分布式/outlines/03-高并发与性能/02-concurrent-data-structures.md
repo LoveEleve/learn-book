@@ -1,54 +1,185 @@
-# 100个线程同时put一个HashMap — JDK怎么让你既读到正确数据又不阻塞?
+# 并发数据结构 — HashMap、ConcurrentHashMap、COW 与 Disruptor 如何各自取舍
 
-> Cluster A: 8 KPs | 依赖: 01-concurrency-foundation | 读者基线: 了解Java HashMap基本使用, 知道基本线程安全问题
+> Cluster A: 8 KPs | 依赖: 01-concurrency-foundation | 读者基线: HashMap、线程池、CAS、锁基础
+> 读者处境: 01 篇说明线程、线程池、连接池和锁在哪里排队；本篇回答“共享数据结构怎样在正确性和吞吐之间做取舍”
+> 打开新视角: 并发容器的本质不是“有没有锁”，而是**可见性、竞争位置、复制成本、队列边界和缓存一致性如何组合**
 
 ---
 
-### 1. 为什么HashMap多线程put会死循环直到CPU 100%?
-  线上突然CPU飚到100%, 线程dump显示所有线程卡在HashMap.transfer() — 为什么?
-  - JDK7 HashMap死循环根因: resize→transfer→头插法逆序→并发时链表成环→get()时遍历成死循环 (B3 Ch4 §4.3)
-  - JDK8修复: 尾插法(保留原顺序)+高位低位双链表(e.hash & oldCap)→避免成环但仍会数据覆盖(put时丢失) (B3 Ch4 §4.3, B4 Ch5 §5.4)
-  - 碰撞处理: 链表(<=8)→红黑树(>=8且数组>=64) — 为什么要变树? 哈希冲突严重时链表O(n)退化为O(log n) (B3 Ch4 §4.3)
-  - 关键设计: 为什么treeify阈值是8? — 泊松分布: 0.75负载因子下, 链表长度=8概率<千万分之一, 但恶意构造可触发DoS攻击
+### 概念依赖链
 
-### 2. ConcurrentHashMap — 分段锁(CAS+synchronized)如何做到几乎无锁读?
-  CHM的get()不需要加锁 — 但它怎么保证你读到的是完整的、不是正在被迁移中的"半截数据"?
-  - JDK7→JDK8演进: Segment(分段锁, 默认16段, 并发度16最高)→CAS+synchronized(对数组节点加锁) + volatile保证数组引用可见性 (B3 Ch4 §4.3, B4 Ch5 §5.4)
-  - 为什么get()不加锁能正确? — Node的val和next是volatile; 扩容时数组引用volatile; 数据迁移使用ForwardingNode标记(读到则去新数组找) [理论: happen-before保证 — volatile写(put/扩容) happen-before volatile读(get), 保证可见性]
-  - size()的计数: JDK7(3次CAS+锁计算Segment.count), JDK8(CounterCell数组+CAS, 类似LongAdder) — 不需要全局锁 (B3 Ch4 §4.3)
-  - 关键设计: CHM的锁粒度=Hash桶级别(一个桶一把锁), 不是整表一把锁 — 16个桶=16个线程可以同时写不同桶
+```
+01 并发基础 → 本篇: 并发容器与队列
+  ├─ §1 HashMap 并发失效(错误示例)
+  ├─ §2 ConcurrentHashMap(可见性+桶级同步)
+  ├─ §3 CopyOnWriteArrayList(读无锁/写复制)
+  ├─ §4 Disruptor(RingBuffer/Sequence/缓存行)
+  └─ §5 场景选择(缓存/配置/队列/事件)
+先讲: 错误容器 → 正确并发 Map → 读优化列表 → 高吞吐环形队列 → 选型
+后续依赖: 03-synchronization-patterns(同步原语与组合模式)
+```
 
-### 3. CopyOnWriteArrayList — 读完全无锁, 但写要复制整个数组
-  你看COW的源码, add()里Arrays.copyOf复制了整个数组 — 这不是很浪费吗?
-  - COW机制: 写时复制新数组→修改→volatile赋值回引用 — 读线程看到的始终是老数组或新数组, 不会看到"写一半" (B4 Ch5 §5.4)
-  - 适用场景: 读>>写(99%读, 1%写) — 白名单/黑名单/监听器列表/配置列表 (B4 Ch5 §5.4)
-  - 代价: 每次写O(n)内存复制+GC(old数组) — 写频繁时CPU和内存双爆炸
-  - 关键设计: COW vs CHM与读写锁 — COW(读完全无锁, 写代价高)适合配置类数据; CHM(读写都有轻微锁开销)适合缓存; ReadWriteLock(读共享写独占)适合读多写少但有即时性要求的场景
+### 叙事顺序
 
-### 4. Disruptor — 无锁环形缓冲区如何做到600万QPS?
-  你觉得ArrayBlockingQueue够快了(一把锁), Disruptor凭什么比它快一个数量级?
-  - RingBuffer核心: 预分配数组(无GC)+Sequence(volatile long+CAS)+缓存行填充(避免伪共享) — 生产者通过CAS申请Sequence槽位, 消费者读Sequence (B1 Ch5 §5.3, B3 Ch4 §4.3)
-  - 缓存行填充(伪共享问题): @Contended注解 → 64字节填充 → 避免两个Sequence变量在同一缓存行导致互相invalidates [工程: `long p1,p2,p3,p4,p5,p6,p7` — 7×8=56+实际字段=64字节, 保证独占一条缓存行]
-  - 生产者类型: SingleProducer(单线程无锁)/MultiProducer(CAS竞争Sequence) — 为什么生产者类型影响性能? 单生产者省去CAS开销
-  - 关键设计: Disruptor vs ArrayBlockingQueue — ABQ: 一把ReentrantLock(put+take)+两个Condition(notEmpty/notFull); Disruptor: 0锁+Sequence CAS+缓存行优化
+1. 问题引入——100 个线程同时改一个 Map，为什么有的结构会死循环、丢数据，有的结构却能稳定运行？
+2. HashMap 并发失效——不要把“偶尔能跑”当作正确性证明
+3. ConcurrentHashMap——读/写如何在桶级别协同
+4. CopyOnWriteArrayList——读零锁的代价
+5. Disruptor——把锁等待换成 RingBuffer 与内存顺序
+6. 收束——为 workload 选容器
 
-### 5. 并发容器选型决策 — 什么场景用什么容器?
-  面试官问: "你设计一个秒杀系统, 库存扣减用什么数据结构?"
-  - 读多写少(配置/字典): COW → 读0锁开销, 写可接受延迟
-  - 读写均衡(缓存/热点数据): CHM → 分段锁+volatile, 高并发读写
-  - 生产者消费者(任务队列): BlockingQueue → 有界缓冲+等待通知机制 [案例: 秒杀扣库存用CHM(CAS扣减) + DB最终落盘, 不用数据库行锁做高并发扣减]
-  - 高性能事件处理(日志/交易撮合): Disruptor → 0锁+批量消费, 6M TPS
-  - 关键设计: 并发容器的选择本质是"在哪里排队" — CPU(Disruptor CAS自旋) vs 内存(BQ锁等待) vs 磁盘(持久化后消费)
+### 1. HashMap 并发失效 — 未同步共享结构会怎样坏掉
 
-### 6. 收束 — 无锁不是目标, 正确的并发语义才是
-  - CHM用volatile+CAS+synchronized的组合拳证明了: 不是所有并发都需要锁, 但需要正确的内存可见性保证
-  - COW证明了"空间换并发读性能" — 写复制的开销在可接受范围时是合理选择
-  - Disruptor证明了缓存行友好+无锁设计可以比有锁快一个数量级
-  - 但无锁并不总是更快 — CAS自旋在高竞争下消耗CPU比锁等待更严重
+场景提示: 多线程同时 `put` 一个普通 HashMap，最坏会发生什么？ [写作时展开]
+
+关键设计: 普通 HashMap 不是线程安全容器；扩容、链/树节点操作和 size 更新都假设单线程或外部同步：
+
+```[pseudocode]
+普通 HashMap:
+  put/get/resize 没有并发保护
+
+并发写入可能导致:
+  丢失更新
+  读到不一致中间状态
+  旧实现中的 resize/transfer 结构破坏
+  死循环/高 CPU/错误结果
+
+结论:
+  “大多数时候没出错” ≠ 正确
+  未同步共享访问在内存模型上就是数据竞争
+```
+
+Why: 为什么 JDK8 改成尾插和树化后，仍不能说“多线程 HashMap 没事了”？——**某些旧版死循环路径被修补，不代表整体线程安全**；只要没有同步协议，仍可能丢数据、读到中间状态或触发未定义并发行为。错误容器的“偶尔正常”不是可接受设计。 [并发正确性: 修复某个 resize bug 不会把非线程安全容器变成线程安全容器]
+
+比喻锚点: 普通 HashMap 像没有调度员的仓库，多人同时改货架号和索引卡时，即使没有塌仓，也可能把货放错区。 [写作时展开]
+
+### 2. ConcurrentHashMap — 桶级同步、volatile 与计数分流
+
+场景提示: CHM 的 `get()` 通常不显式加全局锁，为什么还能看到完整节点和迁移后的新表？ [写作时展开]
+
+关键设计: 现代 CHM 依赖桶级同步、volatile 可见性、CAS 和迁移标记共同维持并发：
+
+```[pseudocode]
+读路径:
+  table volatile 引用
+  → 定位桶
+  → 节点字段/next/value 的可见性保证
+  → 遇到迁移标记时跟随到新表
+
+写路径:
+  CAS 初始化桶/控制状态
+  → 桶级 synchronized/锁保护链表或树更新
+  → 扩容时迁移桶并设置 forwarding marker
+
+size/count:
+  通过分散计数单元减少全局竞争
+```
+
+Why: 为什么“CHM 几乎无锁读”不等于“永远无锁、永远 O(1)”？——**桶冲突、树化、扩容迁移、hash 分布和高竞争都会改变路径成本**；而且 CHM 只保证容器操作语义，不自动让“读到的值”在业务层是瞬时全局一致快照。聚合操作和迭代通常是弱一致/快照近似，要按 API 语义使用。 [JDK: CHM 实现随版本变化，Segment 时代与 CAS+synchronized 时代不可混写]
+
+比喻锚点: CHM 像把大仓库切成很多货架区，每区有自己的局部秩序；大多数人只查自己那一排，不需要关掉整仓灯光。 [写作时展开]
+
+### 3. CopyOnWriteArrayList — 读无锁，写复制全表
+
+场景提示: 监听器列表、白名单配置很少写、经常读，为什么 CopyOnWrite 反而是合理选择？ [写作时展开]
+
+关键设计: 写操作复制底层数组，替换数组引用；读线程只看旧数组或新数组，不参与锁竞争：
+
+```[pseudocode]
+read:
+  读取当前数组引用
+  → 遍历稳定快照
+
+write:
+  复制旧数组
+  → 在新数组上修改
+  → volatile/可见性发布新引用
+
+效果:
+  读完全无锁/无阻塞
+  写 O(n) 复制
+  旧快照在读者结束前仍可用
+```
+
+Why: 为什么 CopyOnWrite 不适合高频写？——**每次写都复制整个数组，带来 CPU、内存和 GC 压力**；读者看到的是写入前或写入后的完整快照，而不是“最新实时共享对象”。它适合读多写少且能接受写传播延迟的配置/监听器场景。 [并发容器: COW 的核心不是更快写，而是避免读锁竞争]
+
+比喻锚点: COW 像公告栏每次改通知都重印一整张纸再换上；围观者始终看到完整公告，代价是改一次就重印一次。 [写作时展开]
+
+### 4. Disruptor — RingBuffer、Sequence 与缓存行友好
+
+场景提示: 为何某些日志/撮合系统宁可不用 BlockingQueue，也要用 Disruptor？ [写作时展开]
+
+关键设计: Disruptor 把队列问题转化为预分配 RingBuffer、序号推进和缓存友好布局：
+
+```[pseudocode]
+RingBuffer:
+  预分配数组槽位
+  → producer/consumer 通过 sequence 协调
+
+SingleProducer:
+  发布路径更短
+  → 少一层竞争协调
+
+MultiProducer:
+  需要额外原子协调 sequence
+
+消费者:
+  根据 sequence barrier/依赖顺序消费
+
+关注点:
+  缓存行填充
+  false sharing
+  批量消费
+```
+
+Why: 为什么 Disruptor 不是“永远比 BlockingQueue 快一个数量级”？——**收益强依赖单生产者、批量、缓存友好和固定对象生命周期**；如果工作负载充满随机访问、复杂对象分配、背压不稳定或多生产者激烈竞争，收益会变化。Disruptor 的正确性还依赖 sequence 协议和发布/消费约束，不只是“去掉锁”。 [系统性能: 高吞吐结构把成本从锁等待转移到 CAS、自旋、缓存一致性和批量处理]
+
+比喻锚点: Disruptor 像一条编号传送带：货物槽位先固定好，工人只推动号码前进；如果很多工人同时抢同一个编号牌，优势就会下降。 [写作时展开]
+
+### 5. 选型 — 不同并发容器在不同队列位置排队
+
+场景提示: 秒杀库存、配置列表、日志队列、热点缓存分别用哪类容器，为什么？ [写作时展开]
+
+关键设计: 选择要看读写比例、顺序要求、容量、背压和故障语义：
+
+```[pseudocode]
+HashMap + 外部锁:
+  适合简单临界区/低并发, 但要谨慎锁粒度
+
+ConcurrentHashMap:
+  热点缓存/共享索引/并发读写 map
+
+CopyOnWriteArrayList:
+  配置/监听器/读远多于写
+
+BlockingQueue:
+  明确阻塞、容量和背压语义的生产消费模型
+
+Disruptor/RingBuffer:
+  固定对象/高吞吐事件流水线/低 GC 场景
+```
+
+Why: 为什么“无锁容器更高级”是危险观念？——**CAS 重试、缓存抖动、自旋和回收协议都可能在高竞争下比锁更糟**；真正要优化的是端到端吞吐、尾延迟和正确性，而不是追求“代码里没有 synchronized”。 [并发基础: 容器选择要回到线程池、连接池、数据库和下游容量闭环]
+
+### 6. 收束
+
+并发容器闭环：
+
+```[pseudocode]
+共享状态
+  → 先判断读写比例/顺序/容量/背压
+  → 选择 CHM/COW/Queue/RingBuffer/外部锁
+  → 用 JMH + 业务 workload + PMU/锁分析验证
+  → 观察是否把瓶颈从锁移到 CAS/GC/cache
+```
+
+**Aha Moment**: "并发数据结构的目标不是去掉所有锁，而是**把正确性、可见性和背压放在最适合工作负载的位置**；容器本身只是排队和同步协议的载体。"
+**回答读者三问**: ①为什么普通 HashMap 会坏=未同步共享结构发生数据竞争；②CHM 为什么读快=桶级同步和可见性分离；③Disruptor 为什么快=预分配、顺序内存和较少锁竞争，但只在特定 workload 下成立。
 
 ---
 
 ### 核心悬念
-**"你写了一个CountDownLatch等所有子任务完成, 但如果有一个线程挂了就永远等不到 — 分布式环境下你怎么办?"**
 
-→ 引出 同步模式: 从单机CountDownLatch到分布式协调, Semaphore/Barrier/CompletableFuture的实战陷阱 (03-synchronization-patterns)
+**"有了并发容器，线程之间还要怎样同步开始、结束、限流和协作？单机的 CountDownLatch、Semaphore、Barrier 到分布式场景会失效在哪？"**
+
+→ 引出 03-synchronization-patterns — 同步原语与分布式协作模式。

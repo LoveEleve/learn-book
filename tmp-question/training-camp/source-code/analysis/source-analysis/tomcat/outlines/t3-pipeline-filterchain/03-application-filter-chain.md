@@ -13,7 +13,7 @@
 - `ApplicationFilterChain.java:144` — **internalDoFilter()**: `private void internalDoFilter(request, response)` — 拿 `filters[pos++]` → `filter.doFilter(request, response, this)` — Filter 内部调用 `chain.doFilter()` — 回到此方法(pos 已 +1) — 拿下一个 Filter — 全部执行完 → `servlet.service(request, response)`
 - `ApplicationFilterChain.java:239` — **addFilter()**: 追加 FilterConfig 到 filters 数组
 - `ApplicationFilterChain.java:284` — **setServlet()**: 设置最终的 Servlet 实例
-- `ApplicationFilterChain.java:259` — **release()**: reset pos/n/request/response — filters 数组不清(由 FilterFactory 重用)
+- `ApplicationFilterChain.java:259-276` — **release()**: 循环 `filters[i] = null` 清空数组 + n=0 + pos=0 + servlet=null — 链完全重置供下次复用
 
 关键设计: **这不是递归 — 是回调式迭代**。`filter.doFilter(request, response, chain)` 中的 `chain` 就是 ApplicationFilterChain 自身 — Filter 调 `chain.doFilter()` 等价于调用 `ApplicationFilterChain.doFilter()` — 又回到 internalDoFilter — pos 已经从刚才的位置+1 — 取下一个 Filter。这就是"嵌套"的感觉但实际栈上只有 Filter.doFilter→chain.doFilter→internalDoFilter→下一个 Filter.doFilter — 是**尾调用式**的 — 不会造成真正的递归深度溢出。 [模式: Chain of Responsibility — Filter 变体: 回调而非递归]
 

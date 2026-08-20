@@ -1,44 +1,183 @@
-# 等待分析 — 7维定量区分 + 执行太多 vs 太慢 vs 排队
+# 等待分析 — CPU、内存、磁盘、网络、锁、时间与队列如何定量区分
 
-> Cluster D: 4 KPs | 依赖: 05-memory-disk-network-observability + 06-ftrace-bpf-tracing | 读者基线: 会用 perf+Ftrace 测量系统指标
+> Cluster D: 4 KPs | 依赖: 05-memory-disk-network-observability、06-ftrace-bpf-tracing | 读者基线: perf/ftrace/eBPF 与系统指标
+> 读者处境: 05-06 篇已经能观测资源和路径；本篇回答最后的归因问题：一次慢请求是在执行太多、执行太慢，还是根本没获得服务机会？
+> 打开新视角: “等待”不是单一的 sleep，它可能藏在 CPU run queue、内存回收、I/O、网络 RTT、锁、定时器和业务队列里
 
 ---
 
-### 1. 等待分析 7 维 — CPU/内存/磁盘/网络/锁/时间/队列
-  - CPU等待: 线程在 rq 排队(`vmstat r`列) → 上下文切换等待时间(`perf sched latency`) → 本质是CPU不够分 (深入理解软件性能 Ch20-29)
-  - 内存等待: 缺页异常延迟(`perf stat -e page-faults` + PSI `pressure/memory`) → 冷内存首次分配、swap 换入、TLB miss 产生 page walk
-  - 磁盘等待: I/O 阻塞时长(biolatency P99) → 文件系统缓存miss→读盘 → 同步写 fsync() 导致全flush延迟
-  - 网络等待: RPC服务端/数据库连接/Redis命令延时 → 网络层重传延迟(sar ETCP) + 服务端业务逻辑(后端慢) + 排队
-  - 锁等待: mutex/spinlock/rwlock 持有时间 → `perf lock record` → `perf lock report` 排序 (性能之巅 Ch5 §2-4)
-  - 时间等待: `sleep()` 或 `nanosleep()` 延迟后执行 → 定时器精度(jiffies HZ=100~1000) → 应用程序中的 `time.After()` 误用
-  - 队列等待: 在服务前在队列中等待的时间(非CPU rq, 是消息/任务/请求队列) → `net.core.netdev_budget`(网络softirq) 或线程池队列
+### 概念依赖链
 
-### 2. 定量诊断公式 — 执行太多 vs 执行太慢
-  - 执行太多: IPC正常(~1+), 但 instruction_count 过高(同业务量比较) → 算法/循环/Fnv 重计算 (深入理解软件性能 Ch20-29)
-  - 执行太慢: IPC低(<0.5), instruction_count 不高 → 流水线停顿 → TMA Backend Bound(数据在L3/MEM) 或 Frontend Bound(ICache)
-  - 排除法顺序: 有CPU时间占比 → 无CPU时间=在排队 → 分类: CPU(=执行太慢)/IO(磁盘+网络+内存)/锁(等待时间)/人为(sleep/时间任务)
-  - 排队深度: 同一时刻排队的任务数=`vmstat r`(CPU)+`iostat aqu-sz`(磁盘)+`ss Send-Q`(网络) → 如果都小但延时高: 异步等待问题
+```
+05 子系统观测 + 06 tracing → 本篇: 七维等待分析
+  ├─ §1 七类等待(建立分类)
+  ├─ §2 执行太多/太慢/排队(证据组合)
+  ├─ §3 应用技术(缓冲/非阻塞/并发/锁)
+  └─ §4 案例(从症状到验证)
+先讲: 分类 → 量化 → 选择动作 → 案例验证
+后续依赖: 08-source-code-tuning(进入循环、数据布局和机器码优化)
+```
 
-### 3. 应用性能技术 — 缓冲区/非阻塞IO/并发模型/锁分析
-  - 缓冲区: 小IO→先攒大IO(4KB→64KB) → 减少系统调用+磁盘磁头移动 → 缓冲区大小选择(太大→延时, 太小→吞吐不够) (性能之巅 Ch5 §2-4)
-  - 非阻塞 I/O: epoll/poll → 一个线程可同时等多个FD → 当IO比CPU多时(Nginx/Redis)
-  - 并发模型: 单线程(event-loop Redis) vs 多线程(event-per-thread Nginx) vs 线程池(Netty) → 看是CPU密集(多线程)还是IO密集(单线程)
-  - 锁分析: `perf lock record -p PID -- sleep 10` → `perf lock report` → 持有时间前5的锁 → 优化: 缩小临界区/读写锁/无锁CAS/COW
+### 叙事顺序
 
-### 4. 等待 vs 性能退化 — 案例诊断
-  - 案例1(CPU等待): `vmstat r=8`(8任务排队等CPU) → `perf sched latency` 最大延迟200ms → 加CPU或减少计算 → CPU bound
-  - 案例2(磁盘等待): `iostat %util=100, await=50ms` → `biolatency-bpfcc` P99=800ms → SSD换成NVMe或异步化
-  - 案例3(锁等待): 吞吐不随线程数线性上升 → `perf lock report` 显示 `futex` 80%等待 → 删掉粗粒度大锁
-  - 案例4(内存泄漏): `RSS` 持续上升但 `vmstat` free 减小 → `memleak-bpfcc` 定位 `alloc()` 无 `free()` 位置
+1. 问题引入——慢查询耗时 1 秒，如何证明它是在算、在等磁盘，还是在等锁？（**Aha: 先把 wall-clock 拆成运行时间与等待时间，再对等待来源分类**）
+2. 七维等待分类
+3. 证据组合：执行太多 vs 执行太慢 vs 排队
+4. 应用层缓冲、非阻塞、并发和锁策略
+5. 四个案例
+6. 收束——从分类到优化动作
+
+### 1. 七维等待 — 同一个“慢”可能是七种完全不同的慢
+
+场景提示: CPU 利用率不高但延迟升高，可能是 I/O、锁、网络还是线程在等待定时器？ [写作时展开]
+
+关键设计: 先按等待发生的位置分类，再选择能观察该位置的工具：
+
+```[pseudocode]
+CPU 调度等待:
+  线程可运行但排在 run queue
+  → run queue / sched latency
+
+内存等待:
+  page fault、回收、swap、NUMA 远端访问、TLB walk
+  → PSI / vmstat / perf page-faults / PMU
+
+磁盘等待:
+  block request、fsync、设备队列
+  → iostat / block trace / biolatency
+
+网络等待:
+  RTT、重传、服务端处理、连接池/请求队列
+  → tcp_info / 抓包 / tracing / 服务指标
+
+锁等待:
+  mutex/rwlock/futex/spin 等竞争
+  → perf lock / off-CPU / lock trace
+
+时间等待:
+  sleep、timer、重试退避、限流窗口
+  → 调用栈/调度事件/应用 trace
+
+业务队列等待:
+  线程池、消息队列、连接池、事件队列
+  → 入队/出队时间与队列深度
+```
+
+Why: 为什么“CPU 低所以不是 CPU 问题”是错误的？——**线程可能在等 CPU、锁、I/O 或业务队列，进程本身不占 CPU 不代表请求不受 CPU 调度影响**；相反，CPU 高也可能只是正常吞吐。等待分类的关键是测量线程状态和时间线，而不是看单个利用率。 [内核: run queue、wait queue、block queue、socket queue 属于不同等待层，不能用一个队列指标替代]
+
+比喻锚点: 慢查询像一辆晚点列车：可能在修发动机、等轨道、等信号、等乘客，最终到站时间相同，维修方案却完全不同。 [写作时展开]
+
+### 2. 执行太多、执行太慢与排队 — 用证据分叉
+
+场景提示: 两个版本都花 100ms，一个执行了更多指令，一个只执行少量指令却 IPC 很低，优化方向为什么不同？ [写作时展开]
+
+关键设计: 把 wall-clock、CPU time、instructions、cycles、等待时间放在同一实验中比较：
+
+```[pseudocode]
+执行太多:
+  CPU time 高
+  instructions/work 高
+  IPC 可能正常
+  → 算法复杂度、重复计算、循环、数据处理量
+
+执行太慢:
+  instructions/work 不高
+  cycles 高 / IPC 低
+  → cache/TLB、依赖链、分支、内存带宽、frontend/backend
+
+排队/等待:
+  wall-clock 高
+  on-CPU time 低
+  → CPU run queue、I/O、网络、锁、timer、业务队列
+
+同一业务量比较:
+  instruction/work、cycles/work、wait/work
+  不只看绝对总量
+```
+
+Why: 为什么不能用 IPC 的固定阈值直接判断“执行太慢”？——**IPC 与微架构、指令类型、向量宽度和 workload 相关**；真正有意义的是同一 workload、同一硬件和相近环境下的对比。排队深度也必须对应具体队列，`vmstat r`、磁盘队列、socket Send-Q 不能简单相加成“总排队数”。 [内核: tracing 可把线程从 runnable、running、sleeping、blocked 的状态变化串成时间线]
+
+比喻锚点: “执行太多”像工人搬了太多箱子，“执行太慢”像工具卡顿，“排队”像工人站在仓库门口等电梯；三者都让订单晚到，但证据不同。 [写作时展开]
+
+### 3. 应用技术 — 改善等待前先确认等待在哪里
+
+场景提示: 小 I/O、单线程事件循环和粗粒度锁都可能拖慢系统，应该怎样选择优化动作？ [写作时展开]
+
+关键设计: 优化手段要与等待类型匹配：
+
+```[pseudocode]
+小 I/O:
+  合并/缓冲 → 减少 syscall 与设备请求
+  但缓冲太大可能增加尾延迟
+
+I/O等待多:
+  非阻塞 + epoll/事件循环
+  → 一个线程管理多个等待源
+
+CPU密集:
+  线程/进程并行、向量化、减少计算
+  → 注意同步/NUMA/调度成本
+
+锁等待:
+  缩小临界区、降低共享、读写分离、分片
+  → 无锁/CAS 不是免费, 还要处理重试与内存序
+
+业务队列:
+  限制队列深度、背压、超时、丢弃/降级策略
+```
+
+Why: 为什么“加线程”经常不能解决性能问题？——**线程可能只是把 CPU、锁、I/O 和队列竞争放大**：如果瓶颈是单设备、单锁或内存带宽，线程数增加只会增加切换和同步。非阻塞 I/O 也只是改变等待组织方式，不会让网络或磁盘变快。 [内核: epoll 减少等待扫描，不等于消除应用业务处理、锁和后端 I/O]
+
+比喻锚点: 优化像疏通工厂：如果瓶颈在唯一烘箱，增加搬运工只会让烘箱门口排更长；如果瓶颈在搬运调度，才值得增加并行工位。 [写作时展开]
+
+### 4. 四个案例 — 用多源证据而不是单指标下结论
+
+场景提示: 如何把七维分类真正用于线上问题？ [写作时展开]
+
+关键设计: 每个案例都先描述症状，再给证据组合和谨慎结论：
+
+```[pseudocode]
+案例 A: CPU 调度等待
+  run queue/唤醒延迟上升 + on-CPU 时间有限
+  → 检查 CPU 饱和、线程数、IRQ/softirq、亲和性
+
+案例 B: 磁盘长尾
+  iostat/块追踪显示队列与 P99 上升
+  → 区分设备、文件系统、fsync、回写和应用批量大小
+
+案例 C: 锁等待
+  吞吐随线程数不再增加 + off-CPU/lock trace 集中
+  → 缩小临界区、分片或重新设计共享状态
+
+案例 D: 内存压力/泄漏
+  RSS/工作集趋势 + PSI/回收/分配栈
+  → 区分真实泄漏、缓存增长、cgroup 限制和正常缓存
+```
+
+Why: 为什么每个案例都必须同时看症状和机制证据？——**同一个表象可能由多个层造成**：磁盘 P99 上升可能来自设备，也可能来自队列、fsync 或应用请求突发；RSS 上升也可能是 cache 而非泄漏。结论必须能被第二个独立观测源验证。 [内核: perf、ftrace/BPF、PSI、block trace 等工具分别提供计数、路径、压力和生命周期证据]
+
+比喻锚点: 诊断像法庭取证：用户症状是证词，指标是监控录像，trace 是时间线，必须相互印证而不是凭一条证词定案。 [写作时展开]
 
 ### 5. 收束
-  - 慢查询诊断 = CPU + IO + 锁 + 队列 + 内存 + 网络 + 时间 七维逐一排除
-  - "执行太多"(正常IPC但过高instructions) vs "执行太慢"(低IPC) 两叉分化 → 分别指向算法改换 vs 数据布局
-  - 缓冲/非阻塞/并发模型/锁 四项应用技术是业务代码级的性能优化手段
+
+慢请求分析闭环：
+
+```[pseudocode]
+wall-clock 延迟
+  → 拆 on-CPU / off-CPU
+  → 分类 CPU/内存/磁盘/网络/锁/时间/业务队列
+  → 用对应 tracing/计数/分布验证
+  → 选择缓冲、并发、背压、锁或算法动作
+  → 用同一 workload 复测
+```
+
+**Aha Moment**: "慢不是一个根因，而是一张等待时间账单；只有把 wall-clock 拆成运行、排队和各类阻塞，才能知道应该改算法、数据布局、锁、队列还是 I/O。"
+**回答读者三问**: ①CPU 不高为什么会慢=可能在排队/锁/I/O/网络/业务队列；②加线程为什么不一定有效=可能放大共享瓶颈；③如何验证优化有效=同 workload 下比较 on/off-CPU、队列和业务尾延迟。
 
 ---
 
 ### 核心悬念
-**"等待分析找到瓶颈(锁、缓存 miss、分支预测错) — 但你把能改的都改了, 还能做什么？答案在编译器都不知道的地方: 循环体、机器码布局、缓存友好的数据结构。"**
 
-→ 引出 08-源码级调优: 循环优化/SIMD/缓存布局/机器码排列/多线程
+**"等待分类已经找到瓶颈，但如果问题就在循环体、数据布局、SIMD、分支和机器码排列，如何进行源码级调优，并证明改动没有换来另一种瓶颈？"**
+
+→ 引出 08-source-code-tuning — 循环、SIMD、缓存布局与机器码级优化。

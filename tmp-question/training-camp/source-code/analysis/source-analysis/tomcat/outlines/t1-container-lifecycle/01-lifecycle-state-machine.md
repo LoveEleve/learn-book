@@ -28,12 +28,12 @@
 
 ### 3. initInternal/startInternal/stopInternal/destroyInternal — 4 个钩子 + 容器级联
 
-场景: ContainerBase 有一个 `Realm` 属性——`Realm` 是子组件(不直接处理请求)——需要在容器启动时一起启动。`ContainerBase.startInternal()` 先调 `Realm.start()` 再调 `children[].start()`——凭什么 `Realm` 在 children 之前？因为 children(Wrappers)可能依赖 Realm 做认证。
+场景: ContainerBase 有 `Realm` 属性——`Realm` 是子组件(不直接处理请求)——需要在容器启动时一起启动。`ContainerBase.startInternal()` 先启动 Cluster/Realm 再并行启动 children——凭什么 Cluster/Realm 在 children 之前？因为 children(Wrappers)可能依赖 Realm 做认证——辅助组件先就位, 核心组件再启动。
 
-源码路径: `ContainerBase.java:780-845`。`startInternal()`: `setState(STARTING)`→启动 Pipeline→**先用 startStopExecutor 并行启动所有 children**→再启动 Realm/Cluster 子组件。`stopInternal()`: 停 Pipeline→**先用 startStopExecutor 并行停止所有 children**→再停 Realm/Cluster。
+源码路径: `ContainerBase.java:729-793`。`startInternal()`: **先启动 Cluster→再启动 Realm→最后用 startStopExecutor 并行启动所有 children**(L733-752: cluster.start()→realm.start()→submit(StartChild))。`stopInternal()`(L794-845): 停 Pipeline→**并行停止所有 children**→再停 Realm/Cluster——停止顺序与启动相反。
 
-关键设计: **子组件启动顺序由具体容器决定**——LifecycleBase 不规定顺序。ContainerBase 选择 children 先于 Realm——因为 children 是核心功能(请求处理)，Realm 是辅助功能(认证)。但 Engine 的 `initInternal()`(L186-190) 先 `getRealm()`(确保 NullRealm 存在)再 `super.initInternal()`——因为 Realm 为空时 Engine 无法初始化任何子容器。这就是 **Template Method 的灵活度**: 框架管状态转换，子类管执行顺序。
+关键设计: **子组件启动顺序由具体容器决定**——LifecycleBase 不规定顺序。ContainerBase 选择 Cluster/Realm 先于 children——因为 children(Wrappers)是核心功能(请求处理)，Cluster/Realm 是辅助功能(认证/集群)——辅助组件必须先就位供 children 使用。但 Engine 的 `initInternal()`(L186-190) 先 `getRealm()`(确保 NullRealm 存在)再 `super.initInternal()`——因为 Realm 为空时 Engine 无法初始化任何子容器。这就是 **Template Method 的灵活度**: 框架管状态转换，子类管执行顺序。
 
-数据流: `engine.start()`→`LifecycleBase.start()`→`setState(STARTING_PREP)`→`startInternal()`(子类)→`super.startInternal()`(ContainerBase)→并行 `children[].start()`→各 child 重复此流程→全部 children 启动完成→返回→setState(STARTED)→fire AFTER_START_EVENT。
+数据流: `engine.start()`→`LifecycleBase.start()`→`setState(STARTING_PREP)`→`startInternal()`(子类)→`super.startInternal()`(ContainerBase)→Cluster/Realm 启动→并行 `children[].start()`→各 child 重复此流程→全部 children 启动完成→返回→setState(STARTED)→fire AFTER_START_EVENT。
 
 → 引出 §2 Container 层次 — 理解了"所有容器共享同一个状态机"之后，下一个问题: "Server→Engine→Host→Context→Wrapper 这 5 层树是怎么建起来的？addChild 背后的双向引用和并发安全怎么保证？"

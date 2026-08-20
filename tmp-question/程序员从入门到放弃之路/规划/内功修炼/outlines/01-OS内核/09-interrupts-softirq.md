@@ -1,35 +1,113 @@
 # 中断处理 — IDT/APIC + 上半部/下半部 + softirq/tasklet/workqueue + 时间管理
 
 > Cluster C: 9 KPs | 依赖: 05-MESI + 06-原子操作 + 07-锁家族 | 读者基线: 理解多核并发和屏障概念
+> 读者处境: 已读完 08 篇（并发同步），知道 RCU 回调在 softirq 执行；本篇回答"硬件怎么打断正在执行的代码？打断后的工作谁来做？"
+> 打开新视角: 中断的完整旅程（设备→CPU→ISR→下半部）、三种下半部的取舍、时间管理三层（jiffies/hrtimer/tickless）
 
 ---
 
+### 概念依赖链
+
+```
+07-锁家族(自旋锁关抢占) + 08-RCU(回调在 softirq) → 本篇: 中断处理
+  ├─ §1 中断全链路(硬件→IDT→ISR — 依赖 05/06 的并发基础)
+  │    └─ §2 上半部 vs 下半部(ISR 极短 + 延迟处理三机制 — 依赖 §1)
+  │         └─ §3 时间管理(时钟中断驱动 — 依赖 §1 的定时器中断)
+先讲: 打断(全链路) → 分工(上/下半部) → 计时(时间管理)
+后续依赖: 10-CFS(调度器由时钟中断触发)、11-进程(中断与进程切换)
+```
+
+### 叙事顺序
+
+1. 问题引入——网卡收到一个包，CPU 正在跑你的代码——谁有权利让它停下来？（**Aha: 中断是硬件对 CPU 的'插队'——CPU 无权拒绝**）
+   - 过渡: 插队的完整流程——从设备到内核怎么走？
+2. 中断全链路——设备 IRQ → APIC 路由 → 保存上下文 → IDT 查表 → ISR → irq_exit
+   - 过渡: ISR 里能做的太少（不能睡眠）——剩下的活谁干？
+3. 上半部 vs 下半部——上半部极短收尾，下半部三种机制
+   - 过渡: softirq/tasklet/workqueue 三选一——依据是什么？
+4. 下半部三机制对比——softirq（快但危险）/tasklet（序列化）/workqueue（可睡眠）
+   - 过渡: 中断处理完还要"计时"——内核怎么知道现在几点？
+5. 时间管理——jiffies 粗粒度 / hrtimer 精粒度 / tickless 节能
+   - 过渡: 时间滴答驱动调度器——09 的时钟中断是 10 篇 CFS 的脉搏
+6. 收束——中断旅程完整回顾
+
 ### 1. 中断全链路 — IRQ 从硬件到内核
-  - 设备触发 IRQ → PIC/APIC 路由到目标 CPU → 保存上下文(压栈 rip/rflags) → IDT 表查找 → 中断门 → `common_interrupt` → `do_IRQ` → `handle_irq`(调用注册的 ISR) → `irq_exit` → 触发软中断 (arch/x86/kernel/irq.c:204)
-  - IDT(中断描述符表): 256 项 → 前 32 个为 CPU 异常(除 0/NMI/page fault) → vector 0x80 系统调用 → 设备中断 vector 32-255 (arch/x86/include/asm/desc_defs.h:18)
-  - 中断门 vs 陷阱门: 中断门自动关 IF(禁止嵌套中断) → 陷阱门不关 IF(用于系统调用, 允许中断) (arch/x86/kernel/idt.c:90)
+
+场景提示: 网卡收到数据包触发中断——CPU 正在跑你的 for 循环，怎么被"叫停"去处理网卡？ [写作时展开]
+
+关键设计: 中断全链路 (arch/x86/kernel/irq.c)：
+
+```[pseudocode]
+设备触发 IRQ → PIC/APIC 路由到目标 CPU → 保存上下文(压栈 rip/rflags)
+→ IDT 表查找 → 中断门 → common_interrupt → do_IRQ → handle_irq(调用注册的 ISR)
+→ irq_exit → 触发软中断
+```
+
+关键概念:
+- **IDT（中断描述符表）**: 256 项——前 32 个是 CPU 异常（除 0/NMI/page fault）→ vector 0x80 系统调用 → 设备中断 32-255
+- **中断门 vs 陷阱门**: 中断门自动关 IF（禁止嵌套中断）；陷阱门不关 IF（用于系统调用，允许中断）
+- **APIC 路由**: 现代多核 CPU 用本地 APIC + I/O APIC 把中断路由到指定核（负载均衡、亲和性）
+
+Why: 为什么中断必须"关 IF"（禁嵌套）？——ISR 执行中再来同级中断会嵌套递归（栈溢出+逻辑混乱）；中断门自动关 IF 防止**嵌套中断**。注意: NMI（不可屏蔽中断）仍可打断——ISR 并非绝对原子。系统调用用陷阱门是因为它本质是"普通函数调用"（主动进入），可以被打断。 [x86: IF 标志位在 rflags——中断门硬件清零, iret 恢复]
+
+比喻锚点: 中断=急诊插队——救护车（设备中断）到了，医生（CPU）放下手头病人（当前代码）先处理；急诊期间护士（中断门）挡着其他普通病人（同级中断），但 120 电话（NMI）仍能打进来。 [写作时展开]
 
 ### 2. 上半部与下半部 — 紧急处理 + 延迟处理
-  - 上半部 ISR: 关中断, 极短(通常 <100 微秒) → 只做最必要的事(确认中断源, 禁用设备中断, 调度下半部) → 不能睡眠 (kernel/irq/handle.c:175)
-  - 下半部三种机制:
-    - 软中断(softirq): 静态定义(HI_SOFTIRQ/TIMER_SOFTIRQ/NET_TX_SOFTIRQ/NET_RX_SOFTIRQ) → `open_softirq` 注册 → `do_softirq` 执行 → 最多 4 个 CPU 同时执行 → 不能睡眠 → 网络接收用 NET_RX (kernel/softirq.c:514)
-    - tasklet: 基于 TASKLET_SOFTIRQ → 同一 tasklet 不能同时多 CPU 执行(提供天然序列化) → `tasklet_schedule` 调度 → 比软中断简单(不用考虑多核并发) (kernel/softirq.c:828)
-    - workqueue: 内核线程池 → `schedule_work` 加入工作队列 → events 线程取出执行 → cmwq(并发管理工作队列) → `alloc_ordered_workqueue`(保序) → 可睡眠 → 适合耗时操作 (kernel/workqueue.c:1243)
+
+场景提示: ISR 不能睡眠、不能长时间占用 CPU——网卡收包的处理链那么长，怎么塞进"极短"的 ISR？ [写作时展开]
+
+关键设计: 把中断工作拆成两半：
+
+**上半部（ISR）**: 关中断、极短（通常 <100µs）——只做最必要的事（确认中断源、禁用设备中断、调度下半部）→ 不能睡眠。
+
+**下半部（延迟处理）**: 开中断后执行真正的工作——三种机制：
+
+| 机制 | 特性 | 适用 |
+|------|------|------|
+| softirq | 静态定义（HI/TIMER/NET_TX/NET_RX）；最多 4 CPU 并发；不能睡眠 | 网络收包（NET_RX）——高频热点 |
+| tasklet | 基于 TASKLET_SOFTIRQ；同一 tasklet 天然序列化（不同时多核执行） | 比 softirq 简单，不用考虑并发 |
+| workqueue | 内核线程池（events）；cmwq 并发管理；**可睡眠** | 耗时操作（如写盘、日志） |
+
+Why: 为什么拆两半？——ISR 关中断期间，本核**屏蔽所有其他中断**（含时钟、其他设备）；ISR 越短，本核"屏蔽中断"的时间越短，其他中断等待越少、系统响应越及时（其他核不受影响，照常运行）。把重活挪到开中断的下半部，让系统尽快恢复响应。**选择依据：执行频率×可睡眠性**——高频热点用 softirq（快），可睡眠的耗时任务用 workqueue（安全）。
+
+比喻锚点: 上/下半部=分诊台与专科诊室——分诊台（ISR）只记症状、挂个号（调度下半部）就放人走（开中断）；真正检查治疗（处理数据）在专科诊室（下半部）慢慢做——分诊台不堵，急诊通道才通畅。 [写作时展开]
 
 ### 3. 时间管理 — jiffies + hrtimer + tickless
-  - jiffies: 时钟中断次数(jiffies++ 每次 tick) → HZ=250(现代内核, 4ms 间隔) → `jiffies_to_msecs` 转换 (include/linux/jiffies.h:71)
-  - hrtimer 高精度定时器: 纳秒级 → 红黑树按 expires 排序 → `hrtimer_start` 插入 → `hrtimer_run_queues` 检查超时 → `hrtimer_cancel` 删除 (kernel/time/hrtimer.c:1125)
-  - tickless(Dynamic Tick): idle 时不产生时钟中断(节能) → `tick_nohz_idle_enter` → `clockevent_device` 编程下一次到期时间 → 有任务时恢复 tick (kernel/time/tick-sched.c:1398)
-  - `ktime_get()` 获取当前时间 → `schedule_timeout`(睡眠指定时间)
+
+场景提示: 内核怎么知道"现在几点"？定时器怎么在纳秒级精度上工作？ [写作时展开]
+
+关键设计: 时间管理三层：
+
+| 层 | 机制 | 精度 | 用途 |
+|------|------|------|------|
+| 粗粒度 | jiffies（HZ=250，4ms/tick） | 毫秒级 | 全局时钟滴答、超时判断 |
+| 精粒度 | hrtimer（红黑树按 expires 排序） | 纳秒级 | 高精度定时（epoll 超时/调度延迟） |
+| 节能 | tickless（idle 时不产生时钟中断） | — | 省电（笔记本/虚拟机） |
+
+- **jiffies**: 每次时钟中断 +1——`jiffies_to_msecs` 换算；HZ 决定精度（250Hz=4ms 间隔）
+- **hrtimer**: `hrtimer_start` 插入红黑树 → `hrtimer_run_queues` 检查超时 → `hrtimer_cancel` 删除——纳秒级定时
+- **tickless**: idle 时 `tick_nohz_idle_enter` 关闭周期性 tick → `clockevent_device` 编程下一次到期 → 有任务恢复
+- `ktime_get()` 取当前时间 → `schedule_timeout` 睡眠指定时间
+
+Why: 为什么需要三层？——jiffies 简单但粒度粗（4ms 不够精确）；hrtimer 精确但每个定时器都查红黑树（有开销）；tickless 解决"闲着也打拍子"的浪费（idle 时每 4ms 唤醒一次纯属浪费电）。**按需求选层**：超时判断用 jiffies、精确调度用 hrtimer、节能场景开 tickless。 [内核: HZ 编译期可配（100/250/1000）——服务器常配 1000 提高调度精度]
+
+比喻锚点: 时间三层=手表/秒表/不戴表——jiffies 是手表（知道大概几点就行）、hrtimer 是秒表（比赛计时要毫秒级）、tickless 是"不戴表"（睡觉时不看时间，有闹钟（clockevent）才醒）。 [写作时展开]
 
 ### 4. 收束
-  - 中断全链路 = IDT 查表 + 上半部 ISR(关中断, 极短) + 下半部 softirq(开中断, 可并发)
-  - softirq 最快但最危险(无序列化), tasklet 折中(单核序列化), workqueue 最重但最安全(可睡眠)
-  - jiffies(粗粒度) + hrtimer(精粒度) + tickless(节能) = 内核时间管理三层
+
+回到"网卡中断"完整旅程：
+- 全链路 = 设备→APIC→上下文→IDT→ISR→软中断
+- 上半部 = 极短收尾（关中断）→ 下半部 = 真正工作（开中断）
+- 三种下半部 = 快（softirq）/ 简单（tasklet）/ 可睡眠（workqueue）
+- 时间管理 = 粗（jiffies）/ 精（hrtimer）/ 省电（tickless）
+
+**Aha Moment**: "中断是硬件对 CPU 的'强制插队'——CPU 无权拒绝，只能尽快处理完回到原工作；而'尽快'的秘密是拆两半：关中断的 ISR 极短收尾，开中断的下半部慢慢干活。时间管理也是同理——不是越精确越好，是按需求分层。"
+**回答读者三问**: ①网卡中断怎么处理=全链路+上下半部；②三个下半部怎么选=频率×可睡眠；③内核时间怎么来=jiffies/hrtimer/tickless 三层。
 
 ---
 
 ### 核心悬念
+
 **"中断打断进程 → 进程被挂起 → 那内核怎么决定接下来该运行哪个进程？CFS 调度器怎么用红黑树做公平调度？"**
 
-→ 引出 10-CFS 调度器(vruntime/红黑树/weight) + 负载均衡 + EEVDF + 实时调度
+→ 引出 10-CFS 调度器(vruntime/红黑树/weight) + 负载均衡 + EEVDF + 实时调度——时钟中断是调度器的脉搏，下一个问题：怎么选下一个运行的进程。

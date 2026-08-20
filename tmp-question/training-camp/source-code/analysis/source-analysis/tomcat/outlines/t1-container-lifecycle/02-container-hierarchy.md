@@ -36,7 +36,7 @@
 
 关键设计: **为什么不是泛型 `Container<Host> extends Container`?** 因为 `ContainerBase` 是抽象基类——它需要在统一的 `HashMap<String,Container>` 中管理子容器——泛型会导致类型擦除后仍可用 `addChild(Container)`——`instanceof` 运行时检查是唯一真正的防护。
 
-架构意图: **Chain of Responsibility 预留** — `ContainerBase` 持有 `Pipeline pipeline` 字段和 `Valve basic` 字段(L75-77)——这是为 T-3 Pipeline 预留的。容器层次是请求路由的骨架，Pipeline 是请求处理的骨架——两者在 ContainerBase 交汇。当前只讲容器树，但每个容器的 `invoke(Request, Response)` 方法最终调 pipeline 的第一个 Valve——这是下一篇文章的桥。
+架构意图: **Chain of Responsibility 预留** — `ContainerBase` 持有 `Pipeline pipeline` 字段(L217: `new StandardPipeline(this)`)——这是为 T-3 Pipeline 预留的。容器层次是请求路由的骨架，Pipeline 是请求处理的骨架——两者在 ContainerBase 交汇。当前只讲容器树，但每个容器的 `invoke(Request, Response)` 方法最终调 pipeline 的第一个 Valve——这是下一篇文章的桥。
 
 数据流: `StandardEngine.addChild(child)`→`instanceof Host`→true→`super.addChild(child)`→`ContainerBase.addChild()`→...建立 parent→返回。若 `instanceof Host`=false→throw `IllegalArgumentException`——编译期通过、运行时拦截。
 

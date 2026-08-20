@@ -1,8 +1,8 @@
 # Spring 生态源码分析 — 交接文档 v5
 
-> **日期**: 2026-08-10
-> **状态**: Stage 1 全部完成 — Netty 13 章 ✅ | Tomcat 5 域 (T-1~T-5) ✅ | 52 篇 v5 / 连续五域源码验证零错误
-> **v5 更新**: Tomcat 5/5域全部完成(16篇大纲/47问/0%行号错误)；淘汰机制已修复+方法论§8固化为中英双版; next=Stage 2 Spring Framework
+> **日期**: 2026-08-17
+> **状态**: Stage 1 全部完成 — Netty 13 章 ✅ | Tomcat 10 域 (T-1~T-10) ✅ | Tomcat 深度 REVIEW 3 轮收敛完成
+> **更新**: Tomcat 已从 5 域扩至 10 域并全部收官；harness 47/47、问数 200/200、锚点 244/244、时空溯源与 deep-review 全完成; next=Stage 2 Spring Framework
 
 ---
 
@@ -158,29 +158,32 @@ gRPC-Java (`GrpcHttp2ConnectionHandler`) 和 Dubbo Triple 协议直接依赖 Net
 
 ---
 
-## §二 Tomcat — T-1 完成 / T-2~T-5 待规划
+## §二 Tomcat — 10 域收官 / 深度 REVIEW 完成
 
 ### 当前状态
 
 | 产出 | 状态 |
 |------|:--:|
-| 范围规划 | ✅ 5 域 (原 6 域，砍掉 Session) |
-| T-1 知识规划+大纲+提问 | ✅ 4 篇/15 问 — 232 行 KP/214 行 outline — 首轮即达 v5 标准 |
-| T-2 知识规划+大纲+提问 | ✅ 4 篇/12 问 — 198 行 KP/216 行 outline — 首轮即达 v5 标准 |
-| T-3 知识规划+大纲+提问 | ✅ 4 篇/11 问 — 含 Netty↔Tomcat Pipeline 架构对比 |
-| T-4~T-5 | ❌ 待规划 |
+| 范围规划 | ✅ 10 域 (09 审计 6→10；T-5 Session 砍除改 Mapper) |
+| KP + outlines + completeness questions | ✅ 全部完成 (10 域 / 200 问 / A-B-C-D 四节齐全) |
+| harness | ✅ 4 个红域全通过 (47/47) |
+| deep-review + temporal-trace | ✅ 完成 |
+| 深度 REVIEW | ✅ 3 轮收敛 (D1~D12 全修复) |
 
-### 5 域（3🔴 + 2🟡）
+### 10 域（4🔴 + 6🟡）
 
 | 域 | 级别 | 核心 | 篇数 | 提问 | 状态 |
 |------|:--:|------|:--:|:--:|:--:|
-| T-1 容器+Lifecycle | 🔴 | Server→Engine→Host→Context→Wrapper | 4 | 15 ✅ | ✅ v5 |
-| T-2 Connector+Adapter | 🔴 | Http11NioProtocol/CoyoteAdapter/Request/Response | 4 | 12 ✅ | ✅ v5 |
-| T-3 Pipeline+双链 | 🔴 | StandardEngineValve→WrapperValve + ApplicationFilterChain | 4 | 11 ✅ | ✅ v5 |
-| T-4 线程模型 | 🟡 | NioEndpoint(Acceptor/Poller/Worker) | 2 | 9 ✅ | ✅ v5 |
-| T-5 Mapper路由 | 🟡 | Exact/Prefix/Extension/Default 四级 | 2 | 8 ✅ | ✅ v5 |
-| T-6 ClassLoader | 🟡 | WebappClassLoader 打破双亲委派 + filter 名单 + 并行加载 | 1 | 3 ✅ | ✅ v5 |
-| T-7 SpringBoot集成 | 🟡 | TomcatServletWebServerFactory 全链路 + Customizer + 配置映射 | 2 | 3 ✅ | ✅ v5 |
+| T-1 容器+Lifecycle | 🔴 | Server→Service→Engine→Host→Context→Wrapper + Lifecycle 11 态 | 4 | 20 ✅ | ✅ 收官+harness 15/15 |
+| T-2 Connector+Adapter | 🔴 | Http11NioProtocol/NioEndpoint/CoyoteAdapter/Request/Response | 4 | 20 ✅ | ✅ 收官+harness 11/11 |
+| T-3 Pipeline+双链 | 🔴 | StandardEngineValve→WrapperValve + ApplicationFilterChain | 4 | 20 ✅ | ✅ 收官+harness 10/10 |
+| T-4 线程模型 | 🔴 | Acceptor/Poller/Worker 三线程 + maxConnections/maxThreads | 2 | 20 ✅ | ✅ 收官+harness 11/11 |
+| T-5 Mapper路由 | 🟡 | Exact/Prefix/Extension/Welcome 四级匹配 + MapperListener | 2 | 20 ✅ | ✅ 收官 |
+| T-6 ClassLoader | 🟡 | WebappClassLoaderBase 双亲委派打破 + filter + 并行加载 | 1 | 20 ✅ | ✅ 收官 |
+| T-7 SpringBoot集成 | 🟡 | TomcatServletWebServerFactory/Customizer/GracefulShutdown | 2 | 20 ✅ | ✅ 收官 |
+| T-8 HTTP报文解析 | 🟡 | HttpParser/MimeHeaders/Parameters/Cookie | 2 | 20 ✅ | ✅ 收官 |
+| T-9 WebSocket | 🟡 | WsFrameBase/WsSession/WsWebSocketContainer | 2 | 20 ✅ | ✅ 收官 |
+| T-10 集群通信+复制 | 🟡 | GroupChannel/McastServiceImpl/DeltaManager | 2 | 20 ✅ | ✅ 收官 |
 
 ### 启动命令
 
@@ -215,8 +218,8 @@ ls $BASE/catalina/core/StandardServer.java $BASE/catalina/core/StandardService.j
 
 | 阶段 | 主题 | 仓库数 | 状态 |
 |:--:|------|:--:|:--:|
-| 1 | 基础 I/O | Netty+Tomcat | Netty ✅ / Tomcat ⏳ |
-| 2 | 核心容器 | Spring Framework+Boot | ⏳ |
+| 1 | 基础 I/O | Netty+Tomcat | ✅ **55 篇 v5** |
+| 2 | 核心容器 | Spring Framework+Boot | 🔄 S1-1 ✅ / 83 域 ⏳ |
 | 3 | 数据存储 | HikariCP→MyBatis→Redis→ES | ⏳ |
 | 4 | 消息事务 | RocketMQ→Kafka→ZK→Seata | ⏳ |
 | 5 | RPC治理 | Feign→Dubbo→gRPC→Nacos | ⏳ |
@@ -256,5 +259,5 @@ ls $BASE/catalina/core/StandardServer.java $BASE/catalina/core/StandardService.j
 └── issue/
     ├── HANDOVER.md              ← 本文档
     ├── 源码分析执行计划.md        ← 完整 6 阶段计划 (32 仓库/337 域)
-    └── Tomcat源码学习范围规划.md   ← 5 域范围规划 (T-1~T-5)
+    └── Tomcat源码学习范围规划.md   ← 早期 5 域范围规划(已过时，现以 10 域收官结果和 HANDOFF-TOMCAT.md 为准)
 ```

@@ -1,52 +1,187 @@
-# 商品详情页, 你用Redis改了个价格然后刷新 — 为什么页面还显示旧价格?
+# 缓存策略 — 商品价格为什么改了，页面仍然显示旧值
 
-> Cluster B: 15 KPs | 依赖: 03-distributed-theory-architecture, 域1-一致性模型 | 读者基线: 用过Redis, 知道缓存基本概念
+> Cluster B: 15 KPs | 依赖: 03-distributed-theory-architecture、分布式理论 01 一致性模型 | 读者基线: Redis、MySQL、HTTP/CDN、缓存基础
+> 读者处境: 03 篇说明一个架构可以同时包含多种一致性；本篇把问题落到商品详情：CDN、本地缓存、Redis 和 MySQL 多层副本如何更新、失效和修复
+> 打开新视角: 缓存不是“加速开关”，而是**把数据复制到多个层，并把一致性、过期、热点和故障修复责任引入系统**
 
 ---
 
-### 1. 三层缓存架构 — 你的请求到数据到底经过了几个"缓存层"?
-  用户打开商品详情页 — CDN→Nginx本地→应用本地→Redis→MySQL, 5层缓存, 每一层都是一致性风险
-  - B3 Ch7 §3: 缓存分层 — CDN(边缘缓存, 用户最近) / Nginx本地缓存(proxy_cache, 热点页面) / 应用本地缓存(Caffeine/Guava, JVM内) / 分布式缓存(Redis/Memcached, 跨JVM共享) / 数据库(最慢最可靠)
-  - B4 Ch6 §7.1-7.2: 本地缓存 — ConcurrentHashMap(缺乏过期, 内存无界)/Guava Cache(过期策略+弱引用+LRU), 牺牲一致性换亚微秒延迟 (B4 Ch6 §7.2)
-  - 多级缓存同步: 应用本地缓存(Guava)→Redis→MySQL, 更新穿透→先删Redis→等本地缓存过期→最终一致 (B3 Ch7 §5)
-  - 关键设计: 为什么不像CPU Cache那样做缓存一致性协议? — 分布式缓存节点太多+网络开销太大, 宁愿接受最终一致也不值得维持全局序
+### 概念依赖链
 
-### 2. Redis的独特性 — 为什么不是Memcached?
-  Redis不只是个KV Store — 它的数据结构+持久化+集群让它成了微服务基础设施
-  - B1 Ch4 §3.4: Redis核心 — 数据结构(String/Hash/List/Set/ZSet/HyperLogLog/Bitmap/GEO) + 持久化(RDB全量快照+AOF增量命令, RDB-AOF混合) + 集群(主从→Sentinel→Cluster, Gossip协议)
-  - Sentinel故障转移: 主观下线(SDOWN, 单Sentinel判断)→客观下线(ODOWN, 多数Sentinel确认)→选主(根据slave-priority+复制偏移量)→failover (B4 Ch3 §7.4)
-  - Codis代理方案: Proxy层(ZK做元数据路由)+Group(每个Group=一主一从)+Dashboard, 1024个slot → hash(key)%1024定位Group (B4 Ch3 §7.5)
-  - 关键设计: Redis为什么快? — 单线程(避免锁)+内存操作+epoll多路复用+数据结构优化(ziplist/intset小数据用小结构)
+```
+03 CAP/一致性 + 01 通信/RPC → 本篇: 多级缓存/Redis/一致性/缓存三害
+  ├─ §1 CDN/本地/Redis/DB 多层缓存
+  ├─ §2 Redis 数据结构/持久化/高可用
+  ├─ §3 Cache Aside/Read Through/Write Behind
+  ├─ §4 binlog/消息/TTL/对账一致性
+  └─ §5 雪崩/穿透/击穿/热点保护
+先讲: 缓存层 → Redis → 更新模式 → 一致性修复 → 故障防御
+后续依赖: 05-message-driven(消息削峰与事件驱动)
+```
 
-### 3. 缓存更新 — Cache Aside/Read-Through/Write-Behind哪个更适合你的场景?
-  用户更新商品价格→更新MySQL→删Redis→下一个请求读MySQL→写Redis — 这是最常见的模式, 有什么问题?
-  - B3 Ch8 §3: 三大模式 — Cache Aside(应用控制, 读缓存Miss→读DB→写缓存, 写DB→删缓存), Read/Write Through(缓存层对应用透明, 缓存自己负责读写DB), Write Behind(先写缓存→异步批量写DB, 性能最高但一致性最差)
-  - Cache Aside陷阱: 先删缓存再写DB→并发读到旧数据写缓存→脏数据 → 延时双删(写DB→等N ms→再删一次缓存) 或 先写DB再删缓存(并发可能短暂脏, 但最终对) (B3 Ch9 §3)
-  - 延时双删的"延时"怎么定? — 统计从写DB到读请求可能写缓存的最长时间, 取p99 + buffer, 典型值200-500ms (B3 Ch9 §3.2)
-  - 关键设计: Cache Aside模式的本质=应用层承担一致性责任 — 缓存层不做保证, 应用开发者决定何时操作缓存
+### 叙事顺序
 
-### 4. 缓存一致性 — binlog异步方案为什么比延时双删更可靠?
-  延时双删的假设(延时够长)在生产环境常会被长事务/慢请求打破
-  - B3 Ch9 §4: binlog异步方案 — Canal(阿里开源)伪装MySQL Slave→接收binlog→解析→发MQ→消费者删除对应缓存 → 基于数据库权威数据源(master), 不依赖估算延时
-  - 流程详解: INSERT/UPDATE/DELETE→MySQL写binlog→Canal解析ROW→发现order表变更→MQ(order_cache_invalidate topic)→消费者执行DEL order:123→缓存失效 (B3 Ch9 §4.2-4.4)
-  - B3 Ch9 §5: 自动过期+失败补偿 — 即使binlog方案也可能失败(Canal宕机/MQ丢失) → Redis TTL兜底(1h后自动过期) + 定时对账(对比DB和Redis数据)
-  - 关键设计: 缓存一致性最高保证=最终一致+TTL兜底+对账修复 — 三层防御, 承认"100%强一致在缓存层不可能"
+1. 问题引入——MySQL 价格已经更新，页面却仍显示旧价格；数据到底经过了几层缓存？
+2. 多级缓存——CDN、代理、本地、Redis、数据库
+3. Redis——数据结构、持久化与高可用
+4. 缓存更新——Cache Aside/Through/Behind
+5. binlog/消息/TTL/对账——最终一致修复
+6. 雪崩/穿透/击穿/热点——缓存故障防御
+7. 收束
 
-### 5. 缓存三剑客 — 雪崩/穿透/热点, 各怎么防?
-  你Redis容量是100GB, 缓存了200万商品 — 一个热点商品1秒被刷100万次
-  - B3 Ch8 §4: 缓存雪崩 — 大量缓存同时过期→全部打DB → 过期时间加随机(0~N分钟)→多级缓存(Guava+Redis, Guava TTL短+本地内存)
-  - B3 Ch8 §5: 缓存穿透 — 大量查询不存在的数据(如"id=-1")→每次穿透→打DB → 缓存空值(TTL短,5min)+布隆过滤器(可能存在→DB, 一定不存在→直接返回, 省DB查询) [案例: Google Bigtable用布隆过滤器检查RowKey是否存在, 减少不必要的磁盘SSTable读取]
-  - B3 Ch8 §6: 热点数据 — 多个Key到同一个Redis节点→单节点被打爆 → 前置缓存(应用本地Guava 1min TTL, 挡住99%请求)+热点散列(key_1, key_2, ..., key_N副本分散到不同节点) (B3 Ch8 §6)
-  - 关键设计: 缓存三剑客的防御层次 — 穿透(布隆过滤器)→热点(本地缓存+散列)→雪崩(TTL随机+多级), 不是一把梭
+### 1. 多级缓存 — 一次读请求可能经过五个副本
 
-### 6. 收束 — 回到商品详情页的价格更新
-  - 你改MySQL→删Redis→Canal异步再删→TTL过期兜底, 最终一致的时间窗口=p99延迟+异步补偿延迟+TTL
-  - 5层缓存×多级一致性=根本没有全局强一致 — 接受这个现实, 用TTL+对账+最终一致打底
-  - 缓存不是性能优化, 是架构决策 — 引入缓存就意味着接受最终一致性
+场景提示: 用户刷新商品详情，CDN、Nginx、本地 Caffeine、Redis、MySQL 哪一层返回了旧值？ [写作时展开]
+
+关键设计: 缓存层越多，读延迟越低的机会越大，但一致性和失效传播越复杂：
+
+```[pseudocode]
+request
+  → CDN/edge?
+  → reverse proxy cache?
+  → application local cache?
+  → Redis/distributed cache?
+  → MySQL authoritative data
+
+update:
+  DB updated
+  → invalidate/refresh Redis
+  → invalidate local cache/CDN
+  → each layer has its own TTL/propagation delay
+```
+
+Why: 为什么不能像 CPU cache 一样在所有业务缓存上实现简单全局一致协议？——**缓存层跨进程、跨机器、跨供应商和跨网络，失效消息本身也可能延迟/丢失/重复**；工程上通常选择明确的最终一致窗口、TTL、版本号和对账，而不是为每层维持昂贵的全局序。 [分布式理论: 缓存一致性属于操作级 SLA，不能只写“最终一致”而不写窗口和修复]
+
+比喻锚点: 多级缓存像多地书店都存了一本商品目录；总部改价后，要通知每家书店换页，任何一家延迟都会让顾客看到旧价格。 [写作时展开]
+
+### 2. Redis — 数据结构、持久化和高可用是三种不同能力
+
+场景提示: 为什么 Redis 不只是“一个更快的 Map”，它还能承担队列、集合、限流和分布式缓存？ [写作时展开]
+
+关键设计: Redis 的价值来自数据结构、内存模型和高可用/持久化组合：
+
+```[pseudocode]
+数据结构:
+  String/Hash/List/Set/ZSet
+  HyperLogLog/Bitmap/Geo 等
+
+持久化:
+  RDB snapshot
+  AOF command log
+  混合/配置策略
+
+高可用:
+  replication
+  Sentinel failover
+  Cluster sharding
+
+使用前:
+  明确数据丢失窗口、故障切换、淘汰和内存上限
+```
+
+Why: 为什么 Redis“快”不能简单归因于单线程？——**内存数据结构、事件循环、网络 I/O、命令复杂度、持久化 fork、慢命令和单线程热点都会影响结果**；高可用也会带来复制延迟、故障切换窗口和数据丢失语义。Redis Sentinel/Cluster/Codis 的拓扑和一致性模型不是同一件事。 [系统性能: Redis 延迟要结合命令复杂度、事件循环、内存、网络和持久化观测]
+
+比喻锚点: Redis 像前台高速货架，取货快但容量有限；RDB/AOF 是库存快照/流水，Sentinel/Cluster 是备用店和分仓。 [写作时展开]
+
+### 3. Cache Aside、Read/Write Through、Write Behind — 谁负责一致性
+
+场景提示: 更新商品价格时，先写数据库还是先删缓存？不同缓存模式把责任交给谁？ [写作时展开]
+
+关键设计: 三种模式的关键差异是“数据库读写由谁触发、缓存如何承诺一致”：
+
+```[pseudocode]
+Cache Aside:
+  read miss → 应用读 DB → 写 cache
+  update → 应用写 DB → invalidate cache
+
+Read/Write Through:
+  应用调用 cache
+  → cache 层负责回源/写 DB
+
+Write Behind:
+  应用先写 cache
+  → cache 异步批量写 DB
+  → 性能高, 崩溃/丢失/延迟风险更高
+```
+
+Why: 为什么延时双删不是严格一致方案？——**它依赖“延时足够覆盖并发读写窗口”的经验假设，慢请求、长事务、GC、网络抖动都可能超出估计**；先写 DB 再删 cache 通常更容易收敛，但并发读仍可能短暂写入旧值。版本号、消息失效和对账比单纯 sleep 更可验证。 [分布式理论: 02 网络模型/09 可靠消息的重试与幂等边界在缓存更新中同样存在]
+
+比喻锚点: Cache Aside 像应用自己管理书店库存；Through 像仓库管理员统一补货；Write Behind 像先在前台记订单、晚些时候再入总账，速度快但断电风险更大。 [写作时展开]
+
+### 4. binlog、消息、TTL 与对账 — 把缓存最终修回来
+
+场景提示: 更新数据库后，应用进程在删除 Redis 前宕机，怎样避免缓存永久脏掉？ [写作时展开]
+
+关键设计: 用数据库变更日志作为权威事件源，再通过消息和周期对账形成多层防线：
+
+```[pseudocode]
+DB transaction commit
+  → binlog
+  → CDC/Canal parser
+  → cache invalidation topic
+  → consumer DEL/refresh key
+
+失败防线:
+  message retry/idempotency
+  Redis TTL
+  periodic reconciliation(DB vs cache)
+  version/timestamp check
+
+最终一致窗口:
+  DB commit → event delivery → cache consumer
+  + retry/backoff + TTL/repair delay
+```
+
+Why: 为什么 binlog 异步失效仍不能承诺 100% 强一致？——**CDC、MQ、消费者和 Redis 都可能失败/重复/延迟，且 CDN/本地缓存还可能在更上层保留旧值**；可靠系统不是假装没有窗口，而是把窗口、重试、TTL、对账和告警明确化。 [系统性能/可观测性: 事件延迟、消费者积压和对账差异要纳入指标]
+
+比喻锚点: binlog 是总部出库流水，消息是通知各门店换价签；通知失败时 TTL 是自动过期，对账是夜间盘点。 [写作时展开]
+
+### 5. 雪崩、穿透、击穿与热点 — 四类缓存故障不是一回事
+
+场景提示: Redis 有 100GB 容量，为什么仍可能被一个热点 key、一次批量过期或恶意不存在 ID 打垮？ [写作时展开]
+
+关键设计: 不同故障要用不同防线：
+
+```[pseudocode]
+雪崩:
+  大量 key 同时过期/缓存集群故障
+  → TTL jitter/预热/多级缓存/限流/降级
+
+穿透:
+  查询大量不存在 key
+  → 空值短 TTL/Bloom filter/参数校验
+
+击穿:
+  一个热点 key 过期
+  → singleflight/互斥重建/逻辑过期
+
+热点:
+  单 key/分片被极高频访问
+  → 本地缓存/热点副本/分片散列/限流
+```
+
+Why: 为什么不能用“加 Redis 节点”解决所有缓存问题？——**雪崩是时间集中，穿透是无效请求，击穿是单 key 重建竞争，热点是访问分布偏斜**；扩容只可能改善容量，不自动解决回源风暴、重建并发和恶意参数。防御方案也会引入旧值、内存、锁和一致性代价。 [分布式架构: 缓存防护必须和限流、熔断、降级、消息/数据库容量一起设计]
+
+### 6. 收束
+
+商品价格更新链路：
+
+```[pseudocode]
+write DB
+  → commit/binlog
+  → invalidate Redis/local/CDN
+  → read miss 回源 DB
+  → 重建 cache
+  → TTL/对账修复残留差异
+```
+
+**Aha Moment**: "引入缓存就等于复制数据；**每复制一层，就新增一条失效、延迟、故障和修复路径**。缓存的正确设计不是追求绝对强一致，而是让不一致窗口、用户语义、兜底和修复都可测量。"
+**回答读者三问**: ①缓存为什么显示旧值=多层副本失效传播不同步；②延时双删为什么不可靠=依赖时间窗口；③四类缓存故障怎么区分=雪崩/穿透/击穿/热点的触发机制不同。
 
 ---
 
 ### 核心悬念
-**"缓存帮你扛住了100万QPS读, 但秒杀时的下单请求(BURST写)怎么处理 — 数据库每秒只能写5000条?"**
 
-→ 引出 消息驱动: MQ的削峰填谷+异步解耦+事件驱动架构 (05-message-driven)
+**"缓存扛住了读流量，但秒杀写请求瞬间超过数据库容量；消息队列如何削峰、解耦和保证最终一致？"**
+
+→ 引出 05-message-driven — 消息驱动、削峰填谷与事件驱动架构。

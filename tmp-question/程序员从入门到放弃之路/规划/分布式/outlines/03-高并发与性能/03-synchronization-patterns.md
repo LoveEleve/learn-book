@@ -1,51 +1,199 @@
-# 主线程在等所有子任务 — 但你确定能等到吗?
+# 并发同步模式 — AQS、Latch、Barrier、Future 与分阶段协作如何避免永久等待
 
-> Cluster A: 9 KPs | 依赖: 01-concurrency-foundation, 02-concurrent-data-structures | 读者基线: 用过CountDownLatch/CyclicBarrier但不清楚区别和进阶用法
+> Cluster A: 9 KPs | 依赖: 01-concurrency-foundation、02-concurrent-data-structures | 读者基线: CountDownLatch/CyclicBarrier、线程池、CAS
+> 读者处境: 线程和并发容器已经建立；本篇回答线程怎样协调开始/结束/许可、异步任务怎样合并，以及等待超时/参与者失败时如何避免整个系统卡死
+> 打开新视角: 同步器解决的不是同一个问题：**互斥保护共享状态，协调器表达阶段/许可/完成条件，异步组合表达依赖图**
 
 ---
 
-### 1. AQS — 所有同步器的"操作系统"
-  你翻看CountDownLatch、Semaphore、ReentrantLock的源码, 发现它们都继承AQS — 这套框架到底做了什么?
-  - AQS本质: state(volatile int, 同步状态)+CLH队列(双向链表, 自旋等待)+模板方法(tryAcquire/tryRelease子类实现) (B1 Ch5 §5.3)
-  - 独占vs共享: 独占(ReentrantLock: state=1有线程持有)→共享(Semaphore: state=N有N个许可, CountDownLatch: state=count倒数) [理论: AQS通过state语义区分独占和共享 — state的CAS更新定义了"获取"和"释放"的含义]
-  - 入队出队: lock竞争失败→addWaiter(创建Node节点CAS入队尾)→acquireQueued(自旋检查是否前驱是head+tryAcquire)→park()阻塞→unparkSuccessor唤醒后继 (B1 Ch5 §5.3)
-  - 关键设计: 为什么自旋一定次数后会park? — 自旋消耗CPU但低延迟, park不耗CPU但高延迟, 自旋次数=上下文切换时间/每次自旋时间 作为平衡点
+### 概念依赖链
 
-### 2. CountDownLatch vs CyclicBarrier — 同样的"等待", 完全不同的语义
-  你用CountDownLatch等10个线程完成, 换成CyclicBarrier代码编译通过但行为全变了 — 发生了什么?
-  - CountDownLatch: 一次性, 一个/多个线程等待N个事件完成→countDown()减一→await()等state=0 — 门闩放下一去不回 (B1 Ch5 §5.3)
-  - CyclicBarrier: 可复用, N个线程互相等待→await()等所有线程到达→barrier action(可选回调)→唤醒所有人→重置count — 栅栏(循环使用) (B1 Ch5 §5.3)
-  - 典型场景: Latch = 主线程等5个子任务结果汇总(一次性); Barrier = 多线程分阶段计算, 每一阶段同步后进入下一阶段 (B1 Ch5 §5.3)
-  - 关键设计: CyclicBarrier的broken状态 — 如果有线程await超时, barrier被标记为broken, 所有等待线程收到BrokenBarrierException — 防止部分线程完成部分线程卡住
+```
+01 并发基础 + 02 并发容器 → 本篇: Java同步与异步编排
+  ├─ §1 AQS(state/等待队列/独占共享)
+  ├─ §2 CountDownLatch/CyclicBarrier(一次性/循环阶段)
+  ├─ §3 Semaphore/ReadWriteLock(许可与共享访问)
+  ├─ §4 CompletableFuture(依赖组合/异常)
+  └─ §5 ForkJoinPool/Phaser(工作窃取/动态阶段)
+先讲: AQS底层 → 固定协调器 → 许可 → 异步依赖 → 动态阶段
+后续依赖: 04-traffic-management(限流/熔断/隔离)
+```
 
-### 3. Semaphore — 你用它做限流, 但它是共享的非独占锁
-  你给一个服务加Semaphore(10)限流 — 第11个请求进来怎么处理?
-  - Semaphore: state=permits — acquire()递减, release()递增 — 公平/非公平(默认)两种模式 (B1 Ch5 §5.3, B5 Ch6 §6.6)
-  - Semaphore vs 固定线程池限流: Semaphore控制并发访问数(线程池线程可复用→Semaphore控制同时访问DB的数量), 线程池控制线程数 [工程: Semaphore控制数据库连接并发 — 连接池20个连接但Semaphore(10)限制同时执行查询的线程数, 减少DB压力]
-  - Semaphore vs AtomicInteger计数: Semaphore自带阻塞等待(acquire), AtomicInteger需要自己写循环检查 — 前者是同步器, 后者是计数变量
-  - ReadWriteLock本质: 读锁=共享Semaphore, 写锁=独占Semaphore — state高16位读计数+低16位写计数, 同一个AQS框架
+### 叙事顺序
 
-### 4. CompletableFuture — 链式编排替代回调地狱
-  你需要调服务A→用结果调B和C→用B和C的结果调D — 同步写法串行太慢, 回调写法嵌套太深。
-  - 核心方法: thenApply(转换)→thenCompose(flatMap扁平化)→thenCombine(两个Future合并)→allOf(等所有完成)→anyOf(等任意完成)→exceptionally(异常恢复) (B1 Ch5 §5.1, B5 Ch8 §8.4)
-  - 线程池选择: 默认ForkJoinPool.commonPool() — 但IO密集型任务应该用自定义线程池(避免阻塞commonPool影响其他CompletableFuture) (B4 Ch5 §5.3)
-  - 异常处理模式: exceptionally(同步恢复)→handle(访问结果+异常两者)→whenComplete(最终执行, 不改变结果) [案例: 电商下单 — CompletableFuture.allOf(checkInventory(), checkCoupon(), checkAddress())→thenCombine(totalPrice)→thenCompose(createOrder)]
-  - 关键设计: thenCompose vs thenCombine — thenCompose = flatMap(一个Future的输出是下个Future的输入), thenCombine = 两个独立Future然后合并
+1. 问题引入——主线程等待子任务、多个阶段同步和服务并行调用，怎样避免一人失败全员永久等待？
+2. AQS——同步器的状态与等待队列
+3. Latch/Barrier——一次性与循环阶段
+4. Semaphore/ReadWriteLock——许可和共享访问
+5. CompletableFuture——异步依赖图
+6. ForkJoinPool/Phaser——工作窃取和动态参与者
+7. 收束
 
-### 5. ForkJoinPool与Phaser — 工作窃取与多阶段同步
-  你的递归任务有时子任务做完了但父任务在等, 有时子任务还没做父任务就提前结束了 — 谁偷了谁的任务?
-  - ForkJoinPool: 工作窃取算法 — 线程完成自己的任务后从其他线程队列尾部"偷"任务, 双端队列(owner从头部取, 窃取者从尾部偷) (B4 Ch5 §5.3)
-  - Phaser: 多阶段CountDownLatch+CyclicBarrier结合体 — phase(当前阶段)→arriveAndAwaitAdvance(到达并等下一阶段)→arriveAndDeregister(到达并注销) — 动态注册/注销参与者 (B1 Ch5 §5.3)
-  - 关键设计: ForkJoin分治的临界点 — 任务太小: 调度开销>计算开销; 任务太大: 工作窃取无法展开。通过RecursiveTask的compute()中判断是否直接compute还是fork
+### 1. AQS — 状态变量与等待队列的同步框架
 
-### 6. 收束 — 同步模式的本质是"协调", 锁模式的本质是"互斥"
-  - Latch/Barrier/Semaphore/CompletableFuture解决的是"谁等谁、等多久、等什么" — 协调型同步
-  - Lock/synchronized解决的是"谁先来谁后到、一次一个" — 互斥型同步
-  - 分布式场景下协调型同步的挑战远大于互斥 — 超时(这个线程可能没死只是慢)、网络分区(我看不到它但它做了)
+场景提示: CountDownLatch、Semaphore、ReentrantLock 看起来用途不同，为什么底层都能共享 AQS 思路？ [写作时展开]
+
+关键设计: AQS 提供 state、队列和模板方法，子类定义 state 的业务语义：
+
+```[pseudocode]
+state:
+  volatile/int-like synchronization state
+
+acquire:
+  tryAcquire/tryAcquireShared 成功?
+    是 → 继续
+    否 → Node 入等待队列
+        → park()
+        → 前驱释放/状态变化
+        → unpark/重新尝试
+
+release:
+  tryRelease/tryReleaseShared
+  → 状态改变
+  → 唤醒后继
+
+独占:
+  一个持有者
+共享:
+  多个许可/读者/计数参与者
+```
+
+Why: 为什么等待线程不一直自旋？——**自旋低延迟但消耗 CPU，park 省 CPU 但唤醒有调度成本**；具体自旋/阻塞策略由实现、竞争时间和 JVM/OS 共同决定，不能固定写死“自旋多少次最优”。 [JVM/系统编程: AQS 是 Java 层框架，底层 park/unpark 与 OS 调度和 futex 路径相关]
+
+比喻锚点: AQS 像排队系统模板：state 是窗口容量，队列是候场名单，具体同步器决定“一个人进、几张票或倒数到零”。 [写作时展开]
+
+### 2. CountDownLatch 与 CyclicBarrier — 一次性完成条件与循环阶段
+
+场景提示: 等 10 个子任务结束和让 10 个线程在每轮计算后同时出发，为什么不能互换这两个类？ [写作时展开]
+
+关键设计: 两者等待对象和生命周期不同：
+
+```[pseudocode]
+CountDownLatch(count):
+  worker countDown()
+  coordinator await()
+  count=0 → 永久打开
+  → 一次性完成条件
+
+CyclicBarrier(parties):
+  每个参与者 await()
+  全部到达 → barrier action/唤醒
+  → phase 重置, 可重复使用
+  → 参与者数量通常固定
+
+异常:
+  timeout/interrupt/参与者失败
+  → barrier 可能 broken
+  → 等待者收到异常, 必须处理恢复
+```
+
+Why: 为什么 Barrier 的 broken 状态很重要？——**如果一名参与者永远不来，其他线程不能无限假设阶段仍能完成**；超时/中断会让所有参与者知道本轮不能继续。Latch 的计数也不会自动因为线程异常而减少，任务必须在 finally/监督逻辑中报告完成或失败。 [Java: 同步器等待/中断/超时语义必须进入业务状态机]
+
+比喻锚点: Latch 是一次性开门闩，Barrier 是每轮都要等齐的集合点；有人掉队，集合点必须宣布本轮失效。 [写作时展开]
+
+### 3. Semaphore 与 ReadWriteLock — 许可控制不等于互斥锁
+
+场景提示: 数据库连接池有 20 个连接，为什么还可能用 Semaphore(10) 限制同时执行查询？ [写作时展开]
+
+关键设计: Semaphore 控制并发许可，ReadWriteLock 则表达读共享/写独占：
+
+```[pseudocode]
+Semaphore(permits):
+  acquire → permits--
+  release → permits++
+  → 可公平/非公平
+  → 许可耗尽时等待/超时/失败
+
+ReadWriteLock:
+  read lock → 多个读者共享
+  write lock → 独占
+  → 适合明确读写比例与一致性协议
+
+对比:
+  thread pool 控制执行线程
+  connection pool 控制连接资源
+  semaphore 可进一步限制某段临界资源并发
+```
+
+Why: 为什么 Semaphore 不是“连接池的替代品”？——**它只控制许可，不提供连接创建、借还、验证和生命周期**；许可数还需和真实数据库容量、事务时长、连接池大小配合。公平性也可能降低吞吐，非公平可能造成等待者不均。 [系统性能: Semaphore 是局部背压器，不能替代完整资源池]
+
+### 4. CompletableFuture — 用依赖图替代回调嵌套
+
+场景提示: 订单请求要并行查库存、优惠券、地址，再合并结果；怎样避免同步串行和回调地狱？ [写作时展开]
+
+关键设计: CompletableFuture 通过转换、扁平化、组合和异常阶段表达异步依赖：
+
+```[pseudocode]
+thenApply:
+  value → transform value
+
+thenCompose:
+  value → async Future
+  → flatMap, 避免 Future<Future<T>>
+
+thenCombine:
+  Future A + Future B → merge result
+
+allOf/anyOf:
+  等全部/任一完成
+
+exceptionally/handle/whenComplete:
+  分别表达恢复、同时访问结果/异常、最终观察
+```
+
+Why: 为什么 CompletableFuture 链容易“看起来异步，实际阻塞”？——**默认执行器、thenApply 是否运行在调用线程、阻塞 I/O 是否占用 common pool、异常是否被吞掉都会改变行为**；I/O 密集任务通常需要有界、可观测的自定义 executor，并设置 deadline/取消语义。 [Java: Future 完成图的线程执行器和异常传播必须按 API 方法区分]
+
+### 5. ForkJoinPool 与 Phaser — 工作窃取和动态阶段
+
+场景提示: 递归任务有时父任务一直等子任务，或者阶段参与者数量动态变化；哪些同步器适合？ [写作时展开]
+
+关键设计: ForkJoinPool 用工作窃取提高分治任务利用率，Phaser 支持动态注册与多阶段推进：
+
+```[pseudocode]
+ForkJoin:
+  worker local deque
+  → owner 取本地任务
+  → 空闲 worker 从其他队列窃取
+  → fork/join 分治
+
+任务粒度:
+  太小 → 调度/窃取开销超过计算
+  太大 → 并行度不足
+
+Phaser:
+  register parties
+  arrive/await advance
+  arriveAndDeregister
+  → phase 递进/参与者动态变化
+```
+
+Why: 为什么把阻塞 I/O 直接塞进 common ForkJoinPool 很危险？——**工作窃取池假设任务适合计算并行，阻塞会占住 worker、降低其他任务进展**；分治任务也要有合理 cutoff，Phaser 必须处理参与者异常退出和 phase 永久等待。 [系统性能: 工作窃取优化的是可分割计算，不是所有阻塞任务]
+
+### 6. 收束
+
+同步/异步模式：
+
+```[pseudocode]
+AQS:
+  提供状态/队列/阻塞模板
+
+Latch/Barrier/Phaser:
+  阶段与完成条件
+
+Semaphore/Lock:
+  许可/互斥/读写协议
+
+CompletableFuture/ForkJoin:
+  异步依赖与计算调度
+```
+
+**Aha Moment**: "同步器的本质不是“哪个类更高级”，而是**明确谁在等谁、等什么条件、等待多久、参与者失败怎么办，以及等待成本放在 CPU 还是队列**。"
+**回答读者三问**: ①Latch/Barrier 差在哪=一次性完成与循环阶段；②Semaphore 是锁吗=它是许可控制，可允许多方进入；③Future 为什么会阻塞=执行器/阻塞任务/异常和取消语义可能把异步图重新变成等待。
 
 ---
 
 ### 核心悬念
-**"限流说令牌桶好, 漏桶说稳定好, 但你的系统在双11峰值是平时的100倍 — 什么算法能让系统不崩也不浪费资源?"**
 
-→ 引出 流量管理: 限流四算法+自适应+熔断降级+隔离 — 从理论到Sentinel再到双11实战 (04-traffic-management)
+**"限流算法如何在峰值保护系统，令牌桶、漏桶、滑动窗口和自适应限流又怎样与熔断、降级、隔离协作？"**
+
+→ 引出 04-traffic-management — 限流算法、自适应保护、熔断降级与隔离。

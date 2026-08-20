@@ -1,47 +1,176 @@
-# 源码级调优 — 循环/SIMD/缓存布局/机器码 + 多线程优化
+# 源码级调优 — 循环、SIMD、缓存布局、机器码与多线程如何逐步验证
 
-> Cluster D: 4 KPs | 依赖: 07-wait-analysis-optimization | 读者基线: 会用 perf annotate + 懂 IPC/缓存行
+> Cluster D: 4 KPs | 依赖: 07-wait-analysis-optimization | 读者基线: perf annotate、IPC/cache、等待分析
+> 读者处境: 07 篇已经把慢拆成执行、缓存、锁和队列；本篇进入代码改变：如何从循环、数据布局、机器码和多线程结构入手，并用同一 workload 证明收益
+> 打开新视角: 源码优化不是“加 `-O3` 或塞 padding”，而是**先确认瓶颈，再改变代码/数据/布局，最后用汇编、PMU 和业务基准验证副作用**
 
 ---
 
-### 1. 循环优化 — 展开/向量化SIMD/分支消除
-  - 循环展开(unrolling): `for(i=0;i<N;i+=4) a[i]+=b[i];a[i+1]+=b[i+1];...` → 减少分支+循环变量计算 → 1.5-2x → 太多则ICache压力大 (CPU性能分析 Ch9 §1-5)
-  - 自动向量化: `gcc -O3 -march=native -ftree-vectorize` → 检查 `-fopt-info-vec` 报告 → 为什么vectorized不成功(指针别名/struct padding/类型不匹配) (CPU性能分析 Ch9 §1-5)
-  - 手动 SIMD intrinsics: `_mm_loadu_ps / _mm_add_ps`(SSE) / `_mm256_loadu_si256`(AVX2) / `_mm512_*`(AVX-512) → data alignment 必须 32/64B
-  - 分支消除: 用查找表(256-entry array)或 `cmov` 替换 `if` → 消除分支预测失败惩罚(20cycles) → for random data 可2x加速 (CPU性能分析 Ch10 §1-4)
-  - `perf annotate`: 检查热循环是否向量化 → 查看 SIMD 指令占比 → 没看到 v* 指令→为什么没向量化
+### 概念依赖链
 
-### 2. 缓存友好数据结构 — 顺序/打包/重排/大页
-  - 顺序访问: `array[i]` 是 cache-friendly, 链表 `p = p->next` 是 cache-hostile → 尽量使用紧凑数组/栈分配 (CPU性能分析 Ch8 §1-5)
-  - 打包: `struct { 填满热字段, 字段按使用频率排序, 减少padding }` → `pahole` 分析 → `__attribute__((packed))` 当确实需要
-  - 数组结构重排: `AoS` (struct of array-of-struct) → `SoA` (array-of-struct fields) → SoA 对 SIMD 友好(GPU style)
-  - 动态分配: `malloc` + 首次访问(page fault) → 延迟200ns+(冷) vs 0.5ns(热L1命中) → 大批量alloc的缓存友好: `calloc` 零页复用
-  - 大页(Huge Pages): 2MB页降低TLB miss → `echo always > /sys/kernel/mm/transparent_hugepage/enabled` → `perf stat -e dtlb_load_misses` 大页降低70% miss
+```
+07 等待分类/TMA/cache → 本篇: 源码级调优
+  ├─ §1 循环/SIMD/分支(减少指令与控制流成本)
+  ├─ §2 缓存友好布局(AoS/SoA/访问局部性/页)
+  ├─ §3 机器码布局(热冷路径/FDO/BOLT)
+  └─ §4 多线程(伪共享/一致性/扩展性/因果分析)
+先讲: 循环 → 数据 → 代码布局 → 并发共享
+后续依赖: 阶段6 eBPF(可编程观测与数据面优化)
+```
 
-### 3. 机器码布局 — 基本块/对齐/FDO/ITLB
-  - 基本块排列: 将热路径基本块相邻放置 → 热路径紧凑→ICache hit → `__attribute__((hot))`/`__attribute__((cold))` 声明 (CPU性能分析 Ch11 §1-9)
-  - 函数拆分: hot-code 在函数头, cold-code(错误处理/init)在函数尾 → ld linker `--function-sections` + `--gc-sections` 丢弃未引用代码
-  - 对齐: `-falign-loops=32`/`-falign-functions=32` → 避免 loop body 跨fetch line → 对齐可能增大代码大小(ICache折衷)
-  - FDO(Feedback-Directed Optimization): `gcc -fprofile-generate` → 跑代表性负载 → `gcc -fprofile-use -O3` → 编译器自动热/冷函数重新排列
-  - BOLT(二进制优化布局): meta/LLVM 的后link优化 → 不重编译 → 根据profiling数据把热基本块聚到一起 → 3-15% 性能提升
-  - ITLB: 代码大小超过大页→ITLB miss penalty → `perf stat -e itlb_misses.miss_causes_a_walk` → 拆大函数或使用大页代码内存
+### 叙事顺序
 
-### 4. 多线程优化 — 伪共享/扩展性/缓存一致性
-  - 伪共享(False Sharing): 两个线程写不同的cache-line字段 ⇒ 缓存一致协议互相invalidate ⇒ cache-line bouncing (CPU性能分析 Ch13 §1-5)
-  - 检测: `perf c2c record -p PID -- sleep 10` → `perf c2c report` → `%hitm`(修改命中率)>0.1% 就是伪共享
-  - 解决: `__aligned__(64)` 或 `char padding[64]` → 或把频繁冲突的字段分到不同 slot 数组
-  - 扩展性(Amdahl): 10核并行但共享锁 → 加速比暴跌 → `perf lock report` 找 Amdahl 的瓶颈锁
-  - 缓存一致性: MESI states → 多核同时读=共享(ok), 交替写=inv(costly) → `perf stat -e l2_rqsts.all_rfo`(读所有权请求,是inv信号)
-  - Coz 因果剖析: 虚拟加速 → 假想"如果lock的时间减半, 整体吞吐上升多少？" → 不同于 profiling(找热点), coz 找"你想优化的有没有道理"
+1. 问题引入——perf 证明热点在一个循环，为什么改写循环后可能从 CPU bound 变成 cache bound？（**Aha: 优化不是消灭成本，而是把瓶颈推向另一个位置，所以每次改动都要重新测量**）
+2. 循环、SIMD、分支——减少指令和控制流
+3. 数据结构与缓存——减少数据等待
+4. 机器码布局——减少取指和 ITLB 压力
+5. 多线程与伪共享——减少跨核一致性流量
+6. 收束——源码改动到证据闭环
+
+### 1. 循环、SIMD 与分支 — 先减少“执行太多”
+
+场景提示: 一个热循环占了 40% CPU，应该展开、向量化还是消除分支？ [写作时展开]
+
+关键设计: 循环优化要同时考虑指令数、向量宽度、分支可预测性、代码大小和编译器是否真的采纳：
+
+```[pseudocode]
+循环展开:
+  减少循环控制与分支次数
+  → 可能增加代码大小/寄存器压力
+
+自动向量化:
+  gcc/clang 优化选项 + vectorization report
+  → 检查别名、依赖、对齐、类型和剩余循环
+
+手动 intrinsics:
+  SSE/AVX/AVX-512 等
+  → 按目标 CPU 特性编译/运行
+  → 处理对齐、尾部元素和降级路径
+
+分支:
+  先用 branch-misses 与数据分布确认问题
+  → 再考虑查表、cmov、SIMD 或数据重排
+```
+
+Why: 为什么循环展开不保证 2 倍加速，`-O3` 也不保证向量化？——**展开可能受 I-cache、寄存器和前端供给限制，向量化可能被别名/依赖/成本模型拒绝，分支替换也可能增加内存访问**。必须看编译器报告、汇编、PMU 和真实 workload；不能用“看到 `v*` 指令”作为唯一正确性标准。 [内核: CPU 指令集与 PMU 事件依赖目标架构；`perf annotate` 只能解释实际生成代码]
+
+比喻锚点: 循环优化像把工人动作批量化：少做几次点名会更快，但如果批次太大导致工具和材料堆满工作台，整体反而变慢。 [写作时展开]
+
+### 2. 缓存友好数据结构 — 让数据更容易被取到
+
+场景提示: 两段代码执行相同数量的操作，数组顺序扫描为什么常比链表随机追指针快？ [写作时展开]
+
+关键设计: 数据布局影响 cache line、预取、TLB 和 SIMD 访问：
+
+```[pseudocode]
+访问局部性:
+  顺序/紧凑数组 → 更容易预取、较少随机 miss
+  指针链 → 依赖链 + 随机地址 + 预取困难
+
+AoS:
+  [{hot,cold}, {hot,cold}, ...]
+  → 只用 hot 时也搬入 cold
+
+SoA:
+  hot[] + cold[]
+  → 热循环只扫描需要的字段
+
+结构体布局:
+  pahole/sizeof/offsetof 检查 padding
+  → 不能为了紧凑盲目 packed, 未对齐访问可能更慢/不安全
+
+页/TLB:
+  大页可能减少 TLB 压力
+  → 但会改变内存分配、碎片、隔离和回收成本
+```
+
+Why: 为什么不能把 `__attribute__((packed))` 或“开 2MB 大页”当作通用优化？——**未对齐访问、代码/数据大小、页表、NUMA、THP 策略和 workload 都会改变结果**；缓存友好必须用 cache/TLB/带宽计数和业务基准验证。大页减少 TLB miss 的收益也不是固定百分比。 [内核: THP/hugetlb、NUMA 分配和页回收由内核策略共同决定，应用布局只是其中一环]
+
+比喻锚点: 数据结构像仓库货架：把常用物品放在一起能少走路，但为了整齐把所有东西压成一个箱子，可能让不需要的货也一起搬运。 [写作时展开]
+
+### 3. 机器码布局 — 热路径短，不代表所有代码都挤在一起
+
+场景提示: 函数逻辑已经优化，CPU 仍有 Frontend/ITLB 压力；代码在内存里的排列会影响执行吗？ [写作时展开]
+
+关键设计: 编译器和链接器可以根据真实 profile 调整热冷函数/基本块布局：
+
+```[pseudocode]
+热/冷分离:
+  正常路径紧凑放置
+  错误/初始化/低频路径移出
+
+对齐:
+  loop/function alignment 可能减少取指跨界
+  → 代价是 padding 增大代码体积
+
+FDO/PGO:
+  profile-generate
+  → 运行代表性 workload
+  → profile-use 重新编译热冷布局
+
+BOLT 等 post-link 优化:
+  读取二进制运行 profile
+  → 重排函数/基本块
+  → 不改变源码语义, 仍需回归验证
+```
+
+Why: 为什么 `__attribute__((hot))` 不是机器码布局优化的替代品？——**它只是编译器提示，最终效果受编译器、链接器、代码大小和 profile 真实性影响**；FDO/BOLT 的收益也依赖代表性 workload，错误 profile 可能把优化方向带偏。`--gc-sections` 主要用于移除未引用 section，不等于自动把热路径排到最优位置。 [内核: ITLB/I-cache 事件和 perf annotate 可验证布局变化是否影响前端供给]
+
+比喻锚点: 机器码布局像把超市热销品放在入口，冷门品放到仓库深处；布局能减少走路，但前提是你真的知道哪些商品热销。 [写作时展开]
+
+### 4. 多线程、伪共享与因果分析 — 并行也会互相拖慢
+
+场景提示: 线程数从 1 增加到 16，吞吐只增加一点，甚至下降；如何判断是锁、内存带宽还是 cache line bouncing？ [写作时展开]
+
+关键设计: 多线程优化要分离锁竞争、共享写入、内存一致性和调度成本：
+
+```[pseudocode]
+伪共享:
+  两个线程写不同字段
+  但字段落在同一 cache line
+  → cache line 在 CPU 间反复失效/转移
+
+观测:
+  perf c2c / cache-to-cache 事件
+  → 对照线程、地址、共享 line 和 workload
+
+解决:
+  分离热点字段/按线程分片/合理对齐
+  → 增加内存占用, 也可能影响遍历局部性
+
+扩展性:
+  speedup 随线程数不再增长
+  → 检查锁、原子重试、NUMA、带宽、调度
+
+因果分析:
+  profiling 找当前热点
+  → 因果 profiler/实验干预估计“缩短某等待”是否真的改善总时间
+```
+
+Why: 为什么给每个字段填 64B padding 不一定是正确答案？——**cache line 大小、架构、对象数量、内存占用和访问模式都要确认**；伪共享还要通过 cache-to-cache/PMU 和线程行为证明，而不是看到多线程就猜。因果分析结果也依赖实验模型，不能替代真实 A/B benchmark。 [内核: MESI/一致性协议是硬件实现，`perf c2c` 事件支持和解释依赖 CPU]
+
+比喻锚点: 伪共享像两个工人各写自己的表格，却共用同一张纸；每次一人修改，另一人都要重新拿到最新副本。 [写作时展开]
 
 ### 5. 收束
-  - 循环优化(展开/SIMD/分支消除) → 编译器不知道你的数据分布, 你可以
-  - 缓存友好数据布局(顺序/打包/SoA/大页) → 是 Memory Bound 降到 Memory Wall 的唯一武器
-  - FDO/BOLT 机器码布局需要工具链, 但排序+`__attribute__((hot))` 纯人工可做 80% 同样效果
+
+源码级调优闭环：
+
+```[pseudocode]
+tracing/perf 找到瓶颈
+  → 选择循环/分支/SIMD/数据布局/机器码/并发改动
+  → 检查编译器报告与反汇编
+  → 复测 IPC/cache/branch/带宽/锁/等待
+  → 用同一 workload 比较业务吞吐与尾延迟
+  → 确认瓶颈没有转移到另一子系统
+```
+
+**Aha Moment**: "源码优化不是把某个指标压低，而是**用代码改动改变瓶颈结构，再用多层证据确认业务收益**；展开循环可能撞 I-cache，减少锁可能撞内存带宽，数据重排可能改变 NUMA 行为。"
+**回答读者三问**: ①循环怎么优化=先确认执行/分支/向量化瓶颈，再看汇编和报告；②数据布局为何影响性能=cache/TLB/SIMD/NUMA；③多线程为何扩展性差=锁、一致性、带宽和调度可能成为新瓶颈。
 
 ---
 
 ### 核心悬念
-**"你从 USE 开始, 到 perf 分析 CPU, 到 ftrace/bpftrace 跟踪, 到等待分析 7 维, 到循环/缓存/机器码 — 这条路走完就是系统性能的标准成长路径。"**
 
-→ 引出 06-eBPF — 从 BCC 一行命令到 XDP 网卡直通的内核可编程观测
+**"从 USE/RED、perf、tracing、等待分类到源码调优，性能分析闭环已经完成；下一阶段如何把 eBPF 从诊断工具推进到可编程内核观测、网络数据面和安全策略？"**
+
+→ 引出阶段 6 eBPF — 从 BCC/bpftrace 到 XDP、TC、可编程内核。

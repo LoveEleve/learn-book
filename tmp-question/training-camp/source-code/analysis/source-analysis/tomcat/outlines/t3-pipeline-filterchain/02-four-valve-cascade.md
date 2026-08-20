@@ -26,15 +26,15 @@
 
 ### 3. StandardContextValve → StandardWrapperValve — 最后两跳
 
-场景: URI "/app/user" 中 — Context 是 "/app" — Wrapper 是 "user"(一个 Servlet)。ContextValve 从 request 获取 Wrapper — 检查是否有 WebSocket 冲突 — 把请求交给 Wrapper Pipeline — WrapperValve 创建 FilterChain→执行。
+场景: URI "/app/user" 中 — Context 是 "/app" — Wrapper 是 "user"(一个 Servlet)。ContextValve 从 request 获取 Wrapper — 先拦截 WEB-INF/META-INF 直接访问 — 再把请求交给 Wrapper Pipeline — WrapperValve 创建 FilterChain→执行。
 
 源码路径:
-- `StandardContextValve.java:60` — **invoke()**: 从 `request.getWrapper()` 获取 Wrapper — 若 Wrapper 为 null→404 — 若 `context.getDispatcherType()==REQUEST` → 检查 WebSocket 路径冲突 → `wrapper.getPipeline().getFirst().invoke()`
+- `StandardContextValve.java:60` — **invoke()**: 先拦截 `WEB-INF`/`META-INF` 直接访问(404 短路, 安全面) → 从 `request.getWrapper()` 获取 Wrapper — 若 Wrapper 为 null 或不可用→404 → `response.sendAcknowledgement()` 提前确认 100-continue → `wrapper.getPipeline().getFirst().invoke()`
 - `StandardWrapperValve.java:86` — **invoke()**: wrapper.allocate() 获取 Servlet 实例 → `ApplicationFilterFactory.createFilterChain(request, wrapper, servlet)` → `filterChain.doFilter()`(下一章详讲) → wrapper.deallocate() 释放 Servlet 实例
 
 关键设计: **Why StandardWrapperValve 是最后一个 Valve？** 因为 Servlet 是请求处理的终端 — Servlet 不需要再调 `getNext().invoke()` — 它直接生成 Response。WrapperValve 的职责就是创建 FilterChain 并执行 — FilterChain 内部可能不调 servlet.service()（如果 Filter 短路） — 但 WrapperValve 始终是 Pipeline 的 basic Valve(物理上的终端)。
 
-数据流: `context.getPipeline().getFirst().invoke()`→ContextValve.invoke()→`request.getWrapper()`("user"的 Wrapper 容器)→wrapper 非空→`wrapper.getPipeline().getFirst().invoke()`→WrapperValve.invoke()→`wrapper.allocate()`(从实例池取 Servlet)→`ApplicationFilterFactory.createFilterChain(request, wrapper, servlet)`→`filterChain.doFilter()`→Filter1.doFilter()→Filter2.doFilter()→`servlet.service()`→生成 Response→返回→...→`wrapper.deallocate()`→返回→ContextValve 返回→HostValve 检查错误→返回→EngineValve 返回→Adapter finishResponse。
+数据流: `context.getPipeline().getFirst().invoke()`→ContextValve.invoke()→WEB-INF/META-INF 拦截检查→`request.getWrapper()`("user"的 Wrapper 容器)→wrapper 非空→`wrapper.getPipeline().getFirst().invoke()`→WrapperValve.invoke()→`wrapper.allocate()`(从实例池取 Servlet)→`ApplicationFilterFactory.createFilterChain(request, wrapper, servlet)`→`filterChain.doFilter()`→Filter1.doFilter()→Filter2.doFilter()→`servlet.service()`→生成 Response→返回→...→`wrapper.deallocate()`→返回→ContextValve 返回→HostValve 检查错误→返回→EngineValve 返回→Adapter finishResponse。
 
 ### 4. 级联本质 — 树 + 管道的双层递归
 

@@ -51,10 +51,10 @@ Druid 是阿里巴巴开源的 JDBC 连接池 + SQL 监控组件。与 HikariCP 
 | 编号 | 域 | 核心类 | 说明 |
 |:---:|---|---|---|
 | D-1 | **DruidDataSource 连接池核心** | DruidDataSource(3979行), DruidAbstractDataSource(2388行), DruidConnectionHolder(477行) | **与 HikariCP 架构对比**：ReentrantLock + Condition(notEmpty/empty) 阻塞等待模型 vs HikariCP ConcurrentBag 无锁模型；固定大小数组 `connections[maxActive]` 预分配；**init() 启动链路**：SPI 加载→Driver 解析→Filter 初始化→`asyncInit` 异步/同步创建 initialSize 个连接→`createAndLogThread`+`createAndStartCreatorThread`+`createAndStartDestroyThread` 三线程启动+`initedLatch` 同步等待→mBean 注册；**获取流程**：`getConnection()` → FilterChainImpl 拦截链 → `getConnectionDirect()` → `getConnectionInternal()`：① 检查 closed/enable/disableException ② **`createDirect` 优化**：池空时若 createScheduler 有排队任务，等待线程 CAS `creatingCountUpdater` 自己直接建连，跳过线程调度开销 ③ **`maxWaitThreadCount` 限流**：超过阈值直接拒绝防惊群 ④ **`onFatalError` 保护**：数据库致命错误时限制 `onFatalErrorMaxActive` 活跃连接数 ⑤ `pollLast()` → notEmpty.await() 阻塞 ⑥ 取出后检查 `holder.discard` 重试 → 超时抛丰富异常（active/maxActive/creating/createElapseMillis）；**归还流程**：`recycle()` → rollback 未提交事务→`holder.reset()` 重置 4 状态（readOnly/holdability/isolation/autoCommit）+清空事件监听器+关闭 traced statements→`phyMaxUseCount`/密码版本检查→`testOnReturn` 验证→`putLast()` 放回数组+`notEmpty.signal()`；**shutdown()**：interrupt 三个线程+cancel createSchedulerFutures+close 所有 pooling 连接 Statement Pool+close 物理连接+unregisterMBean+signal notEmpty 唤醒等锁者 |
-| D-2 | **Filter 拦截链体系** | Filter 接口, FilterAdapter, FilterEventAdapter, FilterChainImpl(~3000行), DruidConnectionHolder | **Druid 独特设计**：每个 JDBC 操作通过 Filter 链代理——`getConnection()` → `FilterChainImpl.dataSource_connect()` → 每个 Filter 调用 `nextFilter().xxx()` 形成递归链；`FilterChainImpl.pos` 位置指针+`filterSize` 控制链进度；`FilterEventAdapter` 提供事件回调模板（connection_connectBefore/After）；**FilterChainImpl 对象池复用**：`DruidConnectionHolder.createChain()`/`recycleFilterChain()` 缓存 FilterChainImpl，避免每次操作都 new（per-connection 缓存）；连接池内置 5 类 Filter（Stat/Wall/Config/Logging/Encoding）；`DruidPooledConnection.close()` 中有/无 Filter 两条路径 |
+| D-2 | **Filter 拦截链体系** | Filter 接口, FilterAdapter, FilterEventAdapter, FilterChainImpl(~5300行), DruidConnectionHolder | **Druid 独特设计**：每个 JDBC 操作通过 Filter 链代理——`getConnection()` → `FilterChainImpl.dataSource_connect()` → 每个 Filter 调用 `nextFilter().xxx()` 形成递归链；`FilterChainImpl.pos` 位置指针+`filterSize` 控制链进度；`FilterEventAdapter` 提供事件回调模板（connection_connectBefore/After）；**FilterChainImpl 对象池复用**：`DruidConnectionHolder.createChain()`/`recycleFilterChain()` 缓存 FilterChainImpl，避免每次操作都 new（per-connection 缓存）；连接池内置 5 类 Filter（Stat/Wall/Config/Logging/Encoding）；`DruidPooledConnection.close()` 中有/无 Filter 两条路径 |
 | D-3 | **StatFilter SQL 监控** | StatFilter, JdbcDataSourceStat, JdbcSqlStat | SQL 全生命周期统计：执行次数/错误次数/总耗时/最大耗时/读取行数/更新行数/并发数/直方图；**SQL 参数化合并**：`ParameterizedOutputVisitorUtils` 将 `WHERE id=123` 合并为 `WHERE id=?`；**慢 SQL 检测**：`slowSqlMillis` 阈值（默认 3000ms）+ 日志输出；按 DataSource→SQL→表三级聚合统计 |
 | D-4 | **WallFilter SQL 防火墙** | WallFilter, WallCheckVisitor, WallProvider(WallProvider_MySQL/Oracle/PG等) | SQL 注入防护四阶段：SQL AST 解析→Visitor 遍历 AST 节点→规则检查→违规拦截/记录；规则体系：表白名单、函数调用限制、语句类型限制（SELECT/UPDATE/DELETE）、条件必须有等；WallViolation 记录违规详情+SQL 片段 |
-| D-5 | **连接池维护体系** | shrink()(核心), DestroyTask, CreateConnectionTask, LogStatsThread | **shrink() 是维护核心**（~120行），DestroyTask 运行 `shrink(true, keepAlive)` + `removeAbandoned()`：**四阶段维护**：① fatalError 处理（`fatalErrorCount` 增量检测，fatalError 后创建的老连接全部标记淘汰）；② 空闲驱逐 checkTime 模式（`phyTimeoutMillis` 物理超时→`minEvictableIdleTimeMillis` 逐出前 checkCount→`maxEvictableIdleTimeMillis` 全部逐出）；③ keepAlive 检测（`idleMillis >= keepAliveBetweenTimeMillis` + `lastKeepTimeMillis` 去重→`keepAliveConnections[]` 收集→后续 validationQuery 验证）；④ System.arraycopy 紧凑化数组；**CreateConnectionTask**：Scheduler 定时+多线程并行创建（`createSchedulerFutures` Map 管理），失败指数退避重试，`poolingCount >= notEmptyWaitThreadCount` 停止；**removeAbandoned()**：`removeAbandonedTimeoutMillis` 超时未归还的连接强制回收（WARN "not use in production"）；**LogStatsThread**：按 `timeBetweenLogStatsMillis` 定时输出池统计 |
+| D-5 | **连接池维护体系** | shrink()(核心), DestroyTask, CreateConnectionTask, LogStatsThread | **shrink() 是维护核心**（~200行），DestroyTask 运行 `shrink(true, keepAlive)` + `removeAbandoned()`：**四阶段维护**：① fatalError 处理（`fatalErrorCount` 增量检测，fatalError 后创建的老连接全部标记淘汰）；② 空闲驱逐 checkTime 模式（`phyTimeoutMillis` 物理超时→`minEvictableIdleTimeMillis` 逐出前 checkCount→`maxEvictableIdleTimeMillis` 全部逐出）；③ keepAlive 检测（`idleMillis >= keepAliveBetweenTimeMillis` + `lastKeepTimeMillis` 去重→`keepAliveConnections[]` 收集→后续 validationQuery 验证）；④ System.arraycopy 紧凑化数组；**CreateConnectionTask**：Scheduler 定时+多线程并行创建（`createSchedulerFutures` Map 管理），失败指数退避重试，`poolingCount >= notEmptyWaitThreadCount` 停止；**removeAbandoned()**：`removeAbandonedTimeoutMillis` 超时未归还的连接强制回收（WARN "not use in production"）；**LogStatsThread**：按 `timeBetweenLogStatsMillis` 定时输出池统计 |
 
 ### 🟡 扩展域（4 个）
 
@@ -128,3 +128,173 @@ D-1 连接池核心（理解 Lock+Condition 模型+借还流程+shutdown）
 ```
 
 以上规划完成，共 **5🔴+4🟡=9 域**，等你确认。
+
+---
+
+## 旧规划问题复盘（供后续框架规划复用）
+
+当前 Druid 规划的域本身已经相当扎实，但按新版方法论再看，仍有几个结构性问题：
+
+### 1. 现在更像“机制域清单”，还不像一卷书
+
+这份规划很好地回答了：
+- Druid 里有哪些核心机制
+- 哪些包值得保留、哪些可以淘汰
+- Druid 和 HikariCP 有哪些架构差异
+
+但它还没有回答：
+- 如果把 Druid 写成一卷书，主干是什么
+- 哪些篇属于连接池骨架层
+- 哪些篇属于 Filter/扩展层
+- 哪些篇属于监控/安全/解析层
+- 哪些篇只是补深专题
+
+也就是说，它现在还是高质量域清单，还不是可连续写作的 `vol-druid` 结构。
+
+### 2. “一条 JDBC 操作在 Druid 里怎么走”这条主线还没被显式抽出来
+
+这是 Druid 和 HikariCP 最大的不同。
+
+HikariCP 的主线是“连接生命史”；Druid 的独特之处不只在于连接池，更在于：
+- 每个 JDBC 操作都会经过 Filter 链
+- SQL 会被解析器处理
+- 会被 StatFilter 监控
+- 会被 WallFilter 安全检查
+
+也就是说，Druid 真正的主线应该是：
+- 一次 JDBC 操作进入 Druid 后，怎么被连接池、Filter 链、SQL 解析、监控、防火墙层层接住
+
+当前规划是按包/按类组织的，这条“一次操作怎么走”的主线还没被立起来。
+
+### 3. SQL 解析器这块的处理容易失衡
+
+Druid 的 `sql/` 包有 1238 个文件，占全项目 76%。这不可能是正文主线，但也不能完全不管。
+
+当前规划把它降成 D-6 🟡 “只看架构概览”，这个方向是对的；但还没有回答一个卷级问题：
+- SQL 解析器作为 StatFilter/WallFilter 的共同地基，应该在什么位置被引入
+
+也就是说，Druid 卷需要先立住“解析器被谁用、在哪一层承接”，再决定它深入到什么程度。
+
+### 4. 有些主题当前被切在“扩展域”里，但它们其实属于主干
+
+例如：
+- D-5 shrink() 维护体系，其实是连接池主干的一部分
+- D-7 连接验证，其实是借还链的一部分
+- D-8 PreparedStatementPool，其实是连接内部复用的一部分
+
+当前规划把它们都归到扩展域，会导致正文写作时出现主次不清：读者不知道这些和头部的连接池核心是什么关系。
+
+### 5. 和 HikariCP 的对比已经很强，但应上升为卷级桥接，而不是一个“补充表”
+
+现在文档里已经有一张“Druid vs HikariCP 架构对比要点”表，这很好。但它更像一个补充知识点，还没有成为两条卷之间的桥接策略。
+
+对后续正文写作来说，更重要的问题是：
+- 读者刚从 `vol-hikaricp` 读完“连接生命史”
+- 进入 `vol-druid` 时，哪些该对比着理解、哪些该重新讲
+- 不能因为“和 HikariCP 一样”就把连接池借还一笔带过
+- 也不能因为“做过 HikariCP”就跳过 Druid 自己的 Lock+Condition 模型
+
+---
+
+## 卷级完整路线图（Druid）
+
+> 这一节用于把 `Druid源码学习范围规划.md` 从“9 个机制域清单”重构成“可写的完整卷结构”。
+
+### A. 骨架层
+
+这部分回答：
+- Druid 作为一个连接池，怎么被启动
+- 连接怎么被借出、归还、维护
+- Druid 和 HikariCP 在池自身设计上有哪些本质不同
+
+建议纳入骨架层的域：
+1. `D-1 DruidDataSource 连接池核心`
+2. `D-5 连接池维护体系`（shrink / DestroyTask / removeAbandoned）
+3. `D-7 连接验证与健康检查`
+
+这 3 篇已经足够支撑一卷“Druid 连接池本体”的主干。
+
+### B. Filter / 扩展层
+
+这部分回答：
+- 为什么 Druid 要让所有 JDBC 操作都穿过 Filter 链
+- Filter 链如何被组织、如何复用、如何和连接池衔接
+
+建议纳入：
+1. `D-2 Filter 拦截链体系`
+2. `D-8 PreparedStatementPool`（作为 Filter 链衔接的连接内部复用点）
+
+### C. 监控与安全层
+
+这部分回答：
+- Druid 怎么统计 SQL
+- Druid 怎么防护 SQL 注入
+- StatFilter / WallFilter 如何依赖解析器
+
+建议纳入：
+1. `D-3 StatFilter SQL 监控`
+2. `D-4 WallFilter SQL 防火墙`
+
+### D. 解析器地基层
+
+这部分回答：
+- SQL 解析器在 Druid 里的定位
+- 它为什么是 StatFilter / WallFilter 的共同地基
+- 应该深入到什么程度
+
+建议纳入：
+1. `D-6 SQL Parser 体系架构概览`
+
+这一层不拆散到多篇，而是作为“关键地基”单独成篇，避免被 StatFilter/WallFilter 重复分散引用。
+
+### E. 集成层
+
+这部分回答：
+- Spring Boot 3 怎么把 Druid 装成默认 DataSource
+- 配置怎么映射进池
+- 控制台统计怎么被 Web 暴露
+
+建议纳入：
+1. `D-9 Spring Boot 3 Starter`
+
+---
+
+### 当前卷级判断
+
+因此，Druid 这一卷更准确的完整结构应理解为：
+
+- **骨架层**（连接池本体）
+- **Filter / 扩展层**
+- **监控与安全层**
+- **解析器地基层**
+- **集成层**
+
+如果目标是“先把 Druid 写成一卷完整的内部实现书”，骨架层 + Filter 层 + 监控安全层已经能形成稳定主线；解析器地基层作为共同地基单独成篇；集成层放在卷尾作为落地面。
+
+如果目标是“Druid 完整卷”，则后续还可以视需要补：
+- 更细的方言解析器差异
+- Web 控制台页面与数据流
+- Druid 在真实业务中的 SQL 监控最佳实践
+
+---
+
+### 推荐的卷级后续顺序
+
+如果继续开 `vol-druid`，我建议顺序是：
+
+1. `D-1 DruidDataSource 连接池核心`
+2. `D-5 连接池维护体系`
+3. `D-2 Filter 拦截链体系`
+4. `D-3 StatFilter SQL 监控`
+5. `D-4 WallFilter SQL 防火墙`
+6. `D-6 SQL Parser 体系架构`
+7. `D-7 连接验证与健康检查`
+8. `D-8 PreparedStatementPool`
+9. `D-9 Spring Boot 3 Starter`
+
+原因：
+- 先立连接池本体与维护体系
+- 再讲 Filter 链（因为它是 Druid 的独特扩展点）
+- 再讲监控与安全（StatFilter / WallFilter）
+- 再补解析器地基（因为它们共用）
+- 最后落到验证、PreparedStatement 复用和 Boot 集成

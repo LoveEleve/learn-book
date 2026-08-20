@@ -27,7 +27,7 @@
 
 源码路径:
 - `Valve.java:50-58` — `getNext()/setNext(Valve)` — 单向链表的 next 指针
-- `Valve.java:64-118` — **invoke() 契约 15 条规则**: MAY: 检查/修改 Request+Response / 自生成 Response(短路) / 包装 Request+Response / 调用 getNext().invoke() / 检查返回后的 Response。MUST NOT: 修改已用的路由属性 / 已生成 Response 后继续传递 / 消费 InputStream / 在 getNext() 返回后修改 Header 或 OutputStream
+- `Valve.java:71-113` — **invoke() 契约 10 条规则 (MAY 5 + MUST NOT 5)**: MAY: 检查/修改 Request+Response / 自生成 Response(短路) / 包装 Request+Response / 调用 getNext().invoke() / 检查返回后的 Response。MUST NOT: 修改已用的路由属性 / 已生成 Response 后继续传递 / 消费 InputStream / 在 getNext() 返回后修改 Header 或 OutputStream
 - `Valve.java:68` — `backgroundProcess()` — 周期性任务(如重新加载)
 - `Valve.java:117` — `isAsyncSupported()` — Valve 级异步声明
 

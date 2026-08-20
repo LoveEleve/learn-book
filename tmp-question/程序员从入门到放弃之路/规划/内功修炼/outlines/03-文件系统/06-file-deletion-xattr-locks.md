@@ -1,54 +1,81 @@
-# 06 — 文件删除/扩展属性/文件锁: unlink 全链路与元数据扩展
+# 文件删除、xattr 与文件锁 — `unlink` 如何把名字、inode、数据块拆干净
 
-> Cluster A: 4 KPs | 依赖: 02/03/04/05 — 对 inode/间接块/位图/目录项全理解 | 读者基线: 理解 i_block 间接块链释放原理
-
----
-
-### 1. `sys_unlink` → 目录项删除 — 第一步: 从目录树中摘除
-  - `sys_unlink(pathname) → do_unlinkat → vfs_unlink(mnt_userns, dir, dentry, &delegated_inode)` (`fs/namei.c → vfs_unlink`)
-  - `dir->i_op->unlink(dir, dentry) ← ext2_unlink` (`fs/ext2/namei.c → ext2_unlink`)
-  - `ext2_delete_entry(dir, de, bh)` — `de->inode=0`(空洞) (`fs/ext2/dir.c → ext2_delete_entry`)
-  - 空洞向前合并: `pde->rec_len += de->rec_len` — 不需整理, `mark_buffer_dirty_inode(bh, dir)`
-
-### 2. `i_links_count` → orphan list → `ext2_truncate`
-  - `inode_dec_link_count(inode) → drop_nlink(inode)` — `i_links_count` 减 1 (`fs/inode.c → drop_nlink`)
-  - 降至 0: `ext2_orphan_add(inode)` — 加入 orphan list (`fs/ext2/inode.c → ext2_orphan_add`)
-  - `ext2_free_inode(inode) → clear_inode → ext2_clear_inode` — `inode->i_size=0, ext2_truncate(inode)` (`fs/ext2/inode.c → ext2_truncate`)
-
-### 3. 间接块递归释放 — `ext2_free_branches` 三重递归
-  - `ext2_truncate → ext2_free_data(inode, i_data, i_data+EXT2_N_BLOCKS-1)` (`fs/ext2/inode.c → ext2_truncate`)
-  - 直接块: `ext2_free_blocks(sb, block, count)` → `ext2_clear_bit(block, bitmap_bh->b_data)` (`fs/ext2/balloc.c → ext2_free_blocks`)
-  - 单重间接: 读 indirect block → 遍历 block 号 → 逐个 `ext2_free_blocks` → 最后释放 indirect block 自身
-  - 二重间接: 读 block → 遍历二级 indirect → 每个二级走单重递归
-  - 三重间接: `ext2_free_branches` 三层嵌套 — 每一层都是 block bit 清除 (`fs/ext2/inode.c → ext2_free_branches`)
-  - 更新计数器: `sbi->s_free_blocks_count++`, `gdp->bg_free_blocks_count++`
-
-### 4. inode bitmap 释放 — 最终清理
-  - `ext2_clear_bit(ino, bitmap_bh->b_data)` — inode 空闲 (`fs/ext2/ialloc.c → ext2_free_inode`)
-  - 从 orphan list 移除
-  - `ext2_write_inode(inode)` — 写入 `i_dtime` 删除时间戳
-  - 风险: 无日志 → 递归释放在中途崩溃 → fsck 需扫描 bitmap/间接块一致性
-
-### 5. 扩展属性 xattr + ACL — inode 之外的另一块磁盘区域
-  - `setxattr(path, name, value, size, flags) → ext2_xattr_set` — xattr 存在 `inode->i_file_acl` 额外块 (`fs/ext2/xattr.c → ext2_xattr_set`)
-  - `ext2_xattr_header` (magic=0xEA020000) → `ext2_xattr_entry[]` (e_name_index, hash, name, value_start, value_len) → value 区 (`fs/ext2/xattr.c → ext2_xattr_set`)
-  - ACL 是 xattr 特例: `system.posix_acl_access → posix_acl_from_xattr → ext2_set_acl` (`fs/ext2/acl.c → ext2_set_acl`)
-  - 新文件默认继承父目录 ACL → `ext2_permission → generic_permission → ext2_acl_permission_check`
-
-### 6. 文件锁 — flock / fcntl / lockf 三类锁
-  - `flock(fd, LOCK_SH|LOCK_EX|LOCK_UN) → ext2_flock → locks_lock_file_wait` — 文件级劝告锁 (`fs/locks.c → sys_flock`)
-  - `fcntl(fd, F_SETLK, &flock) → f_setlk → posix_lock_file` — 范围锁, 可对文件任意字节范围加锁 (`fs/locks.c → posix_lock_file`)
-  - `lockf` — POSIX 范围锁的简化库函数封装
-  - 三者的区别: flock(文件级/劝告), fcntl(范围/强制位/记录/进程), lockf(范围/POSIX)
-  - 锁状态可见: `/proc/locks`, `lslocks` 命令行工具
-
-### 7. 收束
-  - unlink 全链路: 目录项空洞→i_links_count 归零→orphan list→间接块递归释放→bitmap 清理——每一步都可能在中途崩溃
-  - xattr/ACL 扩展了 inode 的元数据容量, 而 flock/fcntl 建立了并发访问的协调机制
+> Cluster A: 4 KPs | 依赖: 02/03/04/05 | 读者基线: 理解 inode/间接块/位图/目录项/页缓存
+> 读者处境: 01-05 已经讲完文件怎么被布局、创建、写入、读出；本篇回答闭环的最后一步：`rm a.txt` 之后，名字、inode、数据块分别怎么被回收？
+> 打开新视角: 删除文件不是"立刻把内容抹掉"，而是按顺序拆三层关系——目录项解绑、链接计数归零、i_block 指针树递归回收；xattr/ACL 是 inode 之外的元数据外挂，文件锁则是并发访问的协调层
 
 ---
 
-### 核心悬念
-**"ext2 无日志, unlink 递归释放中途崩溃的残局只能靠 fsck 全盘扫描修复——ext4 的 JBD2 日志如何用一个 journal 文件把这种 O(n) 崩溃恢复变成 O(1)？"**
+### 概念依赖链
 
-→ 引出 08-jbd2-journal (先桥接到日志, 07 文件系统对比可在读完 01-06 后穿插)
+```
+02 inode/间接块 + 03 创建 + 04 写路径 + 05 读路径 → 本篇: 删除/扩展元数据/锁
+  ├─ §1 unlink(先删目录项, 名字与 inode 脱钩)
+  ├─ §2 i_links_count / i_dtime(判定是否真正释放)
+  ├─ §3 ext2_truncate_blocks / ext2_free_branches(递归回收数据块树)
+  ├─ §4 xattr/ACL(i_file_acl 指向外挂元数据块)
+  └─ §5 flock/fcntl(文件内容之外的并发协调)
+先讲: 名字解绑 → inode 生死 → 数据块递归释放 → 额外元数据 → 并发约束
+后续依赖: 08-jbd2-journal(无日志崩溃恢复为什么慢)
+```
+
+### 叙事顺序
+
+1. 问题引入——`rm a.txt` 后文件名立刻消失了，但磁盘上的数据块真的马上清零了吗？（**Aha: unlink 删除的是"名字→inode"关系，真正的数据块回收要等链接计数归零后再递归释放**）
+   - 过渡: 第一步先删哪本账？——目录项
+2. `sys_unlink` → `ext2_unlink`——先从父目录里摘名字
+   - 过渡: 名字没了，但 inode 可能还有硬链接——谁决定它死没死？
+3. `i_links_count` + `i_dtime`——inode 的生死线
+   - 过渡: 真要死时，数据块树怎么拆？
+4. `ext2_truncate_blocks` + `ext2_free_branches`——递归回收直接/间接块
+   - 过渡: inode 数据面回收完了，额外元数据挂哪？
+5. xattr / ACL——inode 之外的外挂元数据块
+   - 过渡: 内容与元数据讲完了——并发访问靠什么协调？
+6. flock / fcntl——文件锁不属于 ext2 磁盘格式，而属于 VFS 通用锁层
+   - 过渡: 删除、元数据、锁三块都齐了——收束
+7. 收束——unlink 只是第一刀，真正释放在后面 + Aha Moment
+
+### 1. `sys_unlink` → `ext2_unlink` — 先删目录项，不是先删 inode
+
+场景提示: 你执行 `rm a.txt`，终端马上就看不到名字了——这一瞬间内核最先改的是目录，还是 inode 表，还是 block bitmap？ [写作时展开]
+
+关键设计: unlink 的第一步是把父目录里的目录项删掉（fs/namei.c + fs/ext2/namei.c + fs/ext2/dir.c）：
+
+```[pseudocode]
+sys_unlink(path)
+  → do_unlinkat → vfs_unlink(dir, dentry)
+  → dir->i_op->unlink = ext2_unlink
+ext2_unlink(dir, dentry)
+  → ext2_find_entry(...): 在父目录页里找到 ext2_dir_entry_2
+  → ext2_delete_entry(de, page, page_addr)
+      = 把目录项并入前一项的 rec_len / 形成空洞
+  → mark_buffer_dirty_inode(..., dir)
+```
+
+Why: 为什么 unlink 先删目录项而不是先 free inode？——**用户看到的"文件存在"首先是名字存在**：shell/ls/路径解析都靠目录项找到 inode；所以名字必须先从目录树上摘掉，路径遍历才会立即失效。**这一步只断开名字，不碰数据块**：inode 还可能被别的硬链接引用，或者还被打开着。
+
+比喻锚点: unlink 像先把门牌从楼栋名册上划掉——别人再按名字找不到你了，但房产证（inode）和屋里的家具（数据块）还没立刻被销毁。 [写作时展开]
+
+### 2. `i_links_count` — inode 是否真正死亡，由链接计数决定
+
+场景提示: 同一个 inode 有两个名字（硬链接）时，删掉一个名字为什么文件内容还在？ [写作时展开]
+
+关键设计: unlink 删除目录项后，只是把链接计数减一；只有减到 0，inode 才进入真正回收路径（fs/ext2/namei.c + fs/ext2/inode.c）：
+
+```[pseudocode]
+ext2_unlink 成功后
+  → inode->i_ctime = dir->i_ctime
+  → inode_dec_link_count(inode)   // i_links_count--
+  → inode->i_size / i_block 暂时不一定立刻动
+inode 最终回收阶段
+  → i_nlink == 0 && 无打开引用
+  → ext2_evict_inode
+      → truncate_inode_pages_final(...)
+      → EXT2_I(inode)->i_dtime = now
+      → __ext2_write_inode(...)
+      → ext2_truncate_blocks(inode, 0)
+      → ext2_xattr_delete_inode(...)
+      → ext2_free_inode(inode)
+```
+
+Why: 为什么要把"名字消失"和"块释放"分成两步？——**因为 inode 是内容对象，目录项只是入口**：硬链接让多个目录项指向同一个 inode；只删一个入口不能杀死内容。**`i_dtime` 是尸检时间戳**：它告诉 fsck/恢复工具这个 inode 已进入删除流程，用于崩溃后的一致性校验。 [内核: 03 篇创建时是把名字绑定到 inode；这里正好反着做——先解绑名字，再等 inode 引用归零]

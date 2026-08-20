@@ -1,45 +1,142 @@
-# 02 — Inode 结构与间接块链：15 个指针如何撑起 TB 级文件
+# Inode 结构与间接块 — 15 个指针如何撑起 4TB 文件
 
 > Cluster A: 4 KPs | 依赖: 01-ext2-disk-layout | 读者基线: 理解 Block Group/Block Size/SuperBlock 布局
+> 读者处境: 01 篇给了"位置怎么算"（六段布局可计算寻址）；本篇回答"文件数据怎么索引——一个 inode 怎么把磁盘上散落的块串成一个文件"
+> 打开新视角: inode 是文件的"身份证+户口本"、i_block[15] 用"指针套指针"实现 48KB→4TB 的跨 7 个数量级的容量、目录本质是普通文件
 
 ---
 
+### 概念依赖链
+
+```
+01-ext2-disk-layout(六段布局/inode 表) → 本篇: inode 结构与间接块寻址
+  ├─ §1 struct ext2_inode(文件的身份证 — 依赖 01 篇 inode 表概念)
+  │    └─ §2 i_block[15] 四级寻址(容量模型 — 依赖 §1 的 i_block 字段)
+  │         └─ §3 间接块解析(运行时寻址 — 依赖 §2 的层级模型)
+  │              └─ §4 目录项(目录=普通文件 — 依赖 §1 inode 语义 + 01 篇数据块)
+先讲: 身份证 → 容量模型 → 解析路径 → 目录本质
+后续依赖: 03-文件创建(位图+inode+目录项落地) / 04-写流程(块分配) / 05-读流程(寻址链) / 06-文件删除(递归释放)
+```
+
+### 叙事顺序
+
+1. 问题引入——`ls -l` 显示文件 4TB，磁盘上哪有连续 4TB 空间？文件数据在磁盘上是散落的——谁来记录"每个字节在哪个块"？（**Aha: 文件的本质=元数据(inode) + 指针链(i_block)——数据是散落的, 索引是树的**）
+   - 过渡: 这个"记录者"长什么样？——inode 身份证
+2. `struct ext2_inode` 完整字段——文件的身份证
+   - 过渡: 身份证里有 15 个指针位——怎么用？
+3. i_block[15] 四级寻址——12 直接 + 1 单重 + 1 双重 + 1 三重
+   - 过渡: 知道了层级——读第 N 块时怎么走到？
+4. 间接块解析——ext2_block_to_path + ext2_get_branch
+   - 过渡: 文件索引完了——目录呢？"目录"也是文件？
+5. 目录项 ext2_dir_entry_2——目录就是普通文件
+   - 过渡: 布局、索引、目录已齐——收束
+6. 收束——固定 128B inode 如何承载 48KB→4TB 跨度 + Aha Moment
+
 ### 1. `struct ext2_inode` 完整字段 — 文件的"身份证"
-  - `__le16 i_mode;` — 低 9bit: rwx×ugo, 高 3bit: IFREG(0x8000)/IFDIR(0x4000)/IFLNK(0xA000)/IFCHR(0x2000)/IFBLK(0x6000)/IFIFO(0x1000)/IFSOCK(0xC000) (`fs/ext2/ext2.h → struct ext2_inode`)
-  - `__le16 i_uid;` / `__le16 i_gid;` — 所有者/组
-  - `__le32 i_size;` — 文件实际大小(字节), 与 `i_blocks` 独立
-  - `__le32 i_atime;` / `i_ctime;` / `i_mtime;` / `i_dtime;` — 四个时间戳: 访问/变更/修改/删除
-  - `__le16 i_links_count;` — 硬链接数, 为 0 时触发删除
-  - `__le32 i_blocks;` — 占用 512B 扇区数 (含间接块自身占用的块)
-  - `__le32 i_flags;` — EXT2_SECRM_FL/UNRM_FL/COMPR_FL/SYNC_FL/IMMUTABLE_FL/APPEND_FL/NODUMP_FL/NOATIME_FL (`fs/ext2/ext2.h → struct ext2_inode`)
+
+场景提示: `ls -l` 里的权限、大小、时间、链接数——这些信息存在哪？为什么"文件名"不在这里？ [写作时展开]
+
+关键设计: `struct ext2_inode`（fs/ext2/ext2.h:301）——每个文件一个，固定 **128B**（EXT2_GOOD_OLD_INODE_SIZE, ext2.h:505），存放在 01 篇的 inode 表中：
+
+```[pseudocode]
+身份: i_mode(低9bit: rwx×ugo; 高3bit类型: IFREG 0x8000/IFDIR 0x4000/IFLNK 0xA000/IFCHR 0x2000/IFBLK 0x6000/IFIFO 0x1000/IFSOCK 0xC000)
+      / i_uid / i_gid — 所有者与组
+大小: i_size(实际字节数) — 与 i_blocks(占用 512B 扇区数, 含间接块自身) 独立
+时间: i_atime / i_ctime / i_mtime / i_dtime — 访问/变更/修改/删除
+链接: i_links_count — 硬链接数, 归 0 时数据才真正释放
+标志: i_flags — IMMUTABLE_FL(不可变)/APPEND_FL(只追加)/SYNC_FL(同步写)/NOATIME_FL...
+索引: i_block[EXT2_N_BLOCKS=15] — 指向数据块的指针数组(§2 展开)
+```
+
+Why: 为什么"文件名"不在 inode 里？——**inode 是"内容身份证"，文件名是"目录里的标签"**：硬链接让多个名字指向同一 inode（i_links_count>1），若名字放 inode 里，重命名就要改内容；**文件大小由 i_size 精确记录**，而 i_blocks 是占用账（含间接块）——两者独立让"稀疏文件"（中间全是洞）只需记 i_size 大、占块少；**i_links_count 归 0 = 文件真正可删**（rm 只是去掉一个名字）。 [内核: inode 表即 01 篇六段中的 inode table 段——ext2 iget 按 (ino-1) 公式从表内定位] [man 2 stat: ls -l 的字段全部来自 inode 元数据]
+
+比喻锚点: inode=户口本——i_mode 是"性别年龄"（类型+权限）、i_size 是"身高"、四时间戳是"出生/入学/毕业/死亡记录"、i_links_count 是"有几个别名/曾用名"、i_block 是"住址指向"——而"名字"写在户口所在区的门牌册（目录）里。 [写作时展开]
 
 ### 2. `i_block[15]` — 四种寻址层级的容量模型
-  - `i_block[0-11]` — 12 个直接块, 4KB block→48KB 直接寻址
-  - `i_block[12]` — 单重间接: 1 block 存 `block_size/4` 个块号, 4KB→1024 块→4MB
-  - `i_block[13]` — 双重间接: `(block_size/4)^2`, 4KB→1024²=1M 块→4GB
-  - `i_block[14]` — 三重间接: `(block_size/4)^3`, 4KB→1024³=1G 块→4TB (`fs/ext2/inode.c:ext2_block_to_path`)
+
+场景提示: inode 只有 128B，i_block 只有 15 个 4B 指针——却要记录 4TB 文件的全部数据块位置，怎么做到？ [写作时展开]
+
+关键设计: i_block[0-14] 分工为"直接 + 三级间接"，指针套指针指数扩容（4KB block 下每块存 4096/4=1024 个指针）：
+
+```[pseudocode]
+i_block[0-11]   — 12 个直接块: 直接指向数据块 → 12×4KB = 48KB
+i_block[12]     — 单重间接: 指向 1 个"指针块"(存 1024 个块号) → 1024×4KB = 4MB
+i_block[13]     — 双重间接: 指针块→指针块→数据 → 1024² = 1M 块 → 4GB
+i_block[14]     — 三重间接: 三层指针块 → 1024³ = 1G 块 → 4TB
+总容量 ≈ (12 + 1024 + 1M + 1G) × 4KB ≈ 4TB (1 级指针块/块号 = block_size/4)
+```
+
+Why: 为什么用"分级指针"而不是"数组存满 10 亿个块号"？——**inode 必须固定大小（128B）**：inode 表是预分配的数组（01 篇），每个 inode 必须等长才能用公式定位；15 个指针无法线性存下 10 亿块号——**分级 = 大部分小文件只付"直接块"代价，大文件才逐级加付**：0-48KB 文件零额外开销，48KB-4MB 才多 1 个指针块（4KB 代价 vs 4MB 收益 = 0.1%）。**代价**：大文件的随机访问要逐级读指针块（4GB 处读 1 次要 3 次磁盘跳转）——ext4 用 extent 树替代（本篇不展开）。 [内核: 分级指针 = 阶段1-01 篇 Buddy order 分级同一思想——按规模分级, 小对象付小代价; 与 13 篇 ptmalloc 五级 bins 同为"分级索引"家族] [x86: 指针 4B 寻址 4KB 块 → 每块正好 1024 个指针, 2 的幂让除法变移位]
+
+比喻锚点: i_block=图书馆的"书架索引"——前 12 个格子直接放 12 本书（直接块）；第 13 格放"索引卡片盒"（一盒 1024 张卡，每张指一本书）；第 14 格放"索引柜的索引"（指到 1024 个卡片盒）；第 15 格再套一层——**小图书馆只有 12 本书，大图书馆用卡片盒分层索引**。 [写作时展开]
 
 ### 3. 间接块解析 — `ext2_block_to_path` + `ext2_get_branch`
-  - `ext2_block_to_path(inode, iblock, offsets, &boundary)` — 计算逻辑块号在第几级 (`fs/ext2/inode.c → ext2_block_to_path`)
-  - `chain[0].bh = sb_bread(block = inode->i_block[i])` — 读 inode 中的直接/间接指针
-  - `chain[1].bh = sb_bread(block = chain[0].p + offsets[1])` — 读下一级间接块
-  - 逐级 traverse 直到最终数据块, `bh->b_blocknr` = 物理块号
-  - `boundary` 标志: 当 iblock 触及间接边界时置位, 用于预分配决策
+
+场景提示: 读文件第 2GB 偏移处的数据——内核怎么从"逻辑块号 524288"走到物理数据块？几次磁盘读？ [写作时展开]
+
+关键设计: 两个函数分工——先"算路径"再"走路径"（fs/ext2/inode.c）：
+
+```[pseudocode]
+ext2_block_to_path(inode, iblock, offsets[4], &boundary)
+  → 把逻辑块号拆成 4 级偏移(纯数学, 0 次 I/O)
+     例: iblock=524288 (约 2GB/4KB) → 直接区(0-11)? no → 单重区(12-1035)? no
+         → 双重区(1036 起): (524288-1036)÷1024 = 510 余 1012
+         offsets = [EXT2_DIND_BLOCK, 510, 1012, 0]
+  → boundary: 该块正好是某级指针块的第 1024 个(跨级边界), 用于预分配判断
+ext2_get_branch(inode, depth, offsets, chain, err)
+  → 逐级 sb_bread: chain[0].bh = 读 i_block[offsets[0]] 指向的指针块
+  → chain[1].bh = 读 chain[0].p + offsets[1] 指向的下一级
+  → ... 直到最后一级: chain[k].p = 最终数据块的物理块号
+读 2GB 处: 双重间接 → 3 次磁盘读 (i_block 已在内存 + 2 级指针块 + 数据块)
+```
+
+Why: 为什么把"算路径"和"走路径"拆成两个函数？——**算路径是纯数学（无 I/O），走路径才是磁盘跳转**：ext2_get_block 先调 block_to_path 算 offsets（可缓存判断），再决定要不要真的 get_branch 读盘——**同一次访问内 4 级偏移一次算完**，避免逐级"读块→再算"；**boundary 标记跨级边界**：写时若发现"正好写满一级指针块"，提前申请下一级指针块（预分配），避免写满才申请的双次跳转。 [内核: sb_bread 读指针块/数据块走页缓存路径——磁盘块经阶段2-06 篇页缓存进内存, 命中则 0 次磁盘 I/O]
+
+比喻锚点: 走索引=按图索骥——ext2_block_to_path 是"查楼层图：这书在第 3 区第 1024 格"（纯看地图，不走路），ext2_get_branch 是"逐层下电梯"（每下一层闸一次门——一次磁盘读）；boundary 是"这格正好是电梯尽头，下一本书得换电梯了"——提前按好下一层按钮。 [写作时展开]
 
 ### 4. 目录项 `ext2_dir_entry_2` — 目录就是文件
-  - `struct ext2_dir_entry_2 { __le32 inode; __le16 rec_len; __u8 name_len; __u8 file_type; char name[255]; }` (`fs/ext2/ext2.h → struct ext2_dir_entry_2`)
-  - `rec_len` 必须 4 字节对齐, `inode=0` 为空洞(已删除条目)
-  - `file_type`: EXT2_FT_REG_FILE=1 / FT_DIR=2 / FT_SYMLINK=7
-  - 查找: `ext2_find_entry → ext2_get_page → 逐 entry 比对 name_len + name` (`fs/ext2/dir.c → ext2_find_entry`)
-  - 新建: `ext2_add_link → 找 rec_len ≥ needed 的空洞 → ext2_set_de_type` (`fs/ext2/dir.c → ext2_add_link`)
+
+场景提示: `ls /home/user`——目录怎么存得下几百个条目？目录本身占多少空间？删一个文件目录项会怎样？ [写作时展开]
+
+关键设计: 目录 = 内容为目录项数组的普通文件（fs/ext2/ext2.h:596 + fs/ext2/dir.c）：
+
+```[pseudocode]
+struct ext2_dir_entry_2 { __le32 inode; __le16 rec_len; __u8 name_len; __u8 file_type; char name[255]; }
+  inode — 指向该条目的文件 inode(0 = 空洞/已删除)
+  rec_len — 本条目录项长度(4 字节对齐, 含 padding)
+  file_type — EXT2_FT_REG_FILE=1 / FT_DIR=2 / FT_SYMLINK=7
+查找: ext2_find_entry → ext2_get_page → 逐 entry 比对 name_len + name (fs/ext2/dir.c)
+新建: ext2_add_link → 找 rec_len ≥ needed 的洞 → 写入 + ext2_set_de_type (fs/ext2/dir.c)
+删除: 只把 inode 置 0, rec_len 并入前一项 (不移动数据, 无碎片整理)
+```
+
+Why: 为什么目录项设计成"变长 + 空洞复用"？——**名字变长**（1-255B），固定大小会浪费 254B/项；**rec_len 对齐 + inode=0 空洞**让删除 O(1)：不搬移条目，只把洞并给邻居，新文件优先填洞（ext2_add_link 找 rec_len≥needed）——**目录的"删除"是标记不是搬移**，代价是删多了目录文件不缩水，空间留在空洞里供新条目复用。 [内核: 两级回收对照——目录内空洞复用空间(不还磁盘), 文件删除才释放位图块(还磁盘)]**file_type 免读 inode**：ls 只想要类型，不用为每个条目读一次 inode。
+
+比喻锚点: 目录=楼栋门牌册——每页一行"房号(inode)、门牌长度(rec_len)、姓名(name)"；搬走一家（删除）不撕页，只在姓名栏写"空"并合并两行空格；新住户优先住进"空行合并出的长空格"。 [写作时展开]
 
 ### 5. 收束
-  - `i_block[15]` 的四级寻址 (直接/单重/双重/三重) 在 inode 大小固定 128B 的前提下实现 48KB→4TB 的跨度
-  - 目录的本质是存储 `ext2_dir_entry_2` 数组的普通文件, inode=0 的空洞设计使删除后无需重整
+
+回到"一个 inode 怎么撑起 4TB 文件"：
+- inode = 文件的身份证（128B 固定，可公式定位）
+- i_block[15] = 四级指针树（直接 48KB → 单重 4MB → 双重 4GB → 三重 4TB）
+- 解析 = block_to_path 算路径（0 I/O）+ get_branch 走路径（逐级 1 次读）
+- 目录 = 普通文件（目录项数组，空洞复用）
+
+读一个大文件第 N 块的完整链路：
+
+```
+read(offset) → 逻辑块号 → ext2_block_to_path(拆 4 级偏移, 0 次 I/O)
+  → ext2_get_branch(逐级 sb_bread 读指针块) → 物理块号 → 读数据块
+小文件: i_block 直接命中 — 0 次指针跳转; 大文件: 每级 1 次(三重=3 次)
+```
+
+**Aha Moment**: "文件数据在磁盘上是**散落的**，inode 用 15 个指针把它**串成树**——固定 128B 的 inode 靠'指针套指针'覆盖了 48KB 到 4TB 的 7 个数量级，小文件零额外开销、大文件按级付费——**文件系统的容量是'可伸缩的索引'撑起来的**；而目录不过是'内容为名册的普通文件'——目录与文件在 inode 层毫无区别，只是 i_mode 的类型位不同。"
+**回答读者三问**: ①文件数据不连续怎么办=inode 指针链串起来；②4TB 怎么装进 128B=i_block 四级指针指数扩容；③目录是什么=存目录项数组的普通文件。
 
 ---
 
 ### 核心悬念
-**"touch a.txt 时, VFS 如何一层层穿透 dentry cache→inode→bitmap, 把一个空文件在磁盘上真正落地？"**
 
-→ 引出 03-file-creation-touch
+**"touch a.txt 时，内核怎么一层层穿透 dentry→inode→bitmap，把一个空文件在磁盘上真正落地——谁分配 inode、谁登记名字、位图怎么改？"**
+
+→ 引出 03-file-creation-touch — 文件创建全链路——索引机制已明，下一篇讲"第一个文件怎么诞生"。

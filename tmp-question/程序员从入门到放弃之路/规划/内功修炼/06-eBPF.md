@@ -39,7 +39,7 @@
 | Ch12 §2-5 | 编程语言探针(C/Java/Go/Node) | Medium |
 | Ch13 §1-2 | 应用程序观测(MySQL剖析/mysqld_qslower/signals/killsnoop/线程剖析) | Medium |
 | Ch14 §2 | 内核(offcputime/wakeuptime/mutex/vfsstat) | Medium |
-| Ch15 | 容器eBPF(PCP/Grafana/Cilium/kubectl-trace) | Medium |
+| Ch17 §1-3 | 容器eBPF(PCP/Grafana/Cilium/kubectl-trace) [修正: 原误标Ch15] | Medium |
 | Ch16 | 虚拟机管理(Xen超级调用/HVM退出跟踪) | Medium |
 
 `[01 #1/3 done]` 20 KPs。
@@ -83,6 +83,7 @@
 | Ch9 §1-4 | eBPF Maps(API/创建/查询/遍历/删除/持久化) | High |
 | Ch9 §5-6 | perf事件(内核态写入/用户态读取)+ringbuf环形缓冲 | High |
 | Ch10 §1-7 | kprobe/uprobe/USDT/bashreadline挂载点 | High |
+| Ch11 §1-4 | eBPF内核辅助方法(helper): 如何查阅/实现原理/分类(网络/数据处理/跟踪/系统功能)/常用helper(bpf_map_update_elem/bpf_ktime_get_ns/bpf_probe_read) | High |
 | Ch12 §1-5 | 性能分析(CPU/内存/磁盘/网络 eBPF工具+分析策略) | Medium |
 | Ch13 §1-5 | 实战(动态分析/网络安全/应用运维) | Medium |
 

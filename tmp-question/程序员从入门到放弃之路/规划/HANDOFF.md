@@ -1,184 +1,374 @@
-# 内功修炼 — 知识规划交接文档
+# 《程序员从入门到放弃之路》详细交接文档
 
-> 2026-08-08 | 7 主题完成, 5 主题待规划 | 语言: C/POSIX/C++混编
-> 路径: `/data/workspace/source-code/book/成长之路/tmp-question/程序员从入门到放弃之路/`
-
----
-
-## 零、启动步骤
-
-拿到本文件后，按顺序执行：
-
-1. **验证环境**
-   ```bash
-   ls /data/workspace/source-code/book/成长之路/tmp-question/程序员从入门到放弃之路/
-   # 应看到: 规划/  内功修炼/  MySQL-数据库/  Java内功修炼/  HANDOFF.md
-   ```
-
-2. **读方法论** — 必须 Read 以下文件后再开始规划
-   ```bash
-   # 核心方法论 (按顺序读)
-   cat .../knowledge-planning/methodology/en/01-toc-extraction.md
-   cat .../knowledge-planning/methodology/en/02-depth-standards.md
-   cat .../knowledge-planning/methodology/en/03-topic-clustering.md
-   
-   # 自我约束 Prompt (最后读)
-   cat .../knowledge-planning/prompt/en/self-constraint-prompt.md
-
-3. **确认已完成规划**
-   ```bash
-   wc -l 规划/内功修炼/01-OS内核.md   # 622
-   wc -l 规划/内功修炼/04-网络.md      # 349 (largest)
-   ls 规划/内功修炼/0*.md | wc -l      # 7 files
-   ```
-
-4. **检查待规划主题的原始TOC**
-   ```bash
-   ls MySQL-数据库/     # 14 books
-   ls Java内功修炼/     # 19 books (use only JVM/GC/language subsets)
-   ls 内功修炼/          # 24 books (2 for algorithms, already verified)
-   ```
-
-5. **开始规划** — 从待规划清单第一个主题开始，逐本 Section 级提取
+> 交接日期：2026-08-18
+> 当前主线：分布式域 3「高并发与性能」已 12/12 完成；下一主线切换到域 4 Redis
+> 当前下一篇：`域4-01-redis-thread-model`
+> 项目根：`/data/workspace/source-code/book/成长之路/tmp-question/程序员从入门到放弃之路/`
 
 ---
 
-## 方法论参考路径
+## 0. 接手后的第一件事
 
-| 组件 | 绝对路径 |
-|------|------|
-| methodology (en) | `/data/workspace/source-code/book/成长之路/tmp-question/training-camp/source-code/analysis/talk-method/knowledge-planning/methodology/en/` |
-| methodology (zh) | `.../knowledge-planning/methodology/zh/` |
-| prompt (en) | `.../knowledge-planning/prompt/en/self-constraint-prompt.md` |
-| prompt (zh) | `.../knowledge-planning/prompt/zh/自我约束prompt.md` |
-| skills | `.../knowledge-planning/skills/en/` |
-| 规划产出目录 | `/data/workspace/source-code/book/成长之路/tmp-question/程序员从入门到放弃之路/规划/` |
-| TOC 源目录 | `.../内功修炼/` `.../MySQL-数据库/` `.../Java内功修炼/` |
+下一位 AI 不要从旧的 `规划/HANDOFF.md` 继续猜测进度，应以本文件和实际文件内容为准。
 
----
+```bash
+cd "/data/workspace/source-code/book/成长之路/tmp-question/程序员从入门到放弃之路"
 
-## 一、完成状态
+ls 规划/分布式/outlines/03-高并发与性能/
 
-| # | 主题 | 文件 | 🔴 | 🟡 | 🟢 | 行数 | 状态 |
-|:--:|------|------|:--:|:--:|:--:|:---:|:--:|
-| 1 | OS 内核 | `规划/内功修炼/01-OS内核.md` | 26 | 35 | 23 | 622 | ✅ |
-| 2 | 内存深度 | `规划/内功修炼/02-内存深度.md` | 16 | 20 | 5 | 228 | ✅ |
-| 3 | 文件系统 | `规划/内功修炼/03-文件系统.md` | 6 | 6 | 10 | 115 | ✅ |
-| 4 | 网络 | `规划/内功修炼/04-网络.md` | 16 | 34 | ~30 | 349 | ✅ |
-| 5 | 系统性能 | `规划/内功修炼/05-系统性能.md` | 12 | 17 | ~8 | 223 | ✅ |
-| 6 | eBPF | `规划/内功修炼/06-eBPF.md` | 11 | 12 | 5 | 202 | ✅ |
-| 7 | 系统编程(C/C++) | `规划/内功修炼/07-系统编程.md` | 14 | 10 | 4 | 144 | ✅ |
-| **合计** | | | **101** | **134** | **~85** | **1883** | |
+sed -n '392,460p' 规划/执行计划.md
 
-### TOC 验证状态
-
-24 本 内功修炼 TOC 已逐本验证无遗漏章节（2026-08-08），对照各自 `规划/` 提取表。
-**MySQL 14 本 / Java 内功修炼 19 本 TOC 尚未验证** — 新 AI 规划时需逐本验证。
-
----
-
-## 二、待规划
-
-| # | 主题 | 书本数 | 书名清单 |
-|:--:|------|:---:|------|
-| 8 | MySQL-数据库 | 14 | MySQL内核设计与实现 / MySQL是怎样运行的 / 数据库内核揭秘 / 深入浅出存储引擎 / MySQL-8查询性能优化 / 大数据SQL优化原理与实践 / 千金良方金字塔法则 / MySQL高可用解决方案 / MySQL复制技术与生产实践 / 深入理解MySQL主从原理 / MySQL-Concurrency / MySQL实战 / DBA实战手记 / HikariCP连接池实战 |
-| 9 | Java GC 专题 | 2 | 深入探索JVM垃圾回收 / 新一代垃圾回收器ZGC设计与实现 |
-| 10 | Java JVM 核心 | 3 | 揭秘Java虚拟机 / JVM规范 / Java性能权威指南 |
-| 11 | Java 语言+工程 | 6+ | JLS语言规范 / Java深度调试技术 / Effective-Java / Modern-Concurrency-in-Java / On-Java基础卷 / On-Java进阶卷 / Java开发实战 |
-| 12 | 算法(面试) | 2 | 数据结构与算法之美 / 算法第4版 |
-
-> 中间件 (Redis高手心法/Dubbo/RocketMQ/微服务白皮书) — 归 分布式 主题，不在 内功修炼。
-
----
-
-## 三、目录结构
-
+wc -l \
+  规划/分布式/outlines/03-高并发与性能/01-concurrency-foundation.md \
+  规划/分布式/outlines/03-高并发与性能/02-concurrent-data-structures.md \
+  规划/分布式/outlines/03-高并发与性能/03-synchronization-patterns.md \
+  规划/分布式/outlines/03-高并发与性能/04-traffic-management.md \
+  规划/分布式/outlines/03-高并发与性能/05-caching-optimization.md \
+  规划/分布式/outlines/03-高并发与性能/06-database-concurrency.md \
+  规划/分布式/outlines/03-高并发与性能/07-performance-methodology.md \
+  规划/分布式/outlines/03-高并发与性能/08-code-optimization.md \
+  规划/分布式/outlines/03-高并发与性能/09-jvm-tuning.md \
+  规划/分布式/outlines/03-高并发与性能/10-architecture-evolution-performance.md \
+  规划/分布式/outlines/03-高并发与性能/11-massive-traffic-system.md \
+  规划/分布式/outlines/03-高并发与性能/12-distributed-performance.md
 ```
-程序员从入门到放弃之路/
-├── 规划/
-│   ├── README.md                    ← 总索引
-│   ├── HANDOFF.md                   ← 本交接文档
-│   ├── 内功修炼/
-│   │   ├── 01-OS内核.md              ← 6本, 84 KPs, 622行
-│   │   ├── 02-内存深度.md            ← 2本, 41 KPs, 228行
-│   │   ├── 03-文件系统.md            ← 1本, 22 KPs, 115行
-│   │   ├── 04-网络.md               ← 5本, ~80 KPs, 349行
-│   │   ├── 05-系统性能.md            ← 3本, ~37 KPs, 223行
-│   │   ├── 06-eBPF.md               ← 3本, 28 KPs, 202行
-│   │   └── 07-系统编程.md            ← 2本, 25 KPs, 144行
-│   ├── MySQL/
-│   │   └── 08-MySQL.md              ← [待开始] 14本
-│   ├── Java/
-│   │   ├── 09-Java-GC.md            ← [待开始] 2本
-│   │   ├── 10-Java-JVM.md           ← [待开始] 3本
-│   │   └── 11-Java-语言工程.md       ← [待开始] ~6本
-│   └── 算法/
-│       └── 12-算法.md               ← [待开始] 2本
-│
-├── 内功修炼/                       ← 24本原始TOC (全部验证通过 ✅)
-├── MySQL-数据库/                   ← 14本原始TOC (待验证)
-└── Java内功修炼/                   ← 19本原始TOC (待验证, 其中12本用于规划)
+
+方法论必须先读：
+
+```bash
+cat "/data/workspace/source-code/book/成长之路/tmp-question/training-camp/source-code/analysis/talk-method/source-code-analysis/methodology/zh/01-三层循环框架.md"
+cat "/data/workspace/source-code/book/成长之路/tmp-question/training-camp/source-code/analysis/talk-method/source-code-analysis/methodology/zh/07-全量系统性审查维度.md"
+```
+
+教学叙事标杆：
+
+```bash
+cat 规划/内功修炼/outlines/01-OS内核/02-paging-page-tables.md
 ```
 
 ---
 
-## 四、方法论 — 已固化规则 (24条)
+## 1. 项目性质与范围
 
-### 01 提取
-1. **Section 级粒度** — TOC 有 §X.Y 就必须拆到 §X.Y，不容许多节压缩为 1 行
-2. **逐书立即写文件** — 提取完一本立即 Edit 追加到 `规划/{分类}/{编号}-{主题}.md`，不攒到最后
-3. **步骤标记** — 每本带 `[01 #N/M done]` + KPs 计数声明
-4. **三列表** — `| Original Chapter | Inferred Knowledge Point | Confidence |`
-5. **逐本深审** — 每本提取完 → deep review → 修复 → 再继续下一本
+这是一本 **TOC-only 知识书**。项目根据目录和规划生成知识内容，当前主要产物是 `规划/` 下的教学化 outline，不是正文。
 
-### 01 聚合
-6. **P1/P2/P3 逐项书源** — 聚合表每项标注具体书号，插入 01 提取和 02 深度之间
-7. **N=1 标注** — `[N=1 — consensus signal unavailable]`
-8. **N=3 无 P2** — P1=≥2(>1.5), P3=1, 不存在 P2
+目录大致包括：
 
-### 02 深度分类
-9. **🔴 表** — `| Knowledge Point | 01 Pri | 为什么🔴 |`
-10. **🟡 表** — `| Knowledge Point | 01 Pri | 说明 |`（禁止逗号串）
-11. **🟢 表** — `| Knowledge Point | 01 Pri | 放在哪 |`
-12. **8.5-9 分标准** — 诊断 Q1→🔴 Q2→🟡 Q3→🟢
+- `内功修炼/`：OS 内核、内存、文件系统、网络、系统性能、eBPF、系统编程
+- `MySQL-数据库/` 与 `规划/MySQL/`
+- `分布式/` 与 `规划/分布式/`
+- `正文/`：正文写作尚未全面开始，除已存在内容外，不要擅自开始写正文
 
-### 03 聚类
-13. **机制边界定义** — 每个集群说明为什么独立
-14. **依赖链** — "A 依赖 B = 不理解 B 的机制无法理解 A 的行为"
-15. **教学顺序** — 依赖图 → 拓扑排序
-
-### 全局
-16. **逐本 TOC 验证** — 原始 TOC 逐一对照规划文件，确认无遗漏章节
-
-### 写作规范
-17. TOC-only: AI 生成全部内容，书籍只提供主题边界
-18. 语言: 内核层 C/POSIX，系统编程 C/C++混编，Java 专题 Java
-19. 深度: 8.5-9/10，🔴含 struct/call chain，🟡机制+原因，🟢1-2句
-20. 拓扑教学: A依赖B→先写B，禁止前向引用；后向引用已讲概念允许
-21. 面试考点独立存储到 `{章节}/面试考点.md`，不写入正文
-22. 代码块必须可编译或标注 `[pseudocode]`
-23. 不限制行数/章数，讲透为止
-24. 跨书合并仅在 04 步骤（需正文），TOC-only 跳过 04
+当前任务仍是把旧的“技术清单式 outline”改造成有教学叙事、概念依赖和跨篇悬念的 outline。
 
 ---
 
-## 五、下一步
+## 2. 当前总进度
 
-1. **MySQL 规划** (`MySQL/08-MySQL.md`) — 14 本书，逐本 Section 级提取，从 B1(MySQL内核设计与实现) 开始
-2. **Java GC 规划** (`Java/09-Java-GC.md`) — 2 本书
-3. **Java JVM 规划** (`Java/10-Java-JVM.md`) — 3 本书
-4. **Java 语言+工程** (`Java/11-Java-语言工程.md`) — ~6 本书
-5. **算法** (`算法/12-算法.md`) — 2 本书, 面向面试/刷题单独规划
+### 2.1 已完成并收敛的主题
 
-> **注意**: `MySQL/08-MySQL.md` 尚未开始。旧摘要版 `MySQL-数据库/规划-MySQL.md` 已作废（75行，不符方法论）。新 AI 按方法论从 B1 逐本开始。
+| 主题 | 篇数 | 目录 | 状态 |
+|---|---:|---|---|
+| 01-OS内核 | 19 | `规划/内功修炼/outlines/01-OS内核/` | 19/19 完成，多轮 review 收敛 |
+| 02-内存深度 | 13 | `规划/内功修炼/outlines/02-内存深度/` | 13/13 完成，多轮 review 收敛 |
+| 03-文件系统 | 12 | `规划/内功修炼/outlines/03-文件系统/` | 12/12 完成，多轮 review 收敛 |
+| 04-网络 | 14 | `规划/内功修炼/outlines/04-网络/` | 14/14 完成，多轮 review 收敛 |
+| 05-系统性能 | 8 | `规划/内功修炼/outlines/05-系统性能/` | 8/8 完成，多轮 review 收敛 |
+| 06-eBPF | 7 | `规划/内功修炼/outlines/06-eBPF/` | 7/7 完成，多轮 review 收敛 |
+| 07-系统编程 | 7 | `规划/内功修炼/outlines/07-系统编程/` | 7/7 完成，多轮 review 收敛 |
+| MySQL | 20 | `规划/MySQL/outlines/` | 20/20 完成，多轮 review 收敛 |
+| 01-分布式理论 | 12 | `规划/分布式/outlines/01-分布式理论/` | 12/12 完成，多轮 review 收敛 |
+| 02-架构与微服务 | 12 | `规划/分布式/outlines/02-架构与微服务/` | 12/12 完成，多轮 review 收敛 |
+| 03-高并发与性能 | 12 | `规划/分布式/outlines/03-高并发与性能/` | 12/12 完成，多轮 review 收敛 |
+
+### 2.2 刚完成主题：03-高并发与性能
+
+已全部完成：
+
+1. `01-concurrency-foundation.md`
+2. `02-concurrent-data-structures.md`
+3. `03-synchronization-patterns.md`
+4. `04-traffic-management.md`
+5. `05-caching-optimization.md`
+6. `06-database-concurrency.md`
+7. `07-performance-methodology.md`
+8. `08-code-optimization.md`
+9. `09-jvm-tuning.md`
+10. `10-architecture-evolution-performance.md`
+11. `11-massive-traffic-system.md`
+12. `12-distributed-performance.md`
+
+本主题最终收束后的主线：
+
+- 计算与竞争：线程、同步器、共享状态、代码路径与 JVM 成本
+- 等待与排队：流量治理、缓存、数据库、压测与保障体系
+- 网络与协调：RPC、事务、架构演进、多活与大促链路
+- 总结结论：分布式性能优化的核心不是追逐单点“最快组件”，而是减少一次请求在计算、等待、往返、编码、协调和恢复上的无效成本
+
+下一主线不再是 03 的下一篇，而是转入 **域 4 Redis**，从通用方法论下沉到具体组件实现层。
 
 ---
 
-## 六、已知陷阱
+## 3. 每篇 outline 的固定模板
 
-1. 一次性写多本书会被用户删除重来——每次只写一本
-2. 逗号串🟡🟢表会被喊回——全部转表格
-3. 聚合表缺 P1/P2/P3 逐项书源→需要插入01提取和02深度之间
-4. 规划产出必须立即写文件——对话中的讨论不等于文件
-5. N=1 缺 `[consensus signal unavailable]` 标注被要求修复
-6. 🟡🟢表缺 `01 Pri` 列被要求修复
+每篇必须保持以下结构：
+
+```text
+# 标题 — 技术词 + 叙事引子
+
+> Cluster X: N KPs | 依赖: ... | 读者基线: ...
+> 读者处境: ...
+> 打开新视角: ...
+
+### 概念依赖链
+### 叙事顺序
+
+### 1. 章节标题
+场景提示: ... [写作时展开]
+关键设计: ...
+Why: ...
+比喻锚点: ... [写作时展开]
+跨层标注: [内核:] / [JVM:] / [x86:] / [分布式架构:] 等
+
+### 2. ...
+...
+
+### N. 收束
+Aha Moment: ...
+回答读者三问: ①... ②... ③...
+
+### 核心悬念
+→ 引出下一篇，文件名必须准确
+```
+
+强制要求：
+
+- 每篇有概念依赖链，并且明确 `§1 → §N` 的先后关系
+- 每篇有叙事顺序，且与正文小节顺序一致
+- 每节有具体场景提示，并保留 `[写作时展开]`
+- 每节有关键机制/结构/流程
+- 每节必须有 `Why`
+- 每节必须有比喻锚点；仅极小的 inline 补充可不单独设比喻
+- 每篇至少 1-3 个跨层标注
+- 机制代码块使用 ` ```[pseudocode] `；依赖链、叙事结构图使用裸代码块
+- 收束必须包含 `Aha Moment`、读者三问、核心悬念
+- 原 outline 的 KP 必须保留，不可只追求文风而删掉覆盖点
+- 不写源码行号；保留真实的文件名、函数名、宏名或机制名即可
+- 不添加没有依据的精确数字、性能倍率和固定公式
+- 不把经验性建议写成所有版本、平台和 workload 都成立的定律
+
+---
+
+## 4. 强制工作流程：一次一篇，Review 到收敛
+
+用户已明确要求：每次写完都要深度 review N 次，直到没有问题为止。禁止批量写文档。
+
+执行协议：
+
+### Pass 0：理解旧 outline
+
+1. 读取目标旧 outline 全文。
+2. 列出原文所有 KP、案例、数字、公式、依赖和下一篇引用。
+3. 确认上一篇与下一篇，不能使用错误的文件名或前向引用。
+
+### Pass 1：教学叙事重写
+
+1. 先确定“读者现在遇到什么故障/困惑”。
+2. 按依赖链组织机制，不按原文清单顺序机械搬运。
+3. 将每个 KP 放入对应小节。
+4. 保留必要书源/章节信息；若当前域的 outline 不要求书源，则不得凭空添加来源。
+5. 使用 ASCII 优先；不要添加 emoji。
+
+### Pass 2：事实与机制 Review
+
+逐节检查：
+
+- Java/JDK、Linux、网络、数据库、分布式机制是否存在版本限定
+- 数字、阈值、公式、性能倍率是否有适用范围
+- “无锁”“实时”“保证”“永远”“一定”等绝对表述是否过强
+- 是否把实现细节误写成 API 契约
+- 是否把局部优化误写成端到端吞吐保证
+- 是否混淆线程池、连接池、Semaphore、队列和数据库容量
+- 是否遗漏超时、中断、取消、失败、回滚和背压语义
+- 是否将分布式语义错误地套用到单机同步器
+
+发现问题就修改后重新 Review，不要只在回复中列出问题。
+
+### Pass 3：结构与方法论 Review
+
+检查：
+
+- 概念依赖链、叙事顺序和正文是否一致
+- 每节是否有场景、关键设计、Why、比喻锚点
+- `[pseudocode]` 是否只用于机制块
+- 跨层标注是否存在且确实有帮助
+- 收束是否有 Aha、三问、下一篇悬念
+- 核心悬念中的文件名是否准确
+- 有没有前向引用或把后续篇当作已讲内容
+
+### Pass 4：负面空间与边界 Review
+
+专门检查“没有写出来但读者会误解”的内容：
+
+- 适用场景与不适用场景
+- 正确性保证的边界
+- 资源上限和故障模式
+- 版本差异和平台差异
+- 过载时系统如何拒绝、超时或降级
+- 回滚、恢复、重试是否会放大问题
+- 指标优化是否真的对应端到端目标
+
+### Pass 5：终检
+
+建议执行：
+
+```bash
+wc -l 目标文件
+rg -n "file:line|:[0-9]+-[0-9]+|第[0-9]+行|源码行号" 目标文件
+rg -n "```\[pseudocode\]|Why:|场景提示:|关键设计:|比喻锚点:|Aha Moment|回答读者三问|核心悬念" 目标文件
+```
+
+终检必须达到：没有新问题、结构完整、代码块配对、没有源码行号残留、下一篇引用准确，才能向用户报告完成并停住。
+
+---
+
+## 5. 当前下一主线的预审重点
+
+目标：`域4-01-redis-thread-model`
+
+从 03 终章的桥接关系看，下一主线会从通用性能原则下沉到 Redis 组件级实现，预计起点包括：
+
+```text
+单线程事件循环
+  → epoll/多路复用
+  → 内存数据结构与命令路径
+  → 为什么单线程仍能高吞吐
+  → 持久化/复制/集群如何重新引入成本
+```
+
+但不要根据这段预判直接写。必须先读取 Redis 域的旧 outline 或执行计划中的真实 KP，依据原文重写，避免凭印象把域 3 的结论直接套过去。
+
+重点避免：
+
+- 把“Redis 单线程”写成“整个 Redis 进程只有一个线程”
+- 把“内存数据库”写成“没有持久化和 I/O 成本”
+- 把某个版本的线程模型、I/O 线程或持久化行为写成所有版本通用事实
+- 把域 3 的通用原则直接当作 Redis 具体实现细节
+- 把吞吐数字写成跨机器、跨网卡、跨命令类型的常数
+
+---
+
+## 6. 已完成篇目的 review 结论摘要
+
+### 02-架构与微服务
+
+12 篇全部完成：
+
+```text
+01-communication-foundation
+02-rpc-service-governance
+03-distributed-theory-architecture
+04-caching-strategy
+05-message-driven
+06-storage-architecture
+07-microservices-design
+08-resilience-patterns
+09-service-mesh
+10-container-orchestration
+11-cloud-native-patterns
+12-architecture-evolution
+```
+
+最近完成的 10-12 篇已重点修正：
+
+- 容器不是轻量 VM；共享宿主机内核，隔离还依赖 namespace/cgroup、capability、seccomp、LSM 等
+- Kubernetes 的核心是声明式控制循环，不只是启动容器
+- GitOps 还包括漂移检测、权限、审计和回滚，不只是把 YAML 放入 Git
+- HPA 不会自动解决数据库、锁、队列、分片和下游 API 容量瓶颈
+- Serverless/AIOps 不是万能方案
+- 架构演进必须处理数据归属、跨单元调用、多活冲突、RPO/RTO、切流和回切
+
+### 03-高并发与性能
+
+12 篇全部完成：
+
+```text
+01-concurrency-foundation
+02-concurrent-data-structures
+03-synchronization-patterns
+04-traffic-management
+05-caching-optimization
+06-database-concurrency
+07-performance-methodology
+08-code-optimization
+09-jvm-tuning
+10-architecture-evolution-performance
+11-massive-traffic-system
+12-distributed-performance
+```
+
+本主题多轮 review 后已重点修正：
+
+- 不把线程数、上下文切换、QPS、RTT、停顿时间、压测倍数写成跨平台常数
+- 虚拟线程、LongAdder、零拷贝、对象池、G1/ZGC、Serverless、Service Mesh 等都补上版本和 workload 边界
+- 限流、熔断、降级、隔离、重试、缓存一致性、分布式限流、异地多活、秒杀预扣等场景都补上失败、回滚、恢复和补偿语义
+- 删除错误前向引用、自引用和不准确的下一篇文件名，尤其修掉 12 终章里旧稿的错误桥接
+- 终章已把域 3 的方法论、I/O、RPC、事务、可观测性和域 4/5/6 组件桥接收束成一张总账本
+
+---
+
+## 7. 关键决策与不可违反的边界
+
+| 决策 | 当前规则 |
+|---|---|
+| 工作粒度 | 一次只改一篇 outline，禁止批量改写 |
+| Review | 每篇自动多轮 review，直到连续检查没有新问题 |
+| 产物范围 | 当前只改 `规划/.../outlines/`，不要擅自写 `正文/` |
+| 格式 | 教学叙事模板，不回退为技术清单 |
+| 源码引用 | 不写 `file:line` 行号；使用文件名/函数名/机制名 |
+| 机制块 | 使用 ` ```[pseudocode] ` |
+| 风格 | 教学叙事、ASCII 优先、不添加 emoji、不添加多余注释 |
+| 事实 | 版本相关、实现相关、workload 相关内容必须加边界说明 |
+| Git | 不要提交、不要 amend、不要 reset、不要覆盖用户无关修改 |
+| API/密钥 | 不要在交接文档或回复中写入任何 API key、token 或内部凭据 |
+
+---
+
+## 8. 已知陷阱
+
+1. 不要把旧 HANDOFF 的“当前主线”当成最新状态；本文件已更新到 03 主题 12/12 完成，并切到域 4 下一主线。
+2. `规划/执行计划.md` 仍可能没有完全同步 outline 的最新完成量，必须以实际目录和本文件核对。
+3. 写入工具偶尔会返回成功但目标文件没有真实覆盖；每次写完必须用 `wc -l` 和 `read`/内容检查确认。
+4. 不要用固定性能数字描述所有机器、JDK、网络或 workload。
+5. 不要把“无锁”写成“无等待”，不要把“异步”写成“不阻塞”，不要把“单线程”写成“整个系统只有一个线程”。
+6. 不要把实现细节和 API/架构契约混淆；尤其是 CHM、AQS、ForkJoinPool、虚拟线程、G1/ZGC、Redis 线程模型等。
+7. 不要添加源码行号；用户明确要求删除此类引用。
+8. 不要出现错误的下一篇文件名、错误的域间桥接或类似 `域3-12` 这种自引用式错误。
+9. 不要在未完成事实、结构、负面空间和终检 review 前向用户报告完成。
+
+---
+
+## 9. 规划与方法论参考路径
+
+| 内容 | 路径 |
+|---|---|
+| 总执行计划 | `规划/执行计划.md` |
+| 当前交接文档 | `规划/HANDOFF.md` |
+| 大纲模板标杆 | `规划/内功修炼/outlines/01-OS内核/02-paging-page-tables.md` |
+| 三层循环方法论 | `training-camp/source-code/analysis/talk-method/source-code-analysis/methodology/zh/01-三层循环框架.md` |
+| 全量审查维度 | `training-camp/source-code/analysis/talk-method/source-code-analysis/methodology/zh/07-全量系统性审查维度.md` |
+| 知识规划方法论 | `training-camp/source-code/analysis/talk-method/knowledge-planning/methodology/zh/` |
+| 当前高并发与性能 outlines | `规划/分布式/outlines/03-高并发与性能/` |
+| 下一主线相关目录 | 先从 `分布式/`、`规划/分布式/` 中定位 Redis 域对应材料 |
+
+---
+
+## 10. 向下一位 AI 的执行指令
+
+```text
+先读本 HANDOFF，再定位域 4 Redis 的第一篇旧 outline（目标锚点：域4-01-redis-thread-model）。
+不要批量处理，不要写正文。
+按“读取旧 outline → 教学叙事重写 → 事实 review → 结构 review → 负面空间 review → 终检”的流程执行。
+每轮发现问题都直接修复，再重新检查。
+只有连续检查没有新问题，才向用户呈报完成，并等待用户下一次指令。
+```

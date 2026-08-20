@@ -142,3 +142,155 @@
 ```
 
 **spring-boot-project 全部 13 个子模块及其 autoconfigure 60+ 子包均已扫描覆盖，每个淘汰包均经源码确认 + 用户技术栈对照，核心包覆盖率 100%。**
+
+---
+
+## 旧规划问题复盘（供后续框架规划复用）
+
+当前 Spring Boot 规划虽然已经把 24 个域扫出来了，但按新版方法论再看，仍有几个明显问题：
+
+### 1. 现在更像“机制域清单”，还不像“完整卷结构”
+
+这份规划回答得很好的是：
+- Boot 有哪些值得学的机制
+- 哪些包该保留，哪些可以淘汰
+
+但它还没有回答另一组更重要的问题：
+- `vol-springboot` 这卷书的主干到底是什么
+- 哪些篇是主干层
+- 哪些篇是集成层
+- 哪些篇是生产层
+- 哪些篇只是补深专题
+
+也就是说，它还像“高质量域清单”，还不像“可连续写作的一卷书”。
+
+### 2. 与 `vol-spring` 的边界更像去重表，不像卷级桥接策略
+
+文档已经做了很多交叉覆盖说明，这很好；但它现在更像：
+- 哪些域不要重复写
+
+而还不像：
+- 读者读完 `vol-spring` 后，为什么必须接着读 `vol-springboot`
+- Spring 讲原理，Boot 到底补了哪些“落地层”
+- 哪些篇必须由 Boot 自己承担，而不能指望 Framework 卷兜底
+
+也就是说，边界已经有了，但“桥接逻辑”还没真正卷级化。
+
+### 3. 缺少“完整卷补层”的显式意识
+
+按现在的 24 域组织，已经隐含出现了：
+- 自动装配主线
+- Web/数据/异步/AOT 主线
+- FailureAnalyzers / ApplicationAvailability / Actuator / 测试这些更像完整卷补层的内容
+
+但文档还没有显式承认：
+- 哪些是 Boot 主干层
+- 哪些是集成层
+- 哪些是生产层
+- 哪些是测试与诊断层
+
+所以后续如果直接照这个清单开写，很容易写成 24 篇平铺专题，而不是一卷结构稳定的书。
+
+### 4. `Actuator`、`FailureAnalyzers`、`ApplicationAvailability` 的卷级地位还没被讲清
+
+这些主题都很重要，但它们和主干自动装配链不是同一层问题：
+- `FailureAnalyzers` 更像诊断层
+- `ApplicationAvailability` 更像运行时运维层
+- `Actuator` 更像生产可观测层
+- `测试自动配置` 则是测试层
+
+如果不把它们从“功能域”提升为“卷级层次”，后面很容易混写，读者会知道这些机制存在，却不清楚为什么它们应该放在卷的后半段而不是前半段。
+
+---
+
+## 卷级完整路线图（Spring Boot）
+
+> 这一节用于把 `SpringBoot源码学习范围规划.md` 从“24 个机制域清单”重构成“可写的完整卷结构”。
+
+### A. 主干层
+
+这部分回答：
+- Boot 怎么启动
+- Boot 怎么自动装配
+- Boot 怎么把 Spring Framework、Tomcat、DataSource、Redis、缓存等基础设施真正装到应用里
+
+建议纳入主干层的域：
+1. `B-1 @SpringBootApplication`
+2. `B-2 条件注解体系`
+3. `B-3 SpringApplication.run()`
+4. `B-4 @ConfigurationProperties`
+5. `B-5 Starter 机制`
+6. `B-6 Web 自动装配`
+7. `B-7 嵌入式容器自动装配`
+8. `B-8 HTTP 客户端与消息转换器`
+9. `B-9 DataSource/JDBC 自动配置`
+10. `B-10 Redis 自动配置`
+11. `B-11 事务自动配置`
+12. `B-12 缓存自动配置`
+13. `B-13 TaskExecutor/异步自动配置`
+14. `B-14 AOT/Native Image 启动处理`
+
+### B. 集成层
+
+这部分回答：
+- Boot 怎么站在 Spring Framework 之上做“装配桥”
+- Boot 怎么站在 Tomcat、HikariCP、Redis 等设施之上做“落地桥”
+
+这层不一定需要全是新域，但卷内写作时必须明确：
+- `vol-spring` 负责原理
+- `vol-springboot` 负责把原理装成真实项目
+
+尤其关键桥接包括：
+- `SpringApplication.run()` ↔ Framework `refresh()`
+- `ServletWebServerFactory` ↔ Tomcat
+- `DataSourceAutoConfiguration` ↔ HikariCP
+- `RedisAutoConfiguration` ↔ Lettuce/Jedis
+
+### C. 诊断与可观测层
+
+这部分回答：
+- Boot 为什么能把启动失败、健康状态、指标、信息端点做成一整套运行时诊断系统
+
+建议纳入：
+1. `B-15 FailureAnalyzers`
+2. `B-18 ApplicationAvailability`
+3. `B-21 Actuator 端点体系`
+
+### D. 测试层
+
+这部分回答：
+- Boot 怎么把测试切片、自动配置、MockMvc、MockBean 等变成开发者的默认测试体验
+
+建议纳入：
+1. `B-22 测试自动配置`
+2. `B-23 Validation 自动配置`（可附在测试或 Web 相关篇中）
+
+### E. 补深层
+
+这部分回答：
+- 哪些主题主干里已经点到，但值得单独继续压深
+
+建议保留为补深候选：
+- `B-16 EnvironmentPostProcessor`
+- `B-17 日志系统自动配置`
+- `B-19 虚拟线程支持`
+- `B-20 WebFlux/Reactive 自动配置`
+- `B-24 Elasticsearch 自动配置`
+
+这些不一定都要进入第一阶段主干卷，但应保留卷级位置，不再只是散落的“🟡 域”。
+
+### 当前卷级判断
+
+因此，Spring Boot 这一卷更准确的完整结构应理解为：
+
+- **第一阶段：主干层 + 集成层**
+- **第二阶段：诊断与可观测层 + 测试层 + 补深层**
+
+如果目标只是“接在 `vol-spring` 后，把 Boot 的核心价值立住”，第一阶段就已经足够形成完整主线。
+
+如果目标是“Spring Boot 完整卷”，则后续还要继续补：
+- FailureAnalyzers
+- ApplicationAvailability
+- Actuator
+- 测试自动配置
+- EnvironmentPostProcessor / Logging / Virtual Threads / WebFlux / Elasticsearch 等补深篇

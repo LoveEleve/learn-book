@@ -1,39 +1,155 @@
 # 锁家族 — mutex + qspinlock + rwlock + semaphore + futex + seqlock
 
 > Cluster B: 10 KPs | 依赖: 06-原子操作与内存屏障 | 读者基线: 理解 CAS 自旋和 barrier 概念
+> 读者处境: 已读完 06 篇，掌握原子操作与屏障；本篇回答"如何在原子原语上构建生产级锁"
+> 打开新视角: 睡眠 vs 自旋的抉择、锁的公平性与缓存争用、读多写少的两种解法（rwlock/seqlock）、用户态锁（futex）的慢路径、锁粒度演进的死锁代价
 
 ---
 
+### 概念依赖链
+
+```
+06-原子(CAS/xchg/屏障) → 本篇: 锁家族
+  ├─ §1 mutex(睡眠等待 — 依赖 06 原子 + 调度器)
+  │    └─ §2 spinlock(自旋等待 — 依赖 06 xchg/CAS)
+  │         └─ §3 rwlock + seqlock(读多写少的两种策略 — 依赖 §2 的自旋)
+  │              └─ §4 semaphore + futex(计数型 + 用户态快路径 — 依赖 06 原子)
+  │                   └─ §5 锁粒度演进(🟢: 并发度 vs 死锁风险的权衡)
+先讲: 睡眠锁(互斥) → 自旋锁(临界区) → 读优化(两种) → 计数/用户态(扩展) → 粒度(演进)
+后续依赖: 08-RCU(读零开销的终极方案)
+```
+
+### 叙事顺序
+
+1. 问题引入——两个线程争用一块数据：等还是抢？（**Aha: 锁的选择本质是"睡眠 vs 自旋"的权衡**）
+   - 过渡: 睡眠等待的锁怎么实现？——mutex
+2. mutex——owner/wait_list 结构；slowpath 睡眠；optimistic spinning；PI 优先级继承
+   - 过渡: 睡眠成本高——临界区极短时直接自旋？
+3. spinlock——ticket lock 公平但缓存争用；qspinlock MCS 排队解决；不可递归
+   - 过渡: 自旋锁只有"互斥"——读多写少怎么办？
+4. rwlock + seqlock——读者优先（写饥饿）vs 写者优先（读重试）；选择矩阵
+   - 过渡: 这些都是内核锁——用户态线程锁怎么办？
+5. semaphore + futex——计数型；futex 用户态快路径+内核慢路径；kref 引用计数
+   - 过渡: 锁的粒度也影响并发——从一把大锁到细粒度
+6. 锁粒度演进（🟢）——主从内核→巨型上锁→细粒度；死锁风险上升
+   - 过渡: 睡眠+自旋+读优化+用户态已齐——怎么选？
+7. 收束——锁选择矩阵（临界区长度×写比例×睡眠可行性）
+
 ### 1. mutex — 互斥锁，睡眠等待不空转
-  - `struct mutex { atomic_long_t owner; spinlock_t wait_lock; struct list_head wait_list; }` — owner 存持有者 task_struct 指针(低位 4bit 存标记) (include/linux/mutex.h:53)
-  - 锁争用路径: `mutex_lock → __mutex_lock_slowpath` → 设置 `TASK_UNINTERRUPTIBLE` → 加入 wait_list → schedule() 放弃 CPU → 唤醒后重试 (kernel/locking/mutex.c:649)
-  - optimistic spinning: 锁持有时间短时不自旋 → OSQ 排队(MCS 锁) → 减少缓存行争用(多个等待者不在同一缓存行上自旋) (kernel/locking/mutex.c:362)
-  - PI 优先级继承: 高优先任务等低优先级持锁 → 临时提升持有者优先级(rt_mutex) → 避免优先级反转(低优先抢占高优先) (kernel/locking/rtmutex.c:219)
+
+场景提示: 两个线程争一把锁，持锁者被调度走——等锁者空转 CPU 还是让出？ [写作时展开]
+
+关键设计: `struct mutex { atomic_long_t owner; spinlock_t wait_lock; struct list_head wait_list; }`——owner 存持有者 task_struct 指针（低位 4bit 存标记），wait_list 排队等待者 (include/linux/mutex.h)。
+
+争用路径: `mutex_lock → __mutex_lock_slowpath` → 设置 `TASK_UNINTERRUPTIBLE` → 加入 wait_list → `schedule()` 放弃 CPU → 唤醒后重试。
+
+关键优化:
+- **optimistic spinning**: 等待者**先乐观自旋**（预期持锁者即将释放，省掉睡眠切换）→ 超时或持锁者进入睡眠才转入睡眠等待（kernel/locking/mutex.c）
+- **OSQ 排队**: 多个等待者用 MCS 锁排队自旋——减少缓存行争用（每个等待者自旋自己的节点，而非同一缓存行） [内核: OSQ=Optimistic Spinning Queue——自旋者各自 spin 本地节点, 避免全局缓存行乒乓]
+- **PI 优先级继承**: 高优先任务等低优先级持锁 → 临时提升持有者优先级（rt_mutex）→ 避免优先级反转（低优先任务被高优先抢占导致中优先任务饿死）
+
+Why: 为什么 mutex 用睡眠而非纯自旋？——临界区可能被持锁者长时间占用（持锁者被调度走），自旋=白烧 CPU。睡眠把等待成本转嫁给调度器；代价是切换开销（~1-3 µs）。**选择依据：临界区长度**——长临界区睡眠，短临界区自旋（§2）。
+
+比喻锚点: mutex=餐厅等位——坐下（持锁）的人可能吃很久，其他客人领号（wait_list）去候客厅坐着等（睡眠），叫号（唤醒）再来；客人不多（无竞争）时直接入座（快路径）。 [写作时展开]
 
 ### 2. spinlock — 自旋忙等，临界区极短
-  - ticket lock(老): 两个变量 current_ticket + next_ticket → `xadd` 原子获取排队号 → 自旋到 `&lock->current_ticket == ticket` → FIFO 公平 → 缓存争用严重(每核自旋读同一缓存行) (arch/x86/include/asm/spinlock.h:101)
-  - qspinlock(新, 4 字节): MCS 队列锁排队 → per-CPU 等待节点 → 自旋在本地缓存行(非全局) → 减少缓存 ping-pong → 嵌入其他结构(4 字节) (kernel/locking/qspinlock.c:289)
-  - 不可递归: 自旋锁不支持同一 CPU 重复加锁 → 无 owner 跟踪 → `spin_lock(&lock); spin_lock(&lock);` → 死锁(卡住)
 
-### 3. rwlock + seqlock — 读者多写者少场景
-  - rwlock: `rwlock_t` → `read_lock/read_unlock`(读并发) / `write_lock/write_unlock`(写排他) → 读者优先可能导致写者饥饿 (include/linux/rwlock.h:45)
-  - seqlock: 写不阻塞读 → 读记 sequence → 读完检查 sequence 是否变化(奇数=写进行中) → 变化则重读 → 写极少读极多的场景(如 jiffies) — `write_seqlock(&lock); write_sequnlock(&lock);` (include/linux/seqlock.h:318)
-  - 区别: rwlock 读等写 / seqlock 读不等写(以重读为代价) → rwlock 适合读多写少 / seqlock 适合写极少的轻量数据
+场景提示: 中断处理/内核热路径的临界区只有几条指令——睡眠切换比临界区本身还贵，怎么办？ [写作时展开]
+
+关键设计: 自旋锁忙等——获取失败就原地转圈，不睡眠。两种实现：
+
+| 实现 | 机制 | 问题 |
+|------|------|------|
+| ticket lock（老） | `xadd` 取排队号，自旋到 `current_ticket == ticket` | FIFO 公平，但**所有核自旋读同一缓存行**——缓存争用 |
+| qspinlock（新） | MCS 队列锁：per-CPU 等待节点 | 自旋本地缓存行，减少 ping-pong；仍 4 字节可嵌入 |
+
+- ticket lock: 公平（FIFO）但缓存争用严重——每核自旋读 `current_ticket` 同一缓存行，MESI 乒乓
+- qspinlock: 每个等待者自旋自己的 MCS 节点（per-CPU 缓存行）——只有队首等待者自旋锁的缓存行；释放时唤醒下一个 [内核: qspinlock 用 4 字节编码锁状态+MCS 队列指针——嵌入其他结构不膨胀]
+
+注意: **自旋锁不可递归**——无 owner 跟踪，`spin_lock` 两次 → 死锁卡住（同一 CPU 重复加锁无感知）。 [内核: 自旋锁临界区自动关抢占——持锁期间不可被调度走]
+
+Why: 为什么临界区极短时自旋优于睡眠？——睡眠路径固定开销（状态切换+调度 ~µs）；临界区只有 ~100 cycles（<1µs）时，睡眠反而更慢。自旋的代价是"持锁者被调度走则等待者白烧 CPU"——所以自旋锁**要求临界区短且持锁期间不被抢占**（见上文注意点）。
+
+比喻锚点: spinlock=堵车时原地等待——路很短（临界区短）掉头（睡眠）更费时，就在原地等；但若前车（持锁者）可能停车很久（被调度走），原地等就是白烧油（CPU）。 [写作时展开]
+
+### 3. rwlock + seqlock — 读多写少场景的两种策略
+
+场景提示: 读多写少的全局数据（路由表/统计）——写排他、读并发，怎么做？ [写作时展开]
+
+关键设计: 两种"读写分离"锁：
+
+| | rwlock | seqlock |
+|------|--------|---------|
+| 读 | 并发（read_lock 可多个） | **不阻塞**（无锁读） |
+| 写 | 排他（write_lock 等所有读释放） | 排他 + 记录 sequence |
+| 读等待写 | 是（读者等写者） | **否**（读不等待，重试即可） |
+| 适用 | 读多写少 | 写极少、读极多（jiffies 时间戳） |
+| 代价 | 写者可能饥饿（读者优先） | 读者可能重试（写进行中读到一半） |
+
+seqlock 机制: 写前 `write_seqlock`（sequence 变奇数）→ 写 → `write_sequnlock`（变偶数）；读者读前记 sequence、读后检查——奇数或变化则重读。
+
+Why: 为什么需要两种？——rwlock 适合"读频繁但必须读到一致快照"（读者等写完）；seqlock 适合"数据小、写极罕见、读者能容忍重读"（如时间戳/计数器）——把"等待"换成"重试"，读路径彻底无锁。
+
+比喻锚点: rwlock=图书馆阅览室（读者多人共读，管理员（写者）清场时读者等）；seqlock=公告栏（几乎没人改，路过的人（读者）看一眼，若正巧在换海报（写中）就再看一眼）。 [写作时展开]
 
 ### 4. semaphore + futex — 计数型 + 用户态快路径
-  - semaphore 计数型锁: `sem_init(sem, 0, N)` → `down`(P, 获取) / `up`(V, 释放) → 当 count<0 时阻塞 → `down_interruptible`(可唤醒) / `down_killable`(可杀) (include/linux/semaphore.h:15)
-  - futex 快慢路径: 用户态无竞争 → 纯原子 CAS(无系统调用) / 有竞争 → `futex(FUTEX_WAIT)` 陷入内核 → 等待者加入 `futex_q`(plist 优先级) → 释放者 `futex(FUTEX_WAKE)` (kernel/futex/waitwake.c:87)
-  - 互斥锁是 N=1 的信号量 → Java LockSupport.park() 基于 futex → pthread_mutex 基于 futex
-  - 引用计数 kref: `struct kref { refcount_t refcount; }` → `kref_init / kref_get / kref_put` → `kref_put` 到 0 时调用 release 回调释放对象 → 比 `atomic_dec_and_test` 安全(防止 use-after-free 的 race) (include/linux/kref.h:47)
 
-### 5. 收束
-  - mutex = 睡眠等(适合临界区长) / spinlock = 忙等(适合临界区极短) / qspinlock 解决缓存争用
-  - rwlock 读并行/写串行, seqlock 读不等写但需重试, futex 用户态快+内核忙路径 = 三层设计
-  - 锁的选择取决于临界区长度、写比例、睡眠可行性
+场景提示: 用户态线程锁（pthread_mutex）——每次加锁都进内核？那也太慢了。 [写作时展开]
+
+关键设计:
+
+**semaphore（计数型）**: `sem_init(sem, 0, N)` → `down`（P，count--，<0 阻塞）/ `up`（V，count++，唤醒）。mutex 是 N=1 的信号量特例；`down_interruptible`（可被信号唤醒）/`down_killable`（可被杀）。
+
+**futex（Fast Userspace mutex）— 用户态锁的基石**:
+
+```[pseudocode]
+快路径: 用户态无竞争 → 纯原子 CAS（0→1），零系统调用
+慢路径: 有竞争 → futex(FUTEX_WAIT) 进内核 → 加入 futex_q(plist 优先级队列)
+释放:   futex(FUTEX_WAKE) 唤醒等待者
+```[pseudocode]
+
+- Java LockSupport.park() 基于 futex → pthread_mutex 基于 futex
+- 快慢路径分离：**99% 的锁操作无竞争，纯用户态完成；只有竞争才进内核**
+
+**kref 引用计数**: `struct kref { refcount_t refcount; }` → `kref_get/kref_put`——`kref_put` 到 0 时调 release 回调释放对象。比裸 `atomic_dec_and_test` 安全（防止 use-after-free race）。
+
+Why: 为什么锁操作绝大多数不需要进内核？——无竞争时"锁=一个原子变量翻转"，用户态一条 CAS 完成；进内核的代价（syscall ~100 cycles + 调度）只有竞争时才值得付。futex 把这个洞察固化：**内核只处理竞争，不处理常态**。 [内核: futex_q 用 plist(优先级队列)组织等待者——按优先级唤醒, 非 FIFO]
+
+比喻锚点: futex=超市自助结账——大部分顾客（锁操作）扫码即走（用户态 CAS），只有同时抢同一商品（竞争）才找店员（进内核登记排队）。 [写作时展开]
+
+### 5. 锁粒度演进 (🟢)
+
+场景提示: 内核早期的"一把大锁"为何被拆成细粒度？——并发度与复杂度的权衡。 [写作时展开]
+
+关键设计: 锁粒度演进史 (B6 Ch9§2-4, Ch10§2-5)：
+
+```[pseudocode]
+主从内核（早期 Linux）: 一次只允许一个 CPU 进内核 → 简单但多核无并行
+巨型上锁 → 粗粒度: 按子系统拆锁 → 并发度提升
+粗粒度 → 细粒度: 按对象拆锁（per-object） → 并发度再提升
+代价: 锁数量↑ → 获取顺序复杂度↑ → 死锁风险↑（ABBA）
+```
+
+Why: 为什么细粒度是"双刃剑"？——粒度越细并发越高，但多锁的顺序约束越多（A 持 B、B 持 A = ABBA 死锁）。现代内核以 per-object 锁为主 + 严格的锁顺序规则（08 篇 lockdep 检测的正是这种风险）。
+
+比喻锚点: 锁粒度=仓库管理——一把总钥匙（巨型锁）简单但只能一人进出；每柜一钥匙（细粒度）多人并行，但钥匙顺序乱了（先开 1 再开 2 vs 先 2 再 1）就会互相卡死（ABBA）。 [写作时展开]
+
+### 6. 收束
+
+回到"争用数据：等还是抢？"：
+- mutex = 睡眠等（长临界区，持锁者可被调度）
+- spinlock = 忙等（短临界区，持锁不可抢占）
+- rwlock/seqlock = 读优化的两种策略（等待 vs 重试）
+- semaphore/futex = 计数型 + 用户态快路径
+- 粒度 = 并发与死锁风险的权衡
+
+**Aha Moment**: "锁的本质是'等还是抢'的选择：mutex 让出 CPU（睡眠）、spinlock 烧 CPU（自旋）；而 futex 的精妙在于'常态不锁'——无竞争时纯用户态 CAS，竞争才进内核。锁不是拿来就用，是权衡后选出来的。"
+**回答读者三问**: ①长临界区用 mutex、短用 spinlock；②读多写少选 rwlock、写极少选 seqlock；③用户态锁快= futex 快路径（无竞争不进内核）。
 
 ---
 
 ### 核心悬念
+
 **"mutex 要睡眠等，spinlock 不做跟踪 — 那 RCU 怎么做到读完全无锁(零开销)？死锁怎么在内核中检测？"**
 
-→ 引出 08-RCU 宽限期 + 死锁检测(lockdep) + 活锁 + per-CPU + 内核抢占
+→ 引出 08-RCU 宽限期 + 死锁检测(lockdep) + 活锁 + per-CPU + 内核抢占——锁都有代价，RCU 是"读者零代价"的终极答案。

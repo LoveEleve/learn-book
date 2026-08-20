@@ -1,46 +1,186 @@
-# 订单扣了库存但支付失败, 怎么回滚? — 2PC/3PC/XA/TCC全拆解
+# 分布式事务 — 2PC、3PC、XA 与 TCC 如何处理跨服务原子性
 
-> Cluster C: 15 KPs | 依赖: A+B(已知CAP+共识) | 读者基线: 理解ACID事务概念
+> Cluster C: 15 KPs | 依赖: 01 CAP/一致性、04-07 共识与故障、07 MVCC/Locks | 读者基线: ACID、本地事务、网络超时
+> 读者处境: 01 篇的订单/库存/支付跨服务场景再次出现；本篇回答“一个本地事务无法覆盖多个资源时，怎样协调提交、回滚和补偿”
+> 打开新视角: 分布式事务方案不是“更强的 ACID 开关”，而是**在原子性、阻塞、性能、开发复杂度和故障恢复之间重新分配成本**
 
 ---
 
-### 1. 一个跨数据库的转账 — 为什么单机事务不够了?
-  用户从A银行(MySQL-A)转入B银行(MySQL-B)100元 — A扣了100, B没收到 → 钱丢了。
-  - B1 Ch5 §2: 2PC两阶段提交 — 协调者(Coordinator)控制: Phase1 Prepare(所有参与者锁资源+写undo/redo+回复YES/NO) → Phase2 Commit(全YES→提交; 任一NO→回滚)
-  - B4 Ch6 §1: 2PC状态机 — 参与者: INIT→PREPARED→COMMITTED/ABORTED; 协调者: INIT→WAITING→COMMITTING/ABORTING
-  - 关键设计: 2PC的阻塞问题 — Phase2如果协调者宕机, 已Prepare的参与者持有锁无限等待 → 锁资源泄漏 → 单点故障
-  - B2 Ch3 §1: 2PC的恢复 — 协调者写UNDO/REDO日志 → 宕机重启读日志恢复 → 但参与者宕机时不知道协调者决定 → 需要向其他参与者查询(引入复杂性) [工程: 2PC协作者单点故障 — 实际系统(Seata)用TC集群+Raft做高可用]
+### 概念依赖链
 
-### 2. 3PC — 能用超时打破阻塞吗?
-  2PC会死锁, 加个超时机制行不行?
-  - B1 Ch5 §3: 3PC引入"预提交"中间态 — Prepare→PreCommit→DoCommit(三阶段) → 参与者超时后自主决定(不再死等协调者)
-  - 关键设计: PreCommit的存在 — 协调者在Phase2发PreCommit(让参与者知道"大家都同意了, 准备提交") → 参与者收到PreCommit后超时→自动Commit(因为知道别人也同意了)
-  - B2 Ch3 §2: 3PC的网络分区问题 — 分区发生时, 一边参与者超时→Commit, 另一边协调者Abort → 数据不一致(Partition破坏了"所有人都同意"的前提)
-  - 为什么3PC没普及: 多了一轮RPC(延迟↑)+网络分区不安全 → 工程选择是"2PC+超时重试+补偿"而非3PC
+```
+01 CAP + 04-07 共识/故障 + 本地ACID → 本篇: 分布式事务协议
+  ├─ §1 2PC(Prepare/Commit与阻塞)
+  ├─ §2 3PC(PreCommit/超时与分区边界)
+  ├─ §3 XA/DTP(标准接口与恢复)
+  └─ §4 TCC(业务预留/确认/取消)
+先讲: 为什么需要协调 → 2PC → 3PC → XA落地 → TCC补偿
+后续依赖: 09-saga-reliable-message(Saga/可靠消息/最大努力通知)
+```
 
-### 3. XA/DTP — 数据库厂商给的标准接口
-  2PC是协议, 怎么真正在MySQL/Oracle之间实现?
-  - B4 Ch6 §3: DTP模型 — AP(应用程序)+RM(Resource Manager, 数据库)+TM(Transaction Manager, 协调者) — XA是RM和TM之间的接口规范
-  - B4 Ch8 §1-2: MySQL XA — XA START xid → SQL操作 → XA END xid → XA PREPARE xid → XA COMMIT/ROLLBACK xid
-  - 关键设计: XA的"遗忘"问题 — TM宕机重启后不知道哪些PREPARED事务存在 → XA RECOVER列出所有PREPARED事务 → TM逐个COMMIT/ROLLBACK
-  - B4 Ch12-13: ShardingSphere-Atomikos-Narayana实现 — ShardingSphere对接XA事务管理器(Atomikos/Narayana) → 分库分表场景下跨分片的2PC
+### 叙事顺序
 
-### 4. TCC — 不用锁, 用补偿!
-  XA/2PC要加锁等全局提交, 性能太差 — TCC怎么绕过?
-  - B4 Ch7 §1: TCC三阶段 — Try(预留资源, 如冻结库存) → Confirm(确认, 真正扣库存) → Cancel(回滚, 解冻库存)
-  - B2 Ch3 §3: Seata TCC模式 — 业务代码实现@TwoPhaseBusinessAction(Try/Confirm/Cancel) → Seata框架协调全局事务
-  - 关键设计: 空回滚(Cancel被调时Try还没执行 — 记录Try状态, 未Try→Cancel直接返回) + 防悬挂(Cancel先于Try到达 — Try被调时检查是否有Cancel记录) + 幂等(重试Confirm/Cancel → 按事务ID去重)
-  - Try vs Prepare的区别: Prepare加锁(DB层), Try预留业务资源(业务层) — TCC没有锁, 靠业务补偿 — 开发量大但性能好
+1. 问题引入——A 库扣款成功、B 库收款失败，单机 rollback 为什么救不了跨库状态？
+2. 2PC——协调者如何把多个 RM 绑成一个提交
+3. 3PC——加 PreCommit 和超时试图减少阻塞
+4. XA/DTP——数据库如何暴露 2PC 接口
+5. TCC——把数据库锁换成业务预留与补偿
+6. 收束——方案选择
 
-### 5. 收束 — 四种方案的选择
-  - 全局一致性要求 + DB厂商支持: XA/2PC(简单但阻塞, 锁定时间长)
-  - 高性能 + 业务可补偿: TCC(开发量3倍但无锁)
-  - 需要框架: Seata(支持所有模式 — XA/AT/TCC/Saga, 一行注解切换)
-  - 2PC vs 3PC: 工程选2PC+补偿(不选3PC), 因为3PC多1轮RPC且网络分区不安全
+### 1. 2PC — Prepare 与 Commit 如何协调多个资源管理器
+
+场景提示: MySQL-A 和 MySQL-B 都要提交，协调者如何保证不出现一边成功、一边失败？ [写作时展开]
+
+关键设计: 2PC 把全局事务拆成准备和最终决定两阶段：
+
+```[pseudocode]
+Phase 1 Prepare:
+  Coordinator → all RM: prepare
+  RM:
+    执行业务/写日志/持有资源
+    → YES(已准备提交) 或 NO(无法提交)
+
+Phase 2 Decision:
+  全部 YES → Coordinator 广播 COMMIT
+  任一 NO/超时 → 广播 ROLLBACK
+
+RM:
+  COMMIT/ROLLBACK
+  → 释放锁/资源
+```
+
+Why: 为什么 2PC 会阻塞？——**参与者在 Prepare 后不能擅自提交或回滚，因为不知道全局决定；协调者在第二阶段宕机时，参与者可能长期持有锁等待恢复**。协调者日志和高可用能减少单点风险，但不能消除协议在网络不确定时的阻塞边界。 [分布式理论: 2PC 的原子性与可用性/阻塞代价直接对应 CAP/故障模型]
+
+比喻锚点: 2PC 像多家银行先冻结并核对余额，最后由总行发统一结算指令；冻结后总行失联，分行不能自行猜提交还是回滚。 [写作时展开]
+
+### 2. 3PC — 多一阶段能否用超时打破阻塞
+
+场景提示: 2PC 的参与者一直等协调者，增加 PreCommit 是否能让它们超时自决？ [写作时展开]
+
+关键设计: 3PC 在 Prepare 和最终提交之间增加状态传播阶段，试图把“大家都同意”传给参与者：
+
+```[pseudocode]
+CanCommit:
+  询问参与者是否可能提交
+
+PreCommit:
+  协调者确认所有参与者准备好
+  → 参与者进入中间状态
+
+DoCommit:
+  最终提交
+
+超时:
+  参与者根据所处阶段尝试推断动作
+```
+
+Why: 为什么 3PC 仍不能在真实网络分区下提供无条件安全？——**超时只能说明没有收到消息，不能证明协调者的真实决定；分区两侧可能基于不同状态自决，导致一侧提交、一侧回滚**。它减少了部分阻塞场景，却增加一轮通信和更复杂状态机，不能替代共识/故障检测。 [分布式理论: 3PC 的时间假设比 2PC 更强，部分同步和分区处理仍是核心边界]
+
+比喻锚点: 3PC 像总行先发“准备结算”通知，再发最终指令；通知能减少等待，但断线时分行仍不能绝对知道总行最后决定。 [写作时展开]
+
+### 3. XA/DTP — 2PC 如何落到数据库接口
+
+场景提示: MySQL 和 Oracle 之间的跨库事务，应用如何控制 Prepare/Commit/Recover？ [写作时展开]
+
+关键设计: DTP 将应用、事务管理器和资源管理器分开，XA 规定 TM 与 RM 的协调接口：
+
+```[pseudocode]
+AP(Application)
+  → TM(Transaction Manager)
+  → RM(Resource Manager: database)
+
+XA lifecycle:
+  XA START xid
+  → SQL operations
+  → XA END xid
+  → XA PREPARE xid
+  → XA COMMIT/ROLLBACK xid
+
+TM recovery:
+  崩溃重启
+  → XA RECOVER 查询 PREPARED 事务
+  → 根据持久化决定逐个 commit/rollback
+```
+
+Why: 为什么 XA PREPARED 事务可能成为运维事故？——**协调者状态与参与者状态可能暂时分离，忘记恢复的 prepared transaction 会长期占资源/锁**；XA 接口让数据库具备协调能力，但没有自动提供跨服务幂等、超时补偿和业务重试策略。 [MySQL: XA 语句、prepared 状态和恢复行为需按目标版本/驱动核对]
+
+比喻锚点: XA 像银行分行提供统一的“预冻结/确认/撤销”接口，但总行仍需保存每笔全局订单号和恢复决定。 [写作时展开]
+
+### 4. TCC — 把数据库锁换成业务预留与补偿
+
+场景提示: 2PC 长时间持锁影响吞吐，库存/支付能否用业务动作表达“预留、确认、取消”？ [写作时展开]
+
+关键设计: TCC 把资源状态机显式写进业务代码，并要求幂等、空回滚和防悬挂：
+
+```[pseudocode]
+Try:
+  预留业务资源
+  例如冻结库存/额度
+
+Confirm:
+  预留成功后确认扣减/转账
+
+Cancel:
+  释放冻结/补偿已执行动作
+
+工程保护:
+  幂等: 重试 Confirm/Cancel 不重复执行
+  空回滚: Try 未成功却收到 Cancel → 安全返回
+  防悬挂: Cancel 先到, 后续 Try 不能再次占用资源
+```
+
+Why: 为什么 TCC 不是“没有锁所以更简单”？——**它把协议复杂度从数据库锁转移到了业务状态、幂等、补偿和异常顺序**：开发者要实现三套动作，处理重试、超时、空回滚、防悬挂和人工对账。它适合业务可以明确预留/确认/取消的场景，不适合所有任意 SQL。 [分布式事务: TCC 的正确性依赖业务补偿语义，框架不能自动推导业务回滚]
+
+比喻锚点: TCC 像库存先贴“已预订”标签，Confirm 才出库，Cancel 才解冻；标签状态和异常订单必须有独立账本。 [写作时展开]
+
+### 5. 方案选择 — 原子性、阻塞、性能与开发量的四角权衡
+
+场景提示: 订单/库存/支付场景里，什么时候用 XA，什么时候用 TCC，什么时候应该改成 Saga/可靠消息？ [写作时展开]
+
+关键设计: 选择先看业务边界和故障恢复，再看协议性能：
+
+```[pseudocode]
+XA/2PC:
+  资源支持标准事务接口
+  → 强原子性更直接
+  → 锁/阻塞/协调者恢复成本
+
+TCC:
+  业务可表达 Try/Confirm/Cancel
+  → 可缩短数据库锁持有
+  → 开发与补偿复杂
+
+Saga/可靠消息:
+  长流程/最终一致/可补偿
+  → 牺牲即时全局原子性
+  → 换可用性与业务可恢复性
+
+决策:
+  业务不变量 → 故障窗口 → 幂等/补偿能力 → 运维能力 → 性能
+```
+
+Why: 为什么没有“分布式事务银弹”？——**2PC 把复杂度放在协调和锁，TCC 放在业务补偿，Saga/消息放在最终一致和重试**；方案必须显式写出失败后用户看到什么、如何对账、如何重试和如何人工修复。 [分布式理论: 协议正确性不等于业务语义自动正确]
+
+### 6. 收束
+
+分布式事务闭环：
+
+```[pseudocode]
+跨资源操作
+  → 明确业务不变量
+  → 选择 2PC/XA、TCC、Saga/消息
+  → 定义提交/回滚/超时/重试
+  → 设计幂等、对账和恢复
+  → 故障演练验证最终状态
+```
+
+**Aha Moment**: "分布式事务协议的真正差异，不是阶段数，而是**把不确定性和失败成本放在哪里**：2PC 放在锁与协调者，3PC 放在更强时间假设，XA 放在接口与恢复，TCC 放在业务补偿。"
+**回答读者三问**: ①2PC 为什么阻塞=Prepare 后不能猜决定；②3PC 为什么不普及=额外阶段仍受分区与时间假设；③TCC 为什么复杂=把事务语义改写成业务预留/确认/取消。
 
 ---
 
 ### 核心悬念
-**"TCC要写Try/Confirm/Cancel三套代码, 开发量太大 — 有没有更简单的方案? 长事务拆成多个短事务, 失败了逐个补偿回去 — Saga是这么干的吗?"**
 
-→ 引出 Saga补偿 + 可靠消息最终一致 + 最大努力通知 (09-saga-reliable-message)
+**"TCC 需要三套业务代码，Saga 能否把长事务拆成多个本地事务并逐步补偿？可靠消息和最大努力通知又如何保证最终收敛？"**
+
+→ 引出 09-saga-reliable-message — Saga、可靠消息与最大努力通知。

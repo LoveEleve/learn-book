@@ -1,385 +1,240 @@
-# Spring 源码学习项目 — 交接文档
+# gRPC-Java 源码分析卷交接文档
 
-> **时间**: 2026-08-02
-> **当前 AI**: 完成工作交接，下一个 AI 继续
-
----
-
-## 一、项目背景
-
-目标：系统学习 Spring 生态源码，最终支撑 microsphere 项目（34 个仓库）的深度分析。
+> 交接时间：2026-08-20  
+> 交接目标：把 gRPC-Java 源码分析卷的完整状态交给下一个 AI，确保它能无缝继续推进剩余主题。
 
 ---
 
-## 二、源码仓库（全部在本地）
+## 一、项目全貌
 
-### 路径
+### 1.1 这是什么项目
 
-```
-/data/workspace/source-code/code/spring/    ← Spring 生态 32 个仓库（核心）
-/data/workspace/source-code/code/microsphere/  ← microsphere 项目源码（34 个仓库，另一个项目）
-/data/workspace/source-code/code/source-md/    ← 源码分析笔记积累（另一个项目）
-```
+这是一个**培训营教材**项目中的源码分析卷。整个项目为一本多卷册的技术书，其中一卷叫 `vol-rpc-governance`（RPC与治理卷），当前正在写 gRPC-Java 部分。
 
-### Spring 生态 32 个仓库清单
+### 1.2 关键路径
 
-| 仓库 | 版本 | 路径 |
-|---|---|---|
-| spring-framework | v6.2.17 | `/data/workspace/source-code/code/spring/spring-framework/` |
-| spring-boot | 3.5.16 | `/data/workspace/source-code/code/spring/spring-boot/` |
-| tomcat | 10.1.34 | `/data/workspace/source-code/code/spring/tomcat/` |
-| netty | 4.2.15.Final | `/data/workspace/source-code/code/spring/netty/` |
-| spring-cloud-commons | v4.3.2 | `/data/workspace/source-code/code/spring/spring-cloud-commons/` |
-| spring-cloud-gateway | v4.3.2 | `/data/workspace/source-code/code/spring/spring-cloud-gateway/` |
-| spring-cloud-openfeign | v4.3.2 | `/data/workspace/source-code/code/spring/spring-cloud-openfeign/` |
-| spring-cloud-alibaba | 2025.0.0.0 | `/data/workspace/source-code/code/spring/spring-cloud-alibaba/` |
-| nacos | 3.0.3 | `/data/workspace/source-code/code/spring/nacos/` |
-| sentinel | 1.8.9 | `/data/workspace/source-code/code/spring/sentinel/` |
-| seata | v2.5.0 | `/data/workspace/source-code/code/spring/seata/` |
-| rocketmq | 5.3.1 | `/data/workspace/source-code/code/spring/rocketmq/` |
-| kafka | 4.1.2 | `/data/workspace/source-code/code/spring/kafka/` |
-| skywalking | v10.4.0 | `/data/workspace/source-code/code/spring/skywalking/` |
-| sofa-jraft | v1.4.1 | `/data/workspace/source-code/code/spring/sofa-jraft/` |
-| xxl-job | 2.4.2 | `/data/workspace/source-code/code/spring/xxl-job/` |
-| hikaricp | 7.0.2 | `/data/workspace/source-code/code/spring/hikaricp/` |
-| druid | 1.2.27 | `/data/workspace/source-code/code/spring/druid/` |
-| mybatis | 3.5.16 | `/data/workspace/source-code/code/spring/mybatis/` |
-| mybatis-plus | 3.5.7 | `/data/workspace/source-code/code/spring/mybatis-plus/` |
-| shardingsphere | 5.5.1 | `/data/workspace/source-code/code/spring/shardingsphere/` |
-| redis | 7.4.2 | `/data/workspace/source-code/code/spring/redis/` |
-| redisson | main | `/data/workspace/source-code/code/spring/redisson/` |
-| elasticsearch | v8.12.2 | `/data/workspace/source-code/code/spring/elasticsearch/` |
-| zookeeper | release-3.9.5 | `/data/workspace/source-code/code/spring/zookeeper/` |
-| curator | 5.8.0 | `/data/workspace/source-code/code/spring/curator/` |
-| dubbo | main | `/data/workspace/source-code/code/spring/dubbo/` |
-| feign | main | `/data/workspace/source-code/code/spring/feign/` |
-| micrometer | main | `/data/workspace/source-code/code/spring/micrometer/` |
-| micrometer-tracing | main | `/data/workspace/source-code/code/spring/micrometer-tracing/` |
-| grpc-java | v1.83.1 | `/data/workspace/source-code/code/spring/grpc-java/` |
-| arthas | 4.3.2 | `/data/workspace/source-code/code/spring/arthas/` |
+| 用途 | 绝对路径 |
+|------|---------|
+| **grpc-java 源码** | `/data/workspace/source-code/code/spring/grpc-java/` (v1.83.1) |
+| **产出目录（正文在此）** | `/data/workspace/source-code/openjdk-book/docs/openjdk/vol-rpc-governance/` |
+| **规划/方法论/交接文档** | `/data/workspace/source-code/book/成长之路/tmp-question/training-camp/source-code/issue/` |
+| **写作指南** | `/data/workspace/source-code/openjdk-book/docs/openjdk/WRITING-GUIDELINES.md` |
+| **范围规划复盘方法论** | `/data/workspace/source-code/book/成长之路/tmp-question/training-camp/source-code/issue/源码范围规划复盘方法论.md` |
+| **gRPC-Java 完整卷总规划** | `/data/workspace/source-code/book/成长之路/tmp-question/training-camp/source-code/issue/gRPC-Java完整卷重新规划.md` |
 
-完整清单文件（含拉取命令）：`/data/workspace/source-code/book/MinerU/spring-repos-list.md`
+### 1.3 前置 Netty HTTP/2 文章（grpc-java 文章引用这些作为前置）
 
-### MCP 索引
-
-所有 32 个仓库已用 `mcp__codebase-memory-mcp__index_repository` 建立全量索引（mode=full）。
-
-**项目名格式**：`data-workspace-source-code-code-spring-{仓库名}`（如 `data-workspace-source-code-code-spring-spring-framework`）
-
-**使用方式**：
-- `mcp__codebase-memory-mcp__search_graph({project, query})` — 查调用关系
-- `mcp__codebase-memory-mcp__get_code_snippet({project, file_path, line})` — 取代码片段
-- `mcp__codebase-memory-mcp__trace_path({project, source, target})` — 追踪数据流
-
-**注意**：旧路径下的索引（如 `data-workspace-source-code-code-nacos`）已过时——仓库已移到 `spring/` 子目录，应使用新路径的索引。
+- `vol-netty/ch12-http2/02-framecodec-and-multiplex.md`
+- `vol-netty/ch12-http2/03-connection-encoder-decoder.md`
+- `vol-netty/ch12-http2/04-grpc-and-triple-on-http2.md`
+- `vol-netty/ch12-http2/05-weighted-fair-queue-distributor.md`
 
 ---
 
-## 三、已完成工作
+## 二、已完成产物清单
 
-### 3.1 方法论探索
+### 2.1 产出目录结构
 
-文件：`/data/workspace/source-code/book/MinerU/tmp-question/training-camp/source-code/issue/01-源码学习方法论探索.md`
+```
+vol-rpc-governance/
+├── ch01-grpc-runtime/           ← 主干运行时卷（4篇，全部完成）
+│   ├── 01-stub-channel-clientcall.*
+│   ├── 02-servercall-and-streaming-model.*
+│   ├── 03-interceptors-context-deadline.*
+│   └── 04-nameresolver-loadbalancer-netty-transport.*
+├── ch02-codegen-builders/       ← codegen与装配卷（4篇，全部完成）
+│   ├── 01-protoc-grpc-skeleton.*
+│   ├── 02-channel-server-builders.*
+│   ├── 03-marshaller-protoutils-message-bridge.*
+│   └── 04-inprocess-testing-semantics.*
+└── ch03-runtime-deepening/      ← 机制补深卷（2篇完成，第3篇待写）
+    ├── 01-service-config-retry-hedging.*
+    ├── 02-callcredentials-auth-boundary.*
+    └── (03-health-reflection-channelz.* ← 下一步要写)
+```
 
-内容：第一性原理推导（源码 = 设计决策 × 实现细节）、三层循环（扫轮廓 → 盯关键点 → 收尾）、与四种方案（A/B/C/D）的融合。这个文件是**独立的方法论文档**，不是规划的一部分，下一个 AI **不需要**参考它写规划。
+### 2.2 每篇文章的标准三件套
 
-### 3.2 Spring Framework 学习范围规划（完成 ✅）
+每篇文章都有三个文件：
+- `*.rewrite-plan.md` — 规划文档（理解路径、失败方案、素材卡片）
+- `*.md` — 正文
+- `*.review-notes.md` — 审查笔记（事实审、因果审、结构审、读者审）
 
-文件：`/data/workspace/source-code/book/MinerU/tmp-question/training-camp/source-code/issue/Spring源码学习范围规划.md`
+### 2.3 完成状态表
 
-**45 🔴 + 15 🟡**，覆盖 9 层：
-
-| 层 | 模块 | 🔴 域 | 🟡 域 | 说明 |
-|---|---|---|---|---|
-| 0 | spring-core | 7 | — | Resource/Type/Env/Ordered/Annotation/Profile/**TaskExecutor** |
-| 1 | spring-beans | 9 | — | BeanDefinition/Factory/生命周期/三级缓存/DI/BPP/BFPP/FactoryBean/作用域 |
-| 2 | spring-context | 11 | 5 | refresh/@Configuration/事件/父子容器/@Import/@Conditional/@Async/@Scheduled/@Cacheable/@Lazy/**AOT/Native Image** |
-| 3 | expression | — | 1 | SpEL（附在 @Value 处理中） |
-| 4 | spring-aop | 4 | 1 | 代理/Advice链/@AspectJ解析/自动代理（+Pointcut🟡） |
-| 5 | spring-tx | 4 | 1 | @Transactional链路/失效场景/传播行为/**DataAccessException**（+TxSync🟡） |
-| 6 | spring-jdbc | 2 | 1 | JdbcTemplate/DataSource（+RowMapper🟡） |
-| 7 | spring-web/webmvc | 6 | 2 | DispatcherServlet/RequestMapping/RequestBody/ResponseBody/拦截器/异常处理（+@InitBinder🟡/+WebFlux&codec🟡） |
-| 8 | spring-test | 2 | 2 | MockMvc/TestContext（+@MockBean🟡/+@Sql🟡） |
-| 周边 | websocket/messaging | — | 2 | 🟡 涉猎不深入；i18n 淘汰 |
-
-这个规划经过多轮 review（包扫描 → 兄弟包发现 → 面试题对照 → 注解覆盖率 → 技术栈对齐 → **兄弟包二次核对遗漏补全**），**100% 包覆盖 + 全部生产常用注解覆盖**。
-
-> **统计修正说明（2026-08-02）**：原声明 49🔴+24🟡 一直数错（git 考证：b5db82a 时实际就只有 42🔴+13🟡）。本次兄弟包二次核对发现 3 个 🔴 遗漏域（TaskExecutor/AOT/DataAccessException）+ 3 个 🟡 遗漏域（ClassPathIndex/@Sql/codec），补全后实际 **45🔴+15🟡**。详见规划文档"V7 演进记录"表。
-
-### 3.3 Spring Boot 学习范围规划（已完成源码扫描 ✅）
-
-文件：`/data/workspace/source-code/book/MinerU/tmp-question/training-camp/source-code/issue/SpringBoot源码学习范围规划.md`
-
-**17 🔴 + 7 🟡 = 24 域**（基于 spring-boot-project 全部 13 个子模块 + autoconfigure 60+ 子包逐包扫描，837+376+448+101+173 Java 文件；每个淘汰包均经源码确认 + 用户技术栈对照）。不重复 Framework 的 45 🔴 域，聚焦 Boot 特有机制：
-
-| 层 | 🔴 | 🟡 | 域 |
-|---|---|---|---|
-| 1 自动装配核心 | 5 | — | @SpringBootApplication/条件注解/SpringApplication.run+BootstrapContext+ApplicationContextInitializer/@ConfigurationProperties/Starter |
-| 2 Web 自动装配 | 3 | — | DispatcherServlet+MVC/嵌入式容器/HTTP 客户端+消息转换器+Jackson |
-| 3 数据访问自动装配 | 4 | — | **DataSource/HikariCP**/Redis/事务+异常翻译/缓存 |
-| 4 异步与 AOT | 2 | — | TaskExecutor/AOT |
-| 5 启动与运行时 | 1 | 5 | 诊断🔴 + EnvPostProcessor/日志/可用性/虚拟线程/WebFlux+Netty🟡 |
-| 6 Actuator 与测试 | 2 | 2 | **Actuator 端点体系🔴**/**测试自动配置🔴** + Validation/Elasticsearch🟡 |
-
-**本次源码扫描新发现的 9 个 🔴 遗漏域**（原 8🔴 规划完全没提）：
-- B-9 DataSource/JDBC（HikariCP 自动装配，面试必问）
-- B-10 Redis（Lettuce/Jedis + RedisTemplate，面试必问）
-- B-11 事务自动配置（PlatformTransactionManager + PersistenceExceptionTranslation）
-- B-12 缓存自动配置（CacheType/Caffeine/Redis）
-- B-13 TaskExecutor/异步（ThreadPoolTaskExecutor 默认配置）
-- B-14 AOT/Native Image 启动处理（SpringApplicationAotProcessor）
-- B-15 启动失败诊断 FailureAnalyzers（生产常用）
-- B-21 Actuator 端点体系（824 文件：端点机制/核心 endpoint/扩展点，原 🟡 升级 🔴）
-- B-22 测试自动配置（274 文件：@SpringBootTest/@MockBean/@WebMvcTest 切片测试）
-
-**深度探索补回的 1 个 🟡**（用户质疑"自动配置全部都不在规划内"后，逐包读源码发现误判）：
-- B-24 Elasticsearch 自动配置（my-xhs 用 ES 8.19.19，原误判为"中间件"淘汰）
-
-**合并到已有域的 5 个包**：http/client→B-8（RestClient）、dao→B-11（异常翻译）、netty→B-20（WebFlux 服务器）、jackson→B-8（JsonComponent）、context→B-3（ApplicationContextInitializer）、info→B-21（BuildProperties）
-
-**用户明确淘汰**：Security（项目用自实现 HMAC 过滤器）、r2dbc（响应式 DB 不用）、SSL Bundle（my-xhs 不用）、DB 初始化（schema.sql 不用，面试低频）
-
-**32 仓库与 SpringBoot 关系**：第 1 类（Boot 自动配置覆盖：tomcat/netty/hikaricp/druid/redis/redisson/elasticsearch/mybatis/micrometer 等）在对应 Boot 域读到源码；第 2 类（Spring Cloud 生态：cloud-commons/gateway/openfeign/alibaba）等 Spring Cloud 规划；第 3 类（独立中间件：nacos/sentinel/rocketmq 等）独立学习。
-
-**已与 Framework 规划交叉覆盖确认**（12 个交叉点，见规划文档"与 Framework 规划的交叉覆盖"表），Framework 讲原理，Boot 讲应用/自动装配，不重复。
-
-**✅ 已完成源码包扫描，下一步可直接开始逐篇写文章。**
-
-### 3.4 HikariCP 学习范围规划（完成 ✅）
-
-文件：`/data/workspace/source-code/book/MinerU/tmp-question/training-camp/source-code/issue/HikariCP源码学习范围规划.md`
-
-**6 🔴 + 7 🟡 = 13 域**，单模块 48 个源文件 5 个包全部审计：
-
-| 层 | 🔴 | 🟡 | 域 |
-|---|---|---|---|
-| 核心 | 6 | — | 核心架构/HikariPool(ConcurrentBag/获取流程/归还流程/生命周期/HouseKeeper) |
-| 扩展 | — | 7 | 连接验证/泄漏检测/指标监控/JMX/SuspendResumeLock/代理生成/DriverDataSource |
-
-**淘汰**：Hibernate 集成、JNDI、Dropwizard 3.x、Dropwizard HealthCheck、Prometheus 原生（Micrometer 桥接即可）、OSGi、SQLExceptionOverride、HikariCredentialsProvider
-
-### 3.5 Druid 学习范围规划（完成 ✅）
-
-文件：`/data/workspace/source-code/book/MinerU/tmp-question/training-camp/source-code/issue/Druid源码学习范围规划.md`
-
-**5 🔴 + 4 🟡 = 9 域**，7 个子模块全部审计，core 1614 个源文件（SQL 解析器占 1238 文件/76%）：
-
-| 层 | 域 |
-|---|---|
-| 🔴 核心 | 连接池核心(ReentrantLock+Condition)/Filter拦截链/StatFilter监控/WallFilter防火墙/后台维护线程 |
-| 🟡 扩展 | SQL Parser体系架构概览/连接验证/PreparedStatementPool/Spring Boot3 Starter |
-
-**Druid vs HikariCP 架构差异**：Druid 用 ReentrantLock+Condition 阻塞模型（vs ConcurrentBag 无锁），Filter 链拦截所有 JDBC 操作（vs 无拦截器的直接代理），内置 SQL 解析+监控+防火墙（vs 纯池无监控）。
-
-**淘汰**：druid-admin(13)、wrapper(13)、demo、SpringBoot2 starter(8)、pool/ha/XA、C3P0 Adapter、ConfigFilter、EncodingFilter、LoggingFilter、SQL parser 1200+ 文件内部实现、support/~100文件
-
-### 3.6 MyBatis-Plus 学习范围规划（完成 ✅）
-
-文件：`/data/workspace/source-code/book/MinerU/tmp-question/training-camp/source-code/issue/MyBatis-Plus源码学习范围规划.md`
-
-**5 🔴 + 4 🟡 = 9 域**，8 个子模块全部审计，385 个源文件（core 158 + annotation 16 + extension 111 + generator 100）：
-
-| 层 | 域 |
-|---|---|
-| 🔴 核心 | SQL 自动注入(DefaultSqlInjector+17种内置方法+AbstractMethod模板)/表元数据解析(@TableName/@TableId/@TableField)/Lambda条件构造器(SerializedLambda反序列化)/MybatisPlusInterceptor插件体系(InnerInterceptor链5回调)/分页插件(物理分页SQL改寫12+方言) |
-| 🟡 扩展 | 乐观锁(@Version+版本号CAS)/自动填充(MetaObjectHandler审计字段)/逻辑删除(@TableLogic DELETE转UPDATE)/BaseMapper+IService |
-
-**关键设计模式**：通过替换 MyBatis Configuration 来"注入"能力——不是 AOP 代理，而是直接替换 MyBatis 核心组件（Configuration/MapperRegistry/MapperAnnotationBuilder）。
-
-**淘汰**：generator(100)、starter(0 resources)、activerecord、DDL、p6spy、scripting、aggregator、BOM、gradle/、libs/ 等 11 个子模块/功能
-
-### 3.7 Redisson 学习范围规划（完成 ✅）
-
-文件：`/data/workspace/source-code/book/MinerU/tmp-question/training-camp/source-code/issue/Redisson源码学习范围规划.md`
-
-**4 🔴 + 3 🟡 = 7 域**，12 个子模块全部审计，core 1570 个源文件（API 接口 801 + Client 协议 217 + 实现 127）：
-
-| 层 | 域 |
-|---|---|
-| 🔴 核心 | Redisson主类(1532行)+ConnectionManager连接管理/RLock(600行)+Watchdog自动续期/Codec序列化体系(7种实现)/CommandAsyncExecutor命令执行流水线 |
-| 🟡 扩展 | RMap分布式映射(1967行)+写后读通/Spring Cache集成(@Cacheable)/RBucket+RAtomicLong基础数据结构 |
-
-**Redis C源码确认**：`/data/workspace/source-code/code/spring/redis/` 是 Redis 7.4.2 C 语言服务器源码，非 Java Spring 库——不纳入学习规划。
-
-**淘汰**：801 API接口（遇到查API）、217 RESP协议文件、mapreduce、liveobject、executor、remote、reactive/rx、transaction、jcache、hibernate/mybatis/tomcat集成等 12 个子模块/功能
+| 章 | 篇 | rewrite-plan | 正文 | review-notes | 状态 |
+|----|-----|:---:|:---:|:---:|------|
+| ch01 | 01-stub-channel-clientcall | ✅ | ✅ | ✅ | 完成 |
+| ch01 | 02-servercall-and-streaming-model | ✅ | ✅ | ✅ | 完成 |
+| ch01 | 03-interceptors-context-deadline | ✅ | ✅ | ✅ | 完成 |
+| ch01 | 04-nameresolver-loadbalancer-netty-transport | ✅ | ✅ | ✅ | 完成 |
+| ch02 | 01-protoc-grpc-skeleton | ✅ | ✅ | ✅ | 完成 |
+| ch02 | 02-channel-server-builders | ✅ | ✅ | ✅ | 完成 |
+| ch02 | 03-marshaller-protoutils-message-bridge | ✅ | ✅ | ✅ | 完成 |
+| ch02 | 04-inprocess-testing-semantics | ✅ | ✅ | ✅ | 完成 |
+| ch03 | 01-service-config-retry-hedging | ✅ | ✅ | ✅ | 完成 |
+| ch03 | 02-callcredentials-auth-boundary | ✅ | ✅ | ✅ | 完成 |
+| ch03 | 03-health-reflection-channelz | ❌ | ❌ | ❌ | **下一步** |
 
 ---
 
-## 四、下一个 AI 需要做的事
+## 三、下一步要做什么
 
-### 当前进度（28/32 仓库，174🔴+105🟡=279域）
+### 3.1 当前任务：Health / Reflection / Channelz
 
-剩余仓库：**Elasticsearch(11810文件—Java)、Kafka(3484+108文件—Java/Scala)、ZooKeeper(524文件—Java)**
+**这是下一个 AI 应该直接开始的任务。**
 
-⚠️ 之前误判 ES/Kafka 为"Server C源码"——实际都是 Java 项目，应纳入学习规划。
+- 章节：`ch03-runtime-deepening`
+- 篇名：`03-health-reflection-channelz`
+- 对应总规划中的主题：`G-DEEP-5 Health / Reflection / Channelz`
+- 产出：三个文件（rewrite-plan.md、.md、review-notes.md）
 
-### 🚀 立即开始（无歧义下一步）
+### 3.2 已收集的源码证据
 
-**第一步：Seata 深度 review**
-→ 读 `Seata源码学习范围规划.md` → MCP search_graph 验证核心类 → 修正初版规划
+上一轮已经读过以下关键文件，可直接使用（但仍建议回到源码复核）：
 
-**第二步：逐一规划剩余 3 仓库**
-→ Elasticsearch → Kafka → ZooKeeper（按文件数从大到小，one-at-a-time）
+**Health 检查：**
+- `services/src/main/java/io/grpc/protobuf/services/HealthStatusManager.java` — 管理健康检查服务，维护 service name -> serving status 映射
+- `services/src/main/java/io/grpc/protobuf/services/HealthServiceImpl.java` — Health gRPC 服务实现（Watch 流式推送状态变更）
+- `services/src/test/java/io/grpc/protobuf/services/HealthStatusManagerTest.java` — 测试证据
 
-**第三步：规划收尾后从 Spring Boot 开始逐篇写作**
+**Channelz 诊断：**
+- `services/src/main/java/io/grpc/protobuf/services/ChannelzService.java` — channelz gRPC 服务，包装 `InternalChannelz`
+- `core/src/main/java/io/grpc/internal/InternalChannelz.java` — channelz 内部注册表
+- `services/src/test/java/io/grpc/protobuf/services/ChannelzServiceTest.java` — 测试证据
 
-### 必须做的：
+**Server Reflection：**
+- `services/src/main/java/io/grpc/protobuf/services/ProtoReflectionServiceV1.java` — 服务器反射服务，基于 `ServerReflectionIndex`
+- `services/src/test/java/io/grpc/protobuf/services/ProtoReflectionServiceTest.java` — 测试证据
 
-1. **Seata 规划需要深度 review**
-   - Seata v2.5.0 已写入初版规划（4🔴=4域），但未经过深度源码审查
-   - 需要：读 DefaultCoordinator/DataSourceProxy/UndoLogManager/GlobalTransaction 等核心类方法体
-   - 验证 AT 模式 undo_log 两阶段提交描述准确性
+### 3.3 篇章定位（建议）
 
-2. **ES、Kafka、ZK 需要独立规划**
-   - ES 11810 文件：聚焦 search engine 核心（索引引擎/查询DSL/分片/集群协调）
-   - Kafka 3484 文件：聚焦 broker 核心（日志存储/分区/消费者组/控制器选举）
-   - ZK 524 文件：聚焦 ZAB 协议/Leader选举/会话管理/Watcher机制
-   - 遵循 one-at-a-time 规则，每个仓库：探索源码 → 写规划文档 → 查漏补缺 → 确认 → 下一个
+- 核心困惑：Health、Reflection、Channelz 为什么不是"辅助服务杂项"，而是 grpc-java 的诊断与生产可见性层？它们如何与 server、metadata、status、transport 产生关系？
+- 一句话顿悟：这三个服务本质上是把 grpc-java 运行时内部状态（服务健康、服务描述、通道/套接字/服务器统计）通过 gRPC 协议本身暴露出来——它们不是外部监控插件，而是 gRPC 生态的自描述能力。
+- 文章边界：重点讲 HealthStatusManager、ChannelzService、ProtoReflectionServiceV1 与运行时的对接；不展开到 OpenTelemetry/gcp-observability 等外部监控体系。
 
-### 注意事项：
+### 3.4 工作流（三步走）
 
-1. **用户的学习方法论**：用户是资深工程师，要求深度源码分析。每篇文章标准：源码走读 + 面试点 + 生产陷阱。不限制行数/字数。每篇写完等用户确认后再写下一篇（不要批量）。
+**第一步：rewrite-plan.md**
+- 参考已有 plan 的结构（篇章定位、前置依赖、一句话困惑/顿悟、读者理解路径、失败方案推演、素材卡片、预估字数）
+- 参考文件：`ch03-runtime-deepening/01-service-config-retry-hedging.rewrite-plan.md`
 
-2. **淘汰标准**：
-   - 基于技术过时（如 JPA/Hibernate、JSP/ViewResolver、XML 编组、JMS）
-   - 基于"是否用过"**不是淘汰标准**——"没接触过"恰恰是学习的理由
-   - 各种中间件自动配置——面试不问、不用不学，确认淘汰
+**第二步：正文.md**
+- 严格遵循 WRITING-GUIDELINES.md
+- 结构：困惑→失败方案→最小总图→分层正文→收网
+- 禁用词：显然、不再展开、同理、依此类推、篇幅所限、容易看出 等
+- 代码块用文字描述（text-only code blocks），正文必须删代码后仍成立
+- 目标字数：~9000-12000 字叙述性正文
+- 每个源码引用需标注 `file:line`
 
-3. **重要反馈规则**（已写入记忆系统，新 AI 应该能看到）：
-   - `不要给自己设置限制` —— 学习范围不能自限
-   - `逐个模块都详细扫描后再系统性的规划` —— 规划前必须包扫描
-   - `不熟悉≠淘汰` —— 用户不熟悉的应该学，不应该跳过
-   - `Spring 学习范围 = 技术专家标准 + 用户实际技术栈裁剪`
-   - `规划文档留一个权威版即可` —— 不要搞 V1/V2/V3 版本堆积
-   - `ls≠源码阅读` —— 必须读方法体才算探索
-   - `子模块全覆盖审计` —— 每个仓库所有子模块都要标注状态
-   - `MCP索引可用` —— 32仓库已建立索引，可search_graph/trace_path验证
-
-4. **规划文档使用方式**：
-   - 每个仓库有独立的 `{RepoName}源码学习范围规划.md`
-   - 文件内包含：知识域表格 + 淘汰清单（每个子模块标注状态和理由）+ 统计 + 交叉引用
-   - 13 个规划文档，182 个子模块全覆盖审计完成
+**第三步：review-notes.md**
+- 四轮审查：事实审（源码引用核对）→ 因果审 → 结构审 → 读者审（删码测试）
+- 参考文件：`ch03-runtime-deepening/02-callcredentials-auth-boundary.review-notes.md`
 
 ---
 
-## 五、关键路径
+## 四、完整卷剩余任务
 
-```
-Framework 规划 (45🔴+15🟡=60域, 已修正+审计) 
-→ Boot 规划 (17🔴+7🟡=24域, 四轮深度探索+审计)
-→ Spring Cloud 规划 (24🔴+17🟡=41域, 四仓库全部完成+审计)
-→ 独立中间件规划 ~~(18🔴+26🟡=44域)~~ → NET: 5🔴+7🟡=12域
-→ HikariCP 规划 (6🔴+7🟡=13域)
-→ Druid 规划 (5🔴+4🟡=9域)
-→ MyBatis-Plus 规划 (5🔴+4🟡=9域)
-→ Redisson 规划 (4🔴+3🟡=7域)
-→ ShardingSphere 规划 (4🔴+2🟡=6域)
-→ XXL-Job 规划 (5🔴+2🟡=7域)
-→ SkyWalking 规划 (3🔴+3🟡=6域)
-→ Dubbo 规划 (4🔴+3🟡=7域)
-→ Arthas 规划 (4🔴+2🟡=6域)
-→ Micrometer 规划 (4🔴+3🟡=7域)
-→ gRPC-Java 规划 (4🔴+2🟡=6域)
-→ Feign 规划 (3🔴+2🟡=5域)
-→ SofaJRaft 规划 (4🔴+1🟡=5域)
-→ Curator 规划 (3🔴+2🟡=5域)
-→ MyBatis 规划 (4🔴+1🟡=5域)
-→ MicrometerTracing 规划 (2🔴+1🟡=3域)
-→ Tomcat 规划 (3🔴+1🟡=4域)
-→ Seata 规划 (4🔴=4域) ← 需深度 review
-→ 全局总计: **28 个规划文档完成** (174🔴+105🟡=279域)
-→ 剩余待规划: Elasticsearch / Kafka / ZooKeeper (3个)
-```
+按总规划 `gRPC-Java完整卷重新规划.md`，以下任务尚未开始（按优先级排序）：
 
-### 全局规划状态（进行中，18 仓库全覆盖审计）
+### 优先级 A — ch03 剩余
+- `03-health-reflection-channelz` ← **立即做这个**
+- `04-compression-codec-message-framing`（Compression / Codec / Message Framing）
 
-| 仓库 | 子模块数 | 🔴 | 🟡 | 总域 | 方法体验证 |
-|---|---|---|---|---|---|
-| Spring Framework | 25 | 45 | 15 | 60 | ✅ |
-| Spring Boot | 10 | 17 | 7 | 24 | ✅ |
-| Cloud Commons | 5 | 8 | 5 | 13 | ✅ |
-| Cloud Gateway | 11 | 5 | 4 | 9 | ✅ |
-| Cloud OpenFeign | 1 | 5 | 4 | 9 | ✅ |
-| Cloud Alibaba | 13 | 6 | 4 | 10 | ✅ |
-| Netty | 45 | 5 | 7 | 12 | ✅ |
-| Nacos | 24 | 3 | 4 | 7 | ✅ |
-| Sentinel | 10 | 4 | 6 | 10 | ✅ |
-| RocketMQ | 18 | 5 | 5 | 10 | ✅ |
-| **HikariCP** | 5 | 6 | 7 | 13 | ✅ |
-| **Druid** | **7** | **5** | **4** | **9** | ✅ |
-| **MyBatis-Plus** | 8 | 5 | 4 | 9 | ✅ |
-| **Redisson** | **12** | **4** | **3** | **7** | ✅ |
-| **ShardingSphere** | **15** | **4** | **2** | **6** | ✅ |
-| **合计** | **15** | **127** | **82** | **209** | |
+### 优先级 B — 协议语义卷（ch04，尚未建立）
+- `01-method-type-contracts`（四种调用模式与方法契约总图）
+- `02-metadata-status-trailers`（Metadata、Status 与 Trailers 语义）
+- `03-cancel-halfclose-completion`（取消、half-close 与完成边界）
 
-### 32 仓库分类
+### 优先级 C — 生产诊断卷（ch05，尚未建立）
+- `01-deadline-cancel-retry-troubleshooting`（Deadline、Cancel、Retry 的线上排障）
+- `02-channel-subchannel-picker-diagnosis`（Channel、Subchannel、Picker 与 Transport 状态诊断）
+- `03-keepalive-flowcontrol-connection`（Keepalive、流控与连接问题分析）
 
-| 类别 | 仓库 | 状态 |
-|---|---|---|
-| **已规划（28 仓库）** | Framework/Boot/Cloud×4/Netty/Nacos/Sentinel/RocketMQ/**HikariCP**/**Druid**/**MyBatis-Plus**/**Redisson**/**ShardingSphere**/**XXL-Job**/**SkyWalking**/**Dubbo**/**Arthas**/**Micrometer**/**gRPC-Java**/**Feign**/**SofaJRaft**/**Curator**/**MyBatis** | ✅ **174🔴+105🟡=279域** |
-| **待规划（3 仓库）** | Elasticsearch / Kafka / ZooKeeper | 独立学习（均为 Java 项目） |
-| **排除** | Redis | C 语言服务器，非 Java 学习目标 |
+### 暂缓但已建档
+- xDS（机制很重，当前不急于展开）
+- okhttp/cronet/servlet/android/binder 等平台变体
+- opentelemetry/gcp-observability 适配
 
 ---
 
-## 六、文档路径
+## 五、硬规则（必须遵守）
 
-### Git 仓库
+### 规则 1：三步走，不能跳步
 
-所有文档通过 MinerU 的 git 仓库管理：
-- **Remote**: `github.com:LoveEleve/learn-book.git`（main 分支）
-- **本地根路径**: `/data/workspace/source-code/book/MinerU/`
+每个主题必须：`rewrite-plan.md → .md → review-notes.md`。不能直接写正文。
 
-### issue 目录（28 个规划文档）
+### 规则 2：回到源码核验
+
+不能只凭现有规划文档或上一轮的笔记落笔。正式写每个 rewrite-plan 前，必须回到 `/data/workspace/source-code/code/spring/grpc-java/` 重新核验关键入口类、调用链、类名与方法名。
+
+### 规则 3：遵循写作指南
+
+所有正文必须遵循 `/data/workspace/source-code/openjdk-book/docs/openjdk/WRITING-GUIDELINES.md` 的全部规则。核心：
+- 困惑→失败方案→最小总图→分层正文→收网
+- 主语是角色不是变量
+- 代码只能当证据不能当骨架
+- 删掉代码后文章必须仍成立
+- 禁用词清单见指南
+
+### 规则 4：控边界
+
+每篇只讲自己的主题，不过度吞下下一篇的内容。例如 Health/Reflection/Channelz 篇不要把生产排障全吞进来。
+
+### 规则 5：不要切去别的阶段
+
+当前是"RPC与治理"阶段的 gRPC-Java 部分。不要切去 Kafka/RocketMQ/ZooKeeper/Seata（那些是"消息与事务"阶段），也不要切去 Dubbo/Feign/Nacos/Sentinel（那些在 gRPC-Java 基线篇完成后再做）。
+
+### 规则 6：review-notes 必须做删码测试
+
+review-notes 的第四轮"读者审"必须验证：删除所有代码块后，正文是否仍能复述核心结论。
+
+---
+
+## 六、方法论背景
+
+### 6.1 为什么 gRPC-Java 不只 4 篇
+
+最初只规划了 4 篇主干运行时文章。但按《源码范围规划复盘方法论》审视后发现，4 篇只覆盖了"主干层"，还缺：
+- 规范层（方法契约、Metadata/Status 语义）
+- 集成层（codegen、builder、InProcess/testing）
+- 机制补深层（Service Config/Retry/Hedging、CallCredentials、Health/Reflection/Channelz、Compression）
+- 生产层（排障、诊断、连接问题）
+
+因此重新规划了完整卷（见 `gRPC-Java完整卷重新规划.md`），结构为 6 章约 26 篇。当前已完成 10 篇。
+
+### 6.2 方法论核心要点
+
+《源码范围规划复盘方法论》的核心教训：
+1. 不能把"类名出现"误当成"机制闭环完成"
+2. 不能只按目录/包切域，必须按机制重组知识域
+3. 不能低估运行时诊断能力（Health/Reflection/Channelz）
+4. 不能只做主干闭环，必须补完整卷（规范层/集成层/机制补深/生产层）
+5. 每个知识域都要围绕读者真实困惑建立
+6. 必须记录排除理由和待复核边界
+
+---
+
+## 七、当前状态总结
 
 ```
-/data/workspace/source-code/book/MinerU/tmp-question/training-camp/source-code/issue/
-├── HANDOVER.md                          ← ★ 本文件（唯一入口）
-├── Spring源码学习范围规划.md              ← Framework (45🔴+15🟡=60域 ✅)
-├── SpringBoot源码学习范围规划.md           ← Boot (17🔴+7🟡=24域 ✅)
-├── SpringCloudCommons源码学习范围规划.md   ← Cloud Commons (8🔴+5🟡=13域 ✅)
-├── SpringCloudGateway源码学习范围规划.md   ← Cloud Gateway (5🔴+4🟡=9域 ✅)
-├── SpringCloudOpenfeign源码学习范围规划.md ← Cloud OpenFeign (5🔴+4🟡=9域 ✅)
-├── SpringCloudAlibaba源码学习范围规划.md   ← Cloud Alibaba (6🔴+4🟡=10域 ✅)
-├── Netty源码学习范围规划.md               ← Netty (5🔴+7🟡=12域 ✅)
-├── Nacos源码学习范围规划.md               ← Nacos (3🔴+4🟡=7域 ✅)
-├── Sentinel源码学习范围规划.md            ← Sentinel (4🔴+6🟡=10域 ✅)
-├── RocketMQ源码学习范围规划.md            ← RocketMQ (5🔴+5🟡=10域 ✅)
-├── HikariCP源码学习范围规划.md            ← HikariCP (6🔴+7🟡=13域 ✅)
-├── Druid源码学习范围规划.md                ← Druid (5🔴+4🟡=9域 ✅)
-├── MyBatis-Plus源码学习范围规划.md          ← MyBatis-Plus (5🔴+4🟡=9域 ✅)
-├── MyBatis源码学习范围规划.md              ← MyBatis (4🔴+1🟡=5域 ✅)
-├── Redisson源码学习范围规划.md              ← Redisson (4🔴+3🟡=7域 ✅)
-├── ShardingSphere源码学习范围规划.md         ← ShardingSphere (4🔴+2🟡=6域 ✅)
-├── XXL-Job源码学习范围规划.md               ← XXL-Job (5🔴+2🟡=7域 ✅)
-├── SkyWalking源码学习范围规划.md            ← SkyWalking (3🔴+3🟡=6域 ✅)
-├── Dubbo源码学习范围规划.md                 ← Dubbo (4🔴+3🟡=7域 ✅)
-├── Arthas源码学习范围规划.md                ← Arthas (4🔴+2🟡=6域 ✅)
-├── Micrometer源码学习范围规划.md            ← Micrometer (4🔴+3🟡=7域 ✅)
-├── MicrometerTracing源码学习范围规划.md      ← MicrometerTracing (2🔴+1🟡=3域 ✅)
-├── gRPC-Java源码学习范围规划.md             ← gRPC-Java (4🔴+2🟡=6域 ✅)
-├── Feign源码学习范围规划.md                 ← Feign (3🔴+2🟡=5域 ✅)
-├── SofaJRaft源码学习范围规划.md             ← SofaJRaft (4🔴+1🟡=5域 ✅)
-├── Curator源码学习范围规划.md               ← Curator (3🔴+2🟡=5域 ✅)
-├── Tomcat源码学习范围规划.md                ← Tomcat (3🔴+1🟡=4域 ✅)
-├── Seata源码学习范围规划.md                 ← Seata (4🔴=4域) ⚠️ 需深度 review
-└── 01-源码学习方法论探索.md               ← 方法论（独立，不需要参考）
+已完成：ch01 (4篇) + ch02 (4篇) + ch03前2篇 = 10篇
+进行中：ch03/03-health-reflection-channelz（源码证据已收集，三件套未写）
+下一步：写 ch03/03-health-reflection-channelz 的 rewrite-plan.md
+后续：ch03剩余2篇 → ch04协议语义卷(3篇) → ch05生产诊断卷(3篇) → ...
 ```
 
-### 源码仓库路径
+**下一个 AI 的默认动作：开始写 `ch03-runtime-deepening/03-health-reflection-channelz.rewrite-plan.md`。**
 
-```
-/data/workspace/source-code/code/spring/    ← 32 个 Spring 生态仓库
-```
+---
 
-### MCP 索引
+## 八、关键文件快速索引
 
-所有 32 个仓库已用 `mcp__codebase-memory-mcp__index_repository` 建立全量索引（mode=full）。
-- 项目名格式：`data-workspace-source-code-code-spring-{仓库名}`
-- 使用方式：`search_graph`/`get_code_snippet`/`trace_path`
-
-### 仓库清单
-
-```
-/data/workspace/source-code/book/MinerU/spring-repos-list.md  ← 32 个仓库版本+拉取命令
-```
+| 文件 | 用途 |
+|------|------|
+| `gRPC-Java完整卷重新规划.md` | 完整卷 6 章 26 篇规划，当前工作的上位结构 |
+| `源码范围规划复盘方法论.md` | 所有规划必须遵循的方法论 |
+| `WRITING-GUIDELINES.md` | 所有正文必须遵循的写作标准 |
+| `RPC与治理-HANDOVER.md` | RPC与治理主题级交接（更上层的交接） |
+| `RPC与治理主题总规划.md` | RPC与治理主题的机制轴心重组 |
+| `gRPC-Java在RPC与治理主题中的新规划.md` | gRPC-Java 在 RPC 主题中的 4 线定位 |

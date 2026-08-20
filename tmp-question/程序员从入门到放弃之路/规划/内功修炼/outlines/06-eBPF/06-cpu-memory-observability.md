@@ -1,69 +1,200 @@
-# CPU + 内存可观测 — execsnoop/runqlat/cpudist/profile/syscount + oomkill/memleak/cachestat/vmscan
+# CPU 与内存可观测 — 从 exec/run queue 到 OOM、缓存和回收路径
 
-> Cluster C: 4 KPs | 依赖: 01 架构 + 04 bpftrace + 05 追踪源 | 读者基线: 会 bpftrace 基础 + 理解 USE 方法论(CPU利用率/饱和度)
+> Cluster C: 4 KPs | 依赖: 01-ebpf-architecture、04-bpftrace、05-tracing-sources | 读者基线: USE、bpftrace、tracepoint、Map
+> 读者处境: 05 篇建立了追踪源选择；本篇把它们落到现成诊断工具：CPU 跑满、线程排队、内存压力、泄漏和缓存命中分别怎样观察？
+> 打开新视角: 工具不是“症状快捷键”，每个工具都只观察一段生命周期；要把 **exec、run queue、on/off-CPU、fault、回收、OOM、缓存** 拼成时间线
 
 ---
 
-### 1. CPU 观测全景 — 五维工具矩阵
-  - 维度一 execsnoop: 跟踪 exec() → 谁在创建新进程 → `execsnoop-bpfcc -t` → 发现异常进程启动 → 对应 `bpftrace -e 'tracepoint:syscalls:sys_enter_execve { printf("%s\n", str(args->filename)); }'` (BPF之巅 Ch6 §2)
-  - 维度二 runqlat: 调度延迟分布 → `runqlat-bpfcc -m 10` → 线程在 run queue 等多久 → 直方图看 P99 延迟 → 调度瓶颈 (BPF之巅 Ch6 §3)
-  - 维度三 cpudist: CPU 时间分布 → `cpudist-bpfcc -P 10` → 每个线程在 CPU 上连续执行多久 → 长片=CPU bound, 短片=I/O bound (BPF之巅 Ch6 §4)
-  - 维度四 profile: CPU 火焰图 → `profile-bpfcc -F 99 10 > out.folded` → `flamegraph.pl` → 用 `kstack`/`ustack` 找函数热点 (BPF之巔 Ch6 §5)
-  - 维度五 syscount: 系统调用计数 → `syscount-bpfcc -p PID 1` → 每进程哪种 syscall 最频繁 → 找 I/O 密集型或锁密集型 (BPF之巅 Ch6 §6)
+### 概念依赖链
 
-### 2. CPU 观测进阶 — off-CPU + 硬软中断 + 唤醒链
-  - offcputime: off-CPU(阻塞状态)火焰图 → `offcputime-bpfcc -K -f 10` → I/O wait/锁等待/睡眠 → CPU 剖析找不到的瓶颈 (BPF之巅 Ch6 §5)
-  - hardirq/softirq: 中断观测 → `hardirqs-bpfcc -d 10` → `softirqs-bpfcc -d 10` → 网卡中断/定时器中断分布 (深入理解eBPF Ch8 §3)
-  - wakeuptime: 线程被阻塞多久 → `wakeuptime-bpfcc -p PID` → 谁唤醒谁→唤醒链→找锁持有者 (BPF之巅 Ch14 §2)
-  - B1 Ch6 综合策略: USE 找瓶颈资源 → runqlat+profile 定 CPU bottleneck → offcputime 定 I/O 阻塞 → syscount 定性 → execsnoop 找异常
+```
+01 架构 + 04 bpftrace + 05 追踪源 → 本篇: CPU/内存 eBPF 观测工具
+  ├─ §1 CPU 事件矩阵(exec/runqlat/cpudist/profile/syscount)
+  ├─ §2 CPU 等待(off-CPU/IRQ/wakeup)
+  ├─ §3 OOM/fault/memleak(内存事件)
+  ├─ §4 cachestat/cachetop/vmscan(缓存/回收)
+  ├─ §5 文件/磁盘工具(opensnoop/filetop/biolatency)
+  └─ §6 工具选择与证据拼接
+先讲: CPU → 内存 → 文件/磁盘 → 调度 → 综合诊断
+后续依赖: 07-network-security-xdp(网络观测与安全数据面)
+```
 
-### 3. 内存观测 — oomkill + memleak + faults
-  - oomkill: OOM killer 事件 → `bpftrace -e 'kprobe:oom_kill_process { printf("killed pid=%d comm=%s\n", pid, comm); }'` → OOM 时谁被杀了+为什么 (BPF之巅 Ch7 §1)
-  - memleak: 内存泄漏检测 → `memleak-bpfcc -p PID -a` → 跟踪 malloc/free 未配对 → 输出调用栈+泄漏字节 (BPF之巅 Ch7 §2, 深入理解eBPF Ch6 §3)
-  - faults: 页面错误计数 → `bpftrace -e 'software:page-faults:1 { @[pid, comm] = count(); }'` → 分 major/minor fault → 大内存分配触发的缺页 (BPF之巅 Ch7 §2)
-  - mmapsnoop: 映射文件 → `bpftrace -e 'tracepoint:syscalls:sys_enter_mmap { printf("%s\n", str(args->filename)); }'` → 谁在映射什么文件 (BPF之巅 Ch7 §1)
+### 叙事顺序
 
-### 4. 内存观测进阶 — cachestat + vmscan + memleak 深度
-  - cachestat: 页缓存命中率 → `cachestat-bpfcc 1 10` → HITS/MISSES/DIRTY/BUFFERED ratio → 缓存太小则增加内存, 命中率低则无用 (BPF之巅 Ch8 §3)
-  - cachetop: 每个文件的缓存命中率 → `cachetop-bpfcc 10` → 谁占用最多页缓存+命中率 → 热点文件 (BPF之巅 Ch8 §3)
-  - vmscan: 内存回收活动 → `bpftrace -e 'tracepoint:vmscan:mm_vmscan_kswapd_wake { printf("kswapd woke\n"); }'` → 系统接近内存压力 (BPF之巅 Ch7 §2)
-  - 综合策略: 先用 cachestat 看缓存效果 → mmapsnoop 看热点文件 → faults 看缺页 → memleak 追泄漏 → oomkill 最后防线
+1. 问题引入——CPU 使用率 100% 或内存告警出现时，怎样从“哪个指标高”推进到“哪个进程、哪个路径造成”？
+2. CPU 五类工具——创建、排队、执行、采样、系统调用
+3. off-CPU/中断/唤醒——CPU 不忙但延迟高
+4. OOM/缺页/泄漏——内存生命周期
+5. cache/reclaim——缓存效果与回收压力
+6. 文件/块 I/O——从文件到设备
+7. 综合工具链与边界
 
-### 5. BCC 工具速查 — bpftrace 等效命令对照
-  - `execsnoop-bpfcc` ≡ `bpftrace -e 'tracepoint:syscalls:sys_enter_execve { printf("%s\n", str(args->filename)); }'` (BPF之巅 Ch6)
-  - `runqlat-bpfcc` ≡ `bpftrace -e 'kprobe:finish_task_switch { ... }'` (CPU scheduler 插桩, 需要手工计算) (BPF之巅 Ch6)
-  - `profile-bpfcc` ≡ `bpftrace -e 'profile:hz:99 { @[kstack, ustack] = count(); }'` (BPF之巅 Ch6)
-  - `memleak-bpfcc` ≡ libbpf 程序 hooking malloc/free/realloc → 维护分配表 → `interval:30 { print(@alloc_unfreed); }` 近似 (深入理解eBPF Ch6 §3)
-  - **经验**: bpftrace 快速原型 → 如果长期运行/稳定生产用 BCC 专用工具 → 最深层用 libbpf 自写
+### 1. CPU 工具矩阵 — execsnoop、runqlat、cpudist、profile、syscount
 
-### 6. 文件系统 — opensnoop + filetop + ext4slower
-  - opensnoop: 追踪所有 open() 调用 → 发现配置文件/日志/临时文件访问模式 → `opensnoop-bpfcc -T` 含时间戳 → `bpftrace -e 'tracepoint:syscalls:sys_enter_openat { printf("%s %s\n", comm, str(args->filename)); }'` (B1 Ch8 §2, BPF之巅 Ch8 §2)
-  - filetop: 按文件聚合并排行显示读写量/次数 → `filetop-bpfcc -C 10` → 定位热点文件 → 哪个进程在读什么文件, 读了多少 (BPF之巅 Ch8 §2)
-  - ext4slower/xfsslower: 追踪慢文件操作(>10ms) → `ext4slower-bpfcc -j 10` → 按延迟/进程/操作类型分组 → 慢在 write/read/open/fsync (BPF之巅 Ch8 §3)
-  - 场景: 应用突然变慢 → filetop 发现某索引文件 700MB/s 随机读 → ext4slower 确认 IO 延迟 200ms+ → 罪魁是文件而非代码
+场景提示: 服务突然变慢，先判断是异常进程启动、CPU 排队、某个调用栈热点，还是系统调用风暴。 [写作时展开]
 
-### 7. 磁盘 IO — biolatency + biosnoop + biotop
-  - biolatency: I/O 延迟分布直方图 → `biolatency-bpfcc -m 10` → P50/P99/最大延迟 → 按磁盘分别统计 → `biolatency-bpfcc -D` 分磁盘 (BPF之巅 Ch9 §2)
-  - biosnoop: 追踪每个 block I/O 请求 → `biosnoop-bpfcc` → 进程/LBA 扇区/大小/延迟/RW → `biosnoop-bpfcc -Q` 含排队时间 (BPF之巅 Ch9 §2)
-  - biotop: 按进程聚合并排行 → `biotop-bpfcc -C 5` → 找出哪个进程在做 I/O → 类似 `top` 但显示的是磁盘吞吐而非 CPU (BPF之巅 Ch9 §2)
-  - 场景: CPU iowait 70% → biotop 发现 mysqld 占 95% I/O → biolatency 确认 P99=800ms → biosnoop 定位到具体 SQL → 发现缺少索引的全表扫描
+关键设计: 每个工具观察 CPU 生命周期的不同切面：
 
-### 8. 调度观测 — runqlat + offcputime + wakeuptime
-  - runqlat: 线程在 runqueue 上的等待时间直方图 → `runqlat-bpfcc -m` → 只统计线程"想跑但没 CPU"的时间 → P50 vs P99 差距大 = 调度不公平 (BPF之巅 Ch6 §1)
-  - offcputime: 线程离开 CPU 的等待时间 → `offcputime-bpfcc -K -f 10` → 按调用栈聚合 → 包含睡眠/锁/I/O 全部原因 → 不是 CPU 瓶颈而是 off-CPU 瓶颈 (BPF之巅 Ch14 §2)
-  - wakeuptime: 新线程创建到被第一个任务唤醒的延迟 → `wakeuptime-bpfcc -p PID` → 容器预热/进程 fork 的性能分析 → 谁在唤醒谁→唤醒链 (BPF之巅 Ch14 §2)
-  - 综合: runqlat 看"拿到 CPU 要等多久" → offcputime 看"离开 CPU 后在等什么" → wakeuptime 看"新线程等多久才能开始干活"
+```[pseudocode]
+execsnoop:
+  exec 事件 → 谁启动了什么程序
 
-### 9. 收束
-  - CPU 五维工具(execsnoop/runqlat/cpudist/profile/syscount) 覆盖"创建了什么→等多久→执行多久→谁在跑→什么 syscall"的全通路
-  - 文件系统+磁盘 IO 补齐"数据落盘前在哪→落盘多快→谁在写"的存储观测链
-  - 调度观测(runqlat/offcputime/wakeuptime) 补齐"线程在哪等/等什么/等多久"的延迟分析链
-  - 内存观测从"系统级(oomkill/页面回收)"到"应用级(memleak/faults)"到"效果级(cachestat)"三层递进
-  - bpftrace 写原型 → BCC tool 跑生产 → libbpf 定制化 — 三阶提升
+runqlat:
+  runnable → 真正获得 CPU 的时间
+  → 调度等待分布
+
+cpudist:
+  线程连续/累计运行片段分布
+  → 辅助判断 CPU 计算与调度形态
+
+profile:
+  定时采样调用栈
+  → on-CPU 热点
+
+syscount:
+  系统调用次数/类型
+  → 用户态与内核边界的行为画像
+```
+
+Why: 为什么不能把 `runqlat` 高直接等同于“CPU 不够”，或把 `cpudist` 短片直接等同于“I/O bound”？——**调度、抢占、优先级、锁、cgroup、IRQ 和采样窗口都会影响形态**；工具提供线索，仍需结合 CPU 饱和、off-CPU、应用指标和 workload。 [内核: 工具依赖 sched/exec/syscall tracepoint，事件字段和可用性以目标内核为准]
+
+比喻锚点: 五个工具像机场监控：execsnoop 看谁进场，runqlat 看谁等跑道，cpudist 看飞行片段，profile 看飞机正在飞哪条航线，syscount 看哪个柜台最忙。 [写作时展开]
+
+### 2. Off-CPU、中断与唤醒 — “CPU 不高”也可能很慢
+
+场景提示: 请求耗时上升，但进程 CPU 使用率很低；它可能在等 I/O、锁、网络、定时器还是其他线程？ [写作时展开]
+
+关键设计: 把线程离开 CPU 的原因和重新运行的路径分开观察：
+
+```[pseudocode]
+offcputime:
+  线程离开 CPU 的时间
+  → 按阻塞调用栈聚合
+  → 找 sleep/lock/I/O 等等待来源
+
+hardirqs/softirqs:
+  中断与软中断处理量/时间
+  → 检查网卡、定时器、存储 IRQ 是否挤占 CPU
+
+wakeup/调度跟踪:
+  观察线程被唤醒、变 runnable、再次运行的时间线
+  → 关联唤醒者与等待者(具体工具语义需核对)
+
+综合:
+  runqlat = 想运行但排队
+  off-CPU = 已离开 CPU 在等待什么
+  wakeup timeline = 谁何时让它重新可运行
+```
+
+Why: 为什么 off-CPU 不能简单叫“CPU 瓶颈”？——**它描述的是不在 CPU 上的时间，可能是正常 sleep，也可能是锁、I/O 或下游慢**；中断/softirq 也可能抢占应用，但要看 CPU 分布和事件时间线。工具名称和参数不能跨发行版机械照抄。 [内核: sched_switch、sched_wakeup、IRQ/softirq tracepoint 提供不同时间边界]
+
+比喻锚点: on-CPU 看工人正在干什么，off-CPU 看工人放下工具后在等材料、等电梯还是等主管；唤醒链说明谁通知他回来。 [写作时展开]
+
+### 3. OOM、fault 与 memleak — 从内存压力到分配生命周期
+
+场景提示: RSS 不断上升、系统出现 OOM，但如何区分应用泄漏、缓存增长、cgroup 限制和正常页缓存？ [写作时展开]
+
+关键设计: 内存工具观察的是不同事件：
+
+```[pseudocode]
+oomkill:
+  OOM 事件 → 谁被杀/所在 cgroup/当时压力
+  → 不是泄漏证明
+
+faults:
+  minor/major page fault 计数与调用路径
+  → 区分已在内存中建立映射与需要磁盘/回收参与
+
+memleak:
+  追踪 malloc/free 或内核分配释放
+  → 保留未匹配分配栈
+  → 需要覆盖全部分配路径与合理生命周期窗口
+
+mmapsnoop/映射事件:
+  谁创建/打开/映射了哪些文件或区域
+```
+
+Why: 为什么 OOM 时被杀的进程不一定是“泄漏者”？——**OOM killer 根据内存策略、cgroup、oom_score 和当前状态选择对象，泄漏可能来自另一个进程或更早的时间窗口**；memleak 工具也通常只覆盖它挂到的分配器和采样范围，不能代替完整 heap profiler。 [内核: OOM、memcg、page fault 和 slab 分属不同内存生命周期事件]
+
+比喻锚点: OOM 是水库溃坝，oomkill 是被迫关闭的一座工厂；要找漏水点，还要检查管道、缓存池和各工厂的进水记录。 [写作时展开]
+
+### 4. cachestat、cachetop、vmscan — 缓存命中不等于越高越好
+
+场景提示: 页缓存命中率下降时，应该增加内存、调整访问模式，还是其实只是一次性扫描污染缓存？ [写作时展开]
+
+关键设计: 缓存工具和回收工具需要结合工作集与访问模式：
+
+```[pseudocode]
+cachestat:
+  观察页缓存命中/未命中、dirty 等趋势
+
+cachetop:
+  按进程/文件观察缓存访问热点
+
+vmscan:
+  观察 kswapd/direct reclaim、回收与扫描活动
+
+综合:
+  命中低 + 工作集反复访问 → 缓存容量/局部性问题
+  命中低 + 一次性顺序扫描 → 未必值得扩大缓存
+  reclaim/PSI 高 → 结合 memcg、swap、匿名页和文件页
+```
+
+Why: 为什么“缓存命中率越高越好”是错误目标？——**缓存服务的是工作集和端到端延迟，一次性数据、缓存污染、内存压力和预取都会改变最佳策略**；cachestat 是趋势证据，不直接给出“应增加多少内存”的答案。 [内核: LRU、vmscan、page cache 和 PSI 共同决定回收压力]
+
+比喻锚点: 图书馆借阅命中率高不一定代表馆藏合理；如果大家只借一本书，命中率很高但扩大整座图书馆也未必有价值。 [写作时展开]
+
+### 5. 文件与块 I/O — 把“内存慢”追到具体文件和设备
+
+场景提示: CPU iowait 上升，如何找出哪个进程读了哪个文件，最后对应到哪个 block I/O 延迟？ [写作时展开]
+
+关键设计: 从文件系统事件到块层请求逐层下钻：
+
+```[pseudocode]
+opensnoop:
+  open/openat → 谁访问了哪些路径
+
+filetop:
+  按进程/文件聚合读写次数/字节
+
+ext4slower/xfsslower:
+  文件系统操作延迟与类型
+
+biotop:
+  哪个进程产生块 I/O
+
+biosnoop:
+  单次 block request 的设备/大小/排队/完成时间
+
+biolatency:
+  设备请求延迟分布/P99
+```
+
+Why: 为什么“发现一个热点文件”还不能证明它是根因？——**缓存、预读、文件系统、块层队列、设备和应用请求模式可能在不同层放大延迟**；要把路径、文件操作和 block request 用时间窗口对齐，不能只看排行。 [内核: VFS/page cache、filesystem tracepoint、block tracepoint 是不同观测边界]
+
+比喻锚点: 先看谁打开仓库、再看谁搬货、再看哪条传送带堵、最后看设备哪个请求慢；每一层都可能是新的排队点。 [写作时展开]
+
+### 6. 收束
+
+CPU/内存观测的证据链：
+
+```[pseudocode]
+USE/RED 异常
+  → exec/run queue/profile/syscall
+  → on/off-CPU/IRQ/wakeup
+  → fault/reclaim/OOM/leak
+  → cache/file/block I/O
+  → 用时间线和 workload 交叉验证
+```
+
+**Aha Moment**: "eBPF 工具不是一组命令别名，而是一组生命周期观察窗口：**谁产生、谁排队、谁执行、谁等待、谁分配、谁回收、谁做 I/O**。只有把窗口拼起来，才接近根因。"
+**回答读者三问**: ①CPU 不高但慢看什么=off-CPU、runqlat、wakeup 和 I/O；②OOM 是否等于泄漏=不是，要区分策略、cgroup、缓存和分配生命周期；③缓存命中低怎么办=先看工作集与回收压力，再决定布局/内存/访问模式。
 
 ---
 
 ### 核心悬念
-**"CPU 和内存搞清楚了 — 网络呢？DDoS 攻击了, 连到哪了？包在哪丢了？XDP 能在网卡层直接挡吗？"**
 
-→ 引出 07-network-security-xdp — tcpconnect/tcplife/tcpretrans/superping + XDP 网卡直通 + opensnoop/bashreadline 安全观测 + LSM eBPF
+**"CPU/内存路径已经能观测；网络 DDoS、连接建立、重传和丢包又如何在 XDP、TC、socket 和 LSM eBPF 层快速定位与阻断？"**
+
+→ 引出 07-network-security-xdp — 网络观测、安全策略与 XDP。

@@ -1,47 +1,160 @@
-# 09 — COW 与快照: Btrfs/ZFS/LVM 的写时复制原理
+# COW 与快照 — 不写 journal，靠'写新块再切根指针'如何保证一致性
 
-> Cluster B: 3 KPs | 依赖: 08-jbd2-journal | 读者基线: 理解 ext4 journal 的崩溃恢复模型
+> Cluster B: 3 KPs | 依赖: 08-jbd2-journal | 读者基线: 理解 ext4 journal 的事务提交与 replay
+> 读者处境: 08 篇已经讲清了 JBD2 这条路：先记 journal，再原地改写；本篇回答另一条路线——如果我根本不原地改写，还需不需要 journal？
+> 打开新视角: COW 的关键不是"复制一份数据"，而是**旧版本永远不动、新版本完整写好后才切指针**；快照只是"把旧根指针留住不丢"
 
 ---
 
-### 1. Btrfs COW 原理 — 改一块, 写新块, 指针切换到新根
-  - COW 核心: tree block 修改时 → 写新 block 到空闲空间 → 更新父节点指针指向新 block → 所有未修改 block 共享 (`fs/btrfs/ctree.c → btrfs_search_slot`)
-  - 根节点原子切换: 所有子节点 COW 完成后, 原子更新 root 指针 → 要么全可见要么全不可见 (`fs/btrfs/disk-io.c → write_ctree_super`)
-  - 无需 journal: COW 的树更新顺序本身就是"日志"——只在新数据完整写出后才切指针
+### 概念依赖链
 
-### 2. Subvolume 与快照 — 冻结根指针的瞬间
-  - Subvolume: 独立子树, `btrfs subvolume create /mnt/@` — 可独立挂载 (`fs/btrfs/ioctl.c → btrfs_ioctl_snap_create`)
-  - 快照: `btrfs subvolume snapshot /mnt/@ /mnt/@snap` — 创建一个共享所有 block 的新根指针 (`fs/btrfs/ioctl.c → btrfs_ioctl_snap_create`)
-  - 写操作 → 仅被修改的 block COW → 新位置 → 共享不变的 block — 快照的存储开销无限趋于零
-  - `btrfs send /mnt/@snap_old → btrfs receive /mnt/@backup` — 增量快照传输 (`fs/btrfs/send.c → btrfs_send`)
+```
+08-jbd2-journal(事务日志) → 本篇: COW / snapshot / checksum
+  ├─ §1 COW 写路径(先写新块, 后切父指针/根指针)
+  ├─ §2 snapshot(冻结旧根, 新写入走新树)
+  ├─ §3 checksum(验证读出的块是否还是原样)
+  └─ §4 Btrfs/ZFS/LVM 三类快照对比
+先讲: COW 写路径 → 快照如何成立 → checksum 为什么自然配套 → 不同层次的快照实现
+后续依赖: 10-mount-permissions(回到 VFS 挂载主线)
+```
 
-### 3. Checksum — 静默数据损坏的最后防线
-  - 写入: `csum_tree_block(eb, csum)` — 对每个 extent buffer 计算校验和 (`fs/btrfs/disk-io.c → csum_tree_block`)
-  - 读取: `csum_verify(eb)` — 读 block→校验 csum, 失败 → mirror 重试 (RAID1/RAID10) (`fs/btrfs/disk-io.c → btrfs_check_eb`)
-  - 若所有 mirror 失败: `btrfs_readpage_end_io` → EIO 报错给用户 (`fs/btrfs/extent_io.c → btrfs_readpage_end_io`)
-  - 去重: `duperemove /mnt → ioctl(BTRFS_IOC_FILE_EXTENT_SAME)` → byte-by-byte 比对 → 共享 extent (`fs/btrfs/ioctl.c → BTRFS_IOC_FILE_EXTENT_SAME`)
+### 叙事顺序
 
-### 4. ZFS 快照 — pool 级别的 COW
-  - `zfs snapshot pool/fs@snap` → COW dnode → 瞬间完成 (`module/zfs/dmu_send.c → dmu_send_obj`)
-  - `zfs rollback pool/fs@snap` → 原子回滚
-  - `zfs clone pool/fs@snap pool/clone` → 写前复制, 可写 clone
-  - `zfs send pool/fs@snap | zfs receive pool/backup` — full 传输 (`module/zfs/dmu_send.c → dmu_send_obj`)
-  - `zfs send -i @old @new | zfs receive pool/backup` — incremental, 只传输变化的 block
-  - ZFS vs Btrfs: ZFS 生产 15+ 年无重大 bug, Btrfs RAID5/6 仍有稳定性问题
+1. 问题引入——JBD2 通过日志解决"原地改写到一半掉电"；如果根本不原地改写，旧版本一直留着，是不是天生就更容易做一致性？（**Aha: COW 的崩溃安全，不靠重放旧日志，而靠'旧根不动，新根最后一刻才切换'**）
+   - 过渡: 先看最核心的写路径
+2. COW 写路径——改块时不覆盖旧块，而是写新块再往上改指针
+   - 过渡: 如果旧根一直留着，那快照其实意味着什么？
+3. 快照——把旧根指针冻结，新写入自动分叉出新版本
+   - 过渡: 光有快照还不够，如果新块悄悄坏了怎么办？
+4. checksum——COW 为什么天然适合校验与自愈
+   - 过渡: 三种实现路线分别落在哪一层？
+5. Btrfs / ZFS / LVM——文件系统层与块设备层的三种快照路线
+   - 过渡: 收束
+6. 收束——journal 路线 vs COW 路线 + Aha Moment
 
-### 5. LVM 快照 — 块设备层的 COW
-  - `lvcreate -L 2G -s -n snap /dev/vg/lv` → 快照卷 (`drivers/md/dm-snap.c → dm_snap_ctr`)
-  - COW 机制: 原卷被写 → 先 copy 原内容到快照卷(COW 区) → 然后允许写 → 快照卷存"修改前数据"
-  - `mount -o ro /dev/vg/snap /mnt/snap` — 只读挂载见到"冻结时刻"的数据
-  - 与 Btrfs/ZFS 的区别: LVM 同步 COW(写放大), Btrfs/ZFS 异步 COW(零额外 IO)
+### 1. COW 写路径 — 先写新块，再切父指针/根指针
 
-### 6. 收束
-  - COW 三步: 修改→写新位置→切指针, 新数据未完成时原指针不动, 天然崩溃安全
-  - Btrfs 的 COW+checksum 消除了 journal 的双写开销, ZFS 将 COW 扩展到 pool 级别的 send/receive 异地容灾
+场景提示: 一个 Btrfs/ZFS 文件已有旧版本块 A，应用要把它改成 A'——为什么系统不直接覆盖 A？ [写作时展开]
+
+关键设计: COW 的基本写法不是 overwrite-in-place，而是"新位置写完整，再改引用它的上层节点"：
+
+```[pseudocode]
+旧状态: root → ... → parent → block A
+
+修改 block A
+  1) 在空闲空间写出新块 A'
+  2) 复制 parent 为 parent'，把指针从 A 改成 A'
+  3) 若 parent 也被引用，再继续向上 COW
+  4) 最后写出 new_root，并把超级块/uberblock/根指针切到 new_root
+
+结果:
+  切根前: 旧树完整可读
+  切根后: 新树整体可见
+```
+
+Why: 为什么 COW 天然适合崩溃恢复？——**因为旧版本从来不被破坏**：掉电发生在切根之前，系统仍然只看见旧根；掉电发生在切根之后，说明新路径已经完整可达。**这相当于把 JBD2 的"commit block"角色，变成了最后那次根指针切换。** [内核: 08 篇 JBD2 的原子锚点是 commit block；COW 路线的原子锚点是 root/超级块更新]
+
+比喻锚点: COW 像修一栋楼时先在旁边搭一栋新楼，再把路牌从旧楼改指向新楼；路牌没改之前大家继续进旧楼，路牌一改，整栋新楼才同时对外生效。 [写作时展开]
+
+### 2. 快照 — 旧根一旦保留，旧版本就天然存在
+
+场景提示: 为什么 Btrfs/ZFS 创建快照几乎是瞬时的？难道它们真的复制了整个文件系统？ [写作时展开]
+
+关键设计: 快照的本质不是复制所有 block，而是**保留某一时刻的根指针**：
+
+```[pseudocode]
+时刻 T0:
+  root_v1 → 整棵文件系统树
+  snapshot(T0) = 记录/保留 root_v1
+
+时刻 T1 后继续写:
+  某些叶子/中间节点发生 COW
+  形成 root_v2
+
+结果:
+  snapshot 仍指向 root_v1
+  当前文件系统指向 root_v2
+  未修改的 block 两边共享
+```
+
+Why: 为什么快照能做到"几乎零时延、接近零初始空间"？——**因为绝大多数 block 都先共享**：只有后续真正被改写的块才分叉出新副本，没改的历史块完全复用。**所以 snapshot 不是"复制数据"，而是"复制视图入口"。**
+
+比喻锚点: 快照像把一本书在某一页夹上书签——书本身没有复制，书签只是记住了"那一刻从哪一页开始读"；以后你在正文里改新版本，只会把改过的页重新誊写，没改的页继续共用。 [写作时展开]
+
+### 3. checksum — COW 为什么天然适合做端到端完整性校验
+
+场景提示: 如果磁盘静默损坏，把某个 block 读错了，但硬件没报错，文件系统自己怎么知道？ [写作时展开]
+
+关键设计: COW 文件系统常把校验和作为一级公民：写入时记录 checksum，读取时校验，不对就换副本或报错：
+
+```[pseudocode]
+写入块 A'
+  → 计算 checksum(A')
+  → 把 checksum 记录到上层元数据/专门校验树
+
+读取块 A'
+  → 从磁盘读出块内容
+  → 重新计算 checksum
+  → 与元数据中的 checksum 比较
+     相同: 数据可信
+     不同: 尝试镜像副本 / 否则报 EIO
+```
+
+Why: 为什么 checksum 和 COW 常常成对出现？——**因为 COW 让"旧版本"和"镜像副本"在逻辑上更容易共存**：一旦发现当前块校验不对，可以回退到别的副本或旧树版本；而 overwrite-in-place 世界里，旧版本早就被覆盖，想自愈就困难得多。**所以 journal 擅长恢复"元数据事务是否完整"，checksum 擅长回答"读出来的字节是不是原样"。**
+
+比喻锚点: checksum 像给每个包裹贴防伪码——读的时候重新扫一遍，发现码不对就说明这箱货在路上被掉包或损坏了。 [写作时展开]
+
+### 4. 三条实现路线 — Btrfs/ZFS 在文件系统层，LVM 在块设备层
+
+场景提示: 都叫快照，为什么 Btrfs/ZFS 的快照和 LVM snapshot 用起来、代价、能力都不一样？ [写作时展开]
+
+关键设计: 三者虽然都叫 COW/snapshot，但落点完全不同：
+
+```[pseudocode]
+Btrfs
+  层次: 文件系统层
+  特点: subvolume / snapshot / send/receive / checksum / compression 一体化
+
+ZFS
+  层次: 文件系统 + 存储池一体
+  特点: pool/dataset/snapshot/send/receive/checksum 自成体系
+
+LVM snapshot
+  层次: 块设备层(dm-snapshot)
+  特点: 不理解 inode/目录/extent，只拦截块写并保存旧块
+```
+
+Why: 为什么 LVM snapshot 做不到 Btrfs/ZFS 那种细粒度 send/receive 语义？——**因为它只看见块设备，不知道哪块属于哪个文件、哪棵树、哪个 subvolume**；它能冻结块级视图，但不会天然得到文件系统语义上的快照树。**反过来，Btrfs/ZFS 因为掌握了整棵元数据树，才能把 snapshot、增量发送、checksum、压缩揉成一个统一系统。**
+
+比喻锚点: LVM 快照像给整台复印机下方的纸盘做复刻；Btrfs/ZFS 快照像直接理解文档目录和版本树的文档管理系统——层次越高，语义越强。 [写作时展开]
+
+### 5. 收束
+
+回到"为什么 COW 不一定需要 journal"：
+- journal 路线：先记一份事务包，再原地改写
+- COW 路线：根本不原地改写，旧树留着，新树最后切根
+- 快照：保留旧根即可
+- checksum：验证新旧树里的块是不是仍然可信
+
+两条一致性路线的核心对照：
+
+```[pseudocode]
+JBD2 / ext4
+  原地改写 + journal + replay
+  原子锚点 = commit block
+
+COW / Btrfs / ZFS
+  新位置写入 + 切根
+  原子锚点 = root/超级块更新
+```
+
+**Aha Moment**: "快照的本质从来不是'复制整个文件系统'，而是**把旧根留下来**；COW 的本质也不是'多写一遍数据'，而是**在旧树不动的前提下，等新树完整后再切换入口**。这样一来，journal 靠'重放事务'解决半写，COW 靠'根本不暴露半成品'解决半写。"
+**回答读者三问**: ①为什么 COW 天然适合快照=旧根一保留，旧版本就还在；②为什么常配 checksum=要验证读出的块是不是原样；③Btrfs/ZFS 和 LVM snapshot 差在哪=前两者懂文件系统树，后者只懂块。
 
 ---
 
 ### 核心悬念
-**"mount /dev/sda1 /mnt 这个看似简单的命令在 VFS 层做了哪些事——SuperBlock 如何从磁盘第一个块被读到内存变成 struct super_block？新创建的 root inode 如何对接 dentry 树, 让 /mnt 路径在用户空间可访问？"**
 
-→ 引出 10-mount-permissions
+**"`mount /dev/sda1 /mnt` 这条命令在 VFS 层到底做了哪些事——超级块如何从磁盘读成 `struct super_block`，root inode 又如何挂到 dentry 树上，让 `/mnt` 这条路径突然可见？"**
+
+→ 引出 10-mount-permissions — 挂载与权限——文件系统内部机制讲完后，回到它如何接入 VFS 世界。

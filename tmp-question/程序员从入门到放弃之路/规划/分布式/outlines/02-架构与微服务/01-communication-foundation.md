@@ -1,59 +1,183 @@
-# 用户发来POST请求, 你的服务器怎么收到这4KB数据的? — 网络/NIO/通信协议全景
+# 通信基础 — 一个 POST 请求如何穿过 TCP/TLS、epoll、Reactor、序列化与认证
 
-> Cluster A: 15 KPs | 依赖: 无 | 读者基线: 写过Spring Boot CRUD, 了解HTTP基本概念
+> Cluster A: 15 KPs | 依赖: 无 | 读者基线: HTTP 基本概念、Spring Boot CRUD 经验
+> 读者处境: 微服务专题开篇；用户只看到“点按钮发请求”，但一条请求真正要穿过协议栈、I/O 模型、线程模型、序列化和认证边界
+> 打开新视角: 微服务通信不是“HTTP 调一次方法”，而是**连接建立 → 事件驱动 → 编码/解码 → 身份验证 → 业务分发**的整条流水线
 
 ---
 
-### 1. 客户端发了请求, 服务器究竟如何"看到"这些字节?
-  用户浏览器点下"下单"按钮, POST一个JSON到你的Java服务 — 中间经过了多少层? 每层做了什么?
-  - B1 Ch1 §1: TCP/IP五层模型 — 物理层(比特流)→链路层(MAC帧)→网络层(IP路由)→传输层(TCP分段)→应用层(HTTP/JSON) (B2 Ch5 §6)
-  - TCP三次握手: 客户端SYN→服务器SYN-ACK→客户端ACK, 2-RTT建立连接 — 为什么是三次不是两次? 防止历史SYN被误建连接 (B2 Ch5 §6.3) [工程: 三次握手是网络2将军问题在TCP层的工程化求解 — 不可靠信道上确认收到确认]
-  - TLS握手: TCP之上再四次握手(RSA)/两次(Ephemeral DH), 协商对称密钥 — HTTPS=HTTP over TLS, 端到端加密 (B2 Ch5 §4.8)
-  - 关键设计: 为什么TCP层和TLS层都需要握手? — TCP保证可靠传输, TLS保证传输内容安全, 两层正交不可合并
+### 概念依赖链
 
-### 2. 字节到了进程门口 — 线程阻塞等数据还是异步回调?
-  传统Servlet一个请求一个线程, 1000并发开1000线程 — 线程切换和栈内存足够要命
-  - B1 Ch1 §2.2: 阻塞I/O vs 非阻塞I/O — 阻塞模式下read()调用会挂起线程直到数据到达; NIO通过Selector实现单线程管理多连接
-  - B2 Ch4 §3.3: select/poll/epoll — select(遍历FD_SET O(n))/poll(动态数组 O(n))/epoll(红黑树+事件驱动 O(1)) (B2 Ch4 §3.3)
-  - epoll三件套: epoll_create(创建红黑树), epoll_ctl(注册FD), epoll_wait(阻塞等就绪事件) — LT(电平触发, 未读完下次再通知) vs ET(边沿触发, 必须读干净否则丢事件) (B2 Ch4 §3.3)
-  - 关键设计: epoll用红黑树+就绪链表 — 注册时O(log n), wait时O(1)取就绪事件, 比select O(n)遍历所有FD高效
+```
+无前置 → 本篇: 通信基础
+  ├─ §1 TCP/TLS/HTTP 三层握手与传输职责
+  ├─ §2 阻塞/NIO/epoll(等待数据的方式)
+  ├─ §3 Reactor(单线程与多线程事件循环)
+  ├─ §4 序列化(Protobuf/Hessian/JSON)
+  └─ §5 会话与认证(Cookie/Session/JWT)
+先讲: 连接怎么建立 → 字节怎么等到 → 事件怎么分发 → 对象怎么编码 → 身份怎么传递
+后续依赖: 02-rpc-service-governance(RPC、注册发现、负载均衡)
+```
 
-### 3. Reactor模式 — 怎么让单线程处理1万连接?
-  你看到Netty的EventLoop是一个线程配一个Selector — 这背后是Reactor模式
-  - B1 Ch1 §2.3: Reactor三变种 — 单Reactor单线程(Redis 6.0前), 单Reactor多线程(Reactor分发→Worker池处理), 主从Reactor(主接收连接+从处理读写, Netty Boss+Worker)
-  - B2 Ch4 §3.4: 1+N+M模型 — 1 Acceptor线程+N个I/O线程(epoll)+M个Worker线程(业务处理), Netty的BossGroup(1)+WorkerGroup(N)+业务线程池(M)
-  - B1 Ch1 §2.1: ByteBuffer — position(当前读/写位置)/limit(上界)/capacity(容量)/flip(读转写)/compact(压缩), 关键坑: 读完要flip否则position不对
-  - 关键设计: 主从Reactor — Boss接收连接→Worker注册读写, 连接和I/O职责分离避免接收连接时I/O被阻塞
+### 叙事顺序
 
-### 4. 对象序列化 — Java对象怎么变成网络字节流?
-  RPC调用时User{name:"张三",age:25}怎么通过网络传输到另一个服务?
-  - B1 Ch1 §4: JDK Serializable(Java Native, 版本兼容差+码流大) vs Protobuf(Google, 二进制+IDL+跨语言) vs Hessian(轻量二进制, Dubbo默认) vs JSON(可读性好但体积大)
-  - Protobuf编码: varint(变长整数, 小数字1字节大数字10字节)+length-delimited+zigzag编码 — String长度前缀避免粘包 (B4 Ch2 §7.3)
-  - gRPC: HTTP/2+Protobuf — 多路复用+双向流+头部压缩HPACK, 比HTTP/1.1 JSON REST快3-10x (B4 Ch2 §7.8)
-  - 关键设计: 为什么Dubbo默认Hessian而gRPC用Protobuf? — Hessian兼容Java类型体系, Protobuf强调Schema+多语言, 场景不同
+1. 问题引入——浏览器点“下单”按钮，服务端为什么不是直接收到一个 Java 对象？
+2. TCP/TLS/HTTP——字节如何到达服务端
+3. 阻塞 I/O、NIO 与 epoll——线程如何等待字节
+4. Reactor——一个线程组如何管理成千上万连接
+5. 序列化——对象如何变成可传输字节流
+6. Cookie/Session/JWT——跨服务如何传递身份
+7. 收束——一次 POST 的完整旅程
 
-### 5. HTTP演进 — 为什么HTTP/2比HTTP/1.1快?
-  单体应用切微服务后, 每个HTTP请求的额外开销被放大N倍
-  - B2 Ch5 §1-2: HTTP/1.0短连接→HTTP/1.1 Keep-Alive连接复用+Chunked传输 — Head-of-Line Blocking: 一个响应慢阻塞后续
-  - B2 Ch5 §3: HTTP/2二进制分帧 — 一条TCP连接上多Stream独立传输, 消除队头阻塞(应用层) + HPACK头部压缩
-  - QUIC(HTTP/3): UDP+0-RTT+TLS 1.3内置, 连接迁移(IP切换不断连) — 解决TCP层面的队头阻塞 (B2 Ch5 §7)
-  - 关键设计: HTTP/2的Stream优先级+流量控制 — 浏览器优先渲染CSS而非图片; 队头阻塞从HTTP层下移到TCP层(丢包时仍影响所有Stream)
+### 1. TCP、TLS 与 HTTP —— 可靠、加密和语义分层
 
-### 6. 认证与状态 — Cookie/Session/Token/JWT怎么选?
-  分布式微服务下, 用户登录状态如何在10个服务间共享?
-  - B1 Ch1 §5.2-5.4: Cookie(客户端存储凭证，如登录token)， Session(服务端存储状态，通过Cookie传递SessionId)， 分布式Session三方案: 粘滞Session(负载均衡固定转发)→复制Session(Tomcat DeltaManager)→集中存储(Redis统一存)
-  - JWT: Header.Payload.Signature三段式, 无状态+自包含 — RS256非对称签名, 服务间无需共享密钥 (B1 Ch1 §5.4)
-  - Token认证流程: 客户端→认证中心→JWT→后续请求带Authorization:Bearer→网关验证签名+过期→不存Session (B1 Ch1 §5.4)
-  - 关键设计: Session vs JWT — Session(服务端存状态, 可即时撤销) vs JWT(无状态+好扩展, 但未过期Token无法撤销需要黑名单), 微服务场景偏向JWT
+场景提示: 一个 POST 请求发到服务器前，为什么既要 TCP 建连，又可能要 TLS 握手，HTTP 本身还要再传方法、Header 和 Body？ [写作时展开]
 
-### 7. 收束 — 回到POST请求的旅程
-  - 一次HTTP POST经历了: TCP/TLS握手→epoll等待→Reactor分发→ByteBuffer解码→Protobuf反序列化→JWT验签→业务处理→响应反转
-  - 每一层都是为下一层服务: TCP为可靠, TLS为安全, epoll为高效, Reactor为扩展, Protobuf为跨语言
-  - 理解通信栈是理解一切分布式系统的基础 — RPC/消息队列/Service Mesh都在此之上构建
+关键设计: 三层职责不同，不能互相替代：
+
+```[pseudocode]
+应用语义:
+  HTTP request line + headers + body
+
+传输:
+  TCP 负责有序可靠字节流
+
+安全:
+  TLS 负责身份认证与会话加密
+
+典型顺序:
+  TCP connect
+  → (可选) TLS handshake
+  → HTTP request/response
+```
+
+Why: 为什么不能把 TLS 理解成“TCP 的一部分”或“HTTP 的一部分”？——**TCP 解决字节可靠送达，TLS 解决机密性与身份，HTTP 解决应用语义**；HTTP/3/QUIC 会改变下层组合，但“传输可靠性”和“应用协议”仍是不同层次的问题。握手开销、连接复用和队头阻塞都在这里埋下成本。 [网络: 04-网络篇的 TCP/TLS/HTTP 演进是本篇通信栈背景]
+
+比喻锚点: TCP 像公路，TLS 像押运与验章，HTTP 像运单格式；运单、押运和公路都重要，但不是同一件事。 [写作时展开]
+
+### 2. 阻塞 I/O、NIO 与 epoll —— 线程怎样等字节到达
+
+场景提示: Servlet 一个请求一个线程和 Netty 一个事件循环处理很多连接，它们最大的分歧是什么？ [写作时展开]
+
+关键设计: 通信模型的核心差异在于“数据没到时，线程做什么”：
+
+```[pseudocode]
+阻塞 I/O:
+  read/recv 未就绪 → 线程睡眠等待
+
+非阻塞/NIO:
+  read 未就绪 → 立即返回
+  → 交给 selector/epoll 统一等待
+
+epoll:
+  监听多个 fd 的 readiness
+  → 有事件时再调度对应处理逻辑
+```
+
+Why: 为什么“非阻塞”本身不等于高性能？——**只是把等待变成立即返回，真正减少线程数的是多路复用**；而 epoll 管的是 readiness，不保证一条业务消息已经完整。高并发通信的关键是减少空等线程和多余 wakeup，不是让所有操作都瞬间完成。 [系统编程: epoll 只解决等待方式，不解决业务处理时间和背压]
+
+比喻锚点: 阻塞像客服坐在一部电话前等响铃，epoll 像一个总台同时监控很多分机，哪部响了再分给工作人员。 [写作时展开]
+
+### 3. Reactor —— 把 readiness 组织成可扩展事件循环
+
+场景提示: 单线程为什么也能管理很多连接，多线程 Reactor 又为何常比“每连接一个线程”更稳？ [写作时展开]
+
+关键设计: Reactor 把事件等待与事件处理组织成循环，可按规模拆成单线程、主从或 worker 池模型：
+
+```[pseudocode]
+while (running):
+  events = epoll_wait(...)
+  for event in events:
+    if ACCEPT: accept handler
+    if READ: decode/read handler
+    if WRITE: flush/write handler
+    if ERROR: cleanup
+
+变种:
+  单 Reactor 单线程
+  单 Reactor + worker 池
+  主从 Reactor(Boss/Worker)
+```
+
+Why: 为什么主从 Reactor 不是“线程越多越快”？——**它只是把 accept、I/O 和业务分工，减少彼此互相阻塞**；线程过多仍会引入切换、锁和缓存代价。ET/LT、消息边界、背压和任务切换都要一起设计，才能避免“单线程很快、多线程反而乱”。 [网络: 04-网络篇的 epoll/ready list 是 Reactor 的内核支点]
+
+比喻锚点: Reactor 像机场塔台：一个主控台监听雷达，发现事件后再把起降、值机和安检分给不同岗位。 [写作时展开]
+
+### 4. 序列化 —— Java 对象为什么不能原样过网
+
+场景提示: `User{name:"张三"}` 在 JVM 里是对象引用和类元数据，跨服务传输时为什么必须先变成字节协议？ [写作时展开]
+
+关键设计: 对象跨网络必须变成稳定的字节格式，不同协议在可读性、体积、跨语言和演进上权衡不同：
+
+```[pseudocode]
+JDK Serializable:
+  Java 原生对象序列化
+  → 类型耦合强, 兼容与体积成本高
+
+JSON:
+  可读, 易调试
+  → 体积大/解析开销更高
+
+Hessian:
+  二进制协议, Java生态历史常见
+
+Protobuf:
+  schema + binary encoding
+  → 跨语言、字段演进、体积和性能更平衡
+
+gRPC:
+  常见组合 = HTTP/2 + Protobuf
+```
+
+Why: 为什么“序列化格式更快”不等于整条 RPC 更快？——**网络 RTT、连接复用、压缩、反序列化、业务逻辑和 GC 都可能掩盖单次编码差异**；同时 schema 演进、调试可读性和跨语言兼容也是生产成本。协议选择要看链路全成本，而不是单条 benchmark。 [分布式通信: 序列化是应用字节协议，不替代传输层拥塞/重传/队头阻塞问题]
+
+比喻锚点: 序列化像把货物打包成国际标准集装箱；包装方式影响体积和装卸成本，但公路拥堵和海关检查仍是另一层问题。 [写作时展开]
+
+### 5. Cookie、Session 与 JWT —— 用户身份如何跨请求与跨服务传递
+
+场景提示: 微服务拆成 20 个后端后，用户登录态放哪里，谁负责校验，怎样撤销？ [写作时展开]
+
+关键设计: 身份状态可以存放在服务端会话、集中 Session 存储或无状态令牌中：
+
+```[pseudocode]
+Cookie:
+  浏览器保存小型客户端状态/令牌引用
+
+Session:
+  服务端保存会话状态
+  → Cookie 只携带 session id
+  → 分布式部署需共享/复制/集中式 session store
+
+JWT/Token:
+  客户端携带签名令牌
+  → 网关/服务验证签名与过期时间
+  → 不代表自动支持撤销/权限实时变更
+```
+
+Why: 为什么 JWT 不是“天然更适合微服务”的终极答案？——**它减少中心会话查询，却增加撤销、密钥轮换、权限变化延迟和令牌泄露影响面**；Session 则更容易立即失效，但要求会话共享与高可用。真正选择取决于认证中心、网关、权限实时性和故障模型。 [安全: TLS 保护传输中的令牌，但令牌生命周期和撤销是应用层责任]
+
+比喻锚点: Session 像前台保管访客名单，JWT 像给访客发一张带签名的通行证；名单易撤销，通行证便于跨楼宇通行，但丢了也更危险。 [写作时展开]
+
+### 6. 收束
+
+一次 POST 请求的通信旅程：
+
+```[pseudocode]
+TCP/TLS/HTTP 建立连接与安全通道
+  → epoll/selector 等待字节
+  → Reactor 分发事件
+  → 序列化/反序列化对象
+  → Cookie/Session/JWT 校验身份
+  → 业务处理与响应返回
+```
+
+**Aha Moment**: "微服务通信不是‘HTTP 调方法’，而是**连接建立、等待模型、事件循环、编码协议和身份传递**共同构成的链路；其中任何一层设计不当，都会把上层业务拖慢或拖垮。"
+**回答读者三问**: ①为什么还要区分 TCP/TLS/HTTP=可靠性、安全和语义分层不同；②epoll/NIO 解决什么=等待方式而非业务处理本身；③JWT 和 Session 怎么选=看撤销、共享、密钥与跨服务传播成本。
 
 ---
 
 ### 核心悬念
-**"RPC说让远程调用像本地一样, 但网络丢包+超时+序列化开销让它根本不像本地——RPC到底在和什么博弈?"**
 
-→ 引出 RPC与服务治理: 从IPC到服务注册发现再到负载均衡 (02-rpc-service-governance)
+**"HTTP 只是把字节送过去；真正让远程调用‘看起来像本地方法’的是 RPC。那服务注册发现、负载均衡、重试、超时和熔断又是怎样一起工作的？"**
+
+→ 引出 02-rpc-service-governance — RPC 与服务治理。
