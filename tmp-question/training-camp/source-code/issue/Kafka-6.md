@@ -79,11 +79,11 @@ EMPTY
 
 ### 第二步 SyncGroup：leader 算出分配，全体拿到归属
 
-等所有成员都加入后，组进入 `COMPLETING_REBALANCE`。此时协调器选出一个 leader，把全组成员列表交给它。leader 在**客户端**用 `AbstractPartitionAssignor`（Range/RoundRobin/Sticky 等）算出每个成员分到哪些分区，再把分配结果通过 SyncGroup 请求发回协调器。
+等所有成员都加入后，组进入 `COMPLETING_REBALANCE`。协调器把**第一个加入的成员**设为 leader（leader 离开后由 `maybeElectNewJoinedLeader` 从已加入成员里重新指定），把全组成员列表交给它。leader 在**客户端**用 `AbstractPartitionAssignor`（Range/RoundRobin/Sticky 等）算出每个成员分到哪些分区，再把分配结果通过 SyncGroup 请求发回协调器。
 
 协调器把这份分配持久化后，让组进入 `STABLE`，并把分配结果返回给所有成员。
 
-注意这里的一个关键点：**Classic 的分配在客户端 leader 上完成，不在协调器上完成。** 协调器只负责收集成员、选择 leader、广播结果。
+注意这里的一个关键点：**Classic 的分配在客户端 leader 上完成，不在协调器上完成。** 协调器只负责收集成员、指定 leader、广播结果。
 
 ### 第三步 Heartbeat：稳定期的"我还在"
 
@@ -126,18 +126,18 @@ KIP-848 推出的 Modern 协议，把 Classic 的四步压成**一个请求**：
 
 - `groupId`；
 - `memberId`（成员启动时生成）；
-- `memberEpoch`（当前成员所处代次）。
+- `memberEpoch`（当前成员协调到的版本号）。
 
 其他信息（订阅、正则、server assignor、本成员已接受的 assignment）只在加入或发生变化时才发送。这保证了请求体在稳定期很小，同时协调器随时能拿到"这个成员现在认为自己拥有哪些分区"。
 
-`memberEpoch` 是 Modern 协议的核心：协调器每次给成员下发的分配都对应一个新的 epoch，成员收到后把 epoch 记下来，下次心跳带回给协调器，作为"我接受了这个归属"的回执。
+`memberEpoch` 是 Modern 协议的核心：协调器每次给成员下发的分配都对应一个新的 epoch，成员收到后把 epoch 记下来，下次心跳带回。但要注意，**回执本身不是 epoch**——成员真正向协调器确认"我已接受这个归属"的，是心跳里回显的 `topicPartitions`（本成员当前拥有的分区集合）。epoch 只是始终携带的版本凭据，参与 fencing 校验；`topicPartitions` 才是接受归属的回执。也要注意，epoch 只在分配确实变化的成员上推进，稳定成员的心跳不 bump（见第五层）。
 
 ```text
 首次心跳：memberEpoch=0（表示要加入）
   → 协调器创建成员，计算 target assignment
     → 返回 assignment + memberEpoch=1
-      → 成员记录 epoch=1，下次心跳带回
-        → 协调器据此确认"它已接受当前归属"
+      → 成员应用新 assignment，把 owned 分区回显进下次心跳的 topicPartitions
+        → 协调器据此确认"它已接受当前归属"（epoch 只是版本凭据）
 ```
 
 服务端 `GroupMetadataManager.consumerGroupHeartbeat()` 是入口：它首先检查 `memberEpoch` 是否为 `-1`（动态成员离开）或 `-2`（静态成员离开），是则走 leave；否则走正常心跳处理。
@@ -159,7 +159,7 @@ C1、C2、C3 都稳定在 epoch N
 
 这才是"增量重平衡"的确切含义：**不是不重平衡，而是把重平衡的范围从"全组"缩小到"受影响成员"。**
 
-那么协调器怎么知道哪些成员受影响？它比较新旧 target assignment：某成员前后拥有的分区集合变了，就是受影响成员。服务端的 `TargetAssignmentBuilder` 正是干这个的——它算出新的 target assignment，且只为"分配确实变化了"的成员生成记录。
+那么协调器怎么知道哪些成员受影响？它并不"对比新旧"挑出变化——`TargetAssignmentBuilder` 是基于最新成员与订阅**重新计算**一份 target assignment，并且只为"分配确实变化了"的成员生成记录。成员重算出的新归属与它当前拥有的分区一比较，谁受影响就清楚了。
 
 如果 Modern 每次变化都把所有成员的 assignment 全量重发，主链会先在哪退化？它就成了"换皮的四步"，全组的请求体都会膨胀，增量优势消失。所以"只改受影响成员"不是实现细节，而是 Modern 的定义特征。
 
@@ -167,10 +167,12 @@ C1、C2、C3 都稳定在 epoch N
 
 增量重平衡带来了一个新问题：协调器给 C1 下了"让出分区 X"的新 assignment，但如果 C1 因为网络延迟还在按旧 assignment 消费，会怎样？
 
-`ConsumerGroup.validateMemberEpoch()` 回答了这个问题：任何来自成员的操作（offset 提交、offset 拉取、心跳），协调器都会校验请求携带的 epoch 是否等于该成员当前的 epoch。
+协调器对 epoch 的校验是分路径的：
 
-- 相等：正常；
-- 不相等：抛 `StaleMemberEpochException`，让成员重新加入组。
+- **心跳路径**：`GroupMetadataManager.throwIfConsumerGroupMemberEpochIsInvalid()` 校验请求里的 memberEpoch。若大于当前 epoch 或小于且非 previous epoch，抛 **`FencedMemberEpochException`**（对应 `FENCED_MEMBER_EPOCH`），客户端据此 `transitionToFenced` 后放弃分区重新加入。
+- **offset 提交/拉取路径**：`ConsumerGroup.validateMemberEpoch()` 校验，失配抛 **`StaleMemberEpochException`**。
+
+两条路径抛的异常不同，但共同点是：不认"旧代次的成员继续用旧归属操作"。注意一个宽容分支：心跳路径若成员带的是 **previous epoch**，且其 owned 分区仍是当前 assignment 的子集，协调器会**放行**（`GroupMetadataManager.java:1535`）——因为"响应丢失、成员还没拿到新 epoch"是合理的，不应误判为失配。
 
 客户端 `MemberState` 状态机也同步了这个语义：
 
@@ -183,7 +185,7 @@ JOINING（要加入）
           → 重新 JOINING
 ```
 
-成员一旦被 fenced，会放弃自己的分区（调用 onPartitionsLost），然后以 epoch=0 重新加入。协调器在重新加入时给它新的 member id 或让它在同一 id 下重新同步——重点是不允许"旧 epoch 的成员继续消费已不属于它的分区"。
+成员一旦被 fenced，会放弃自己的分区（调用 onPartitionsLost），然后以 epoch=0 重新加入。注意这里用的是**同一个 memberId**：memberId 是客户端进程启动时生成的，进程生命周期内固定不变，fenced 后重加入不换 id，只是把 memberEpoch 归零重新同步——重点是不允许"旧 epoch 的成员继续消费已不属于它的分区"。
 
 这就是"只认最新一代"的机制含义：`generationId`（Classic）和 `memberEpoch`（Modern）不是普通计数，而是**归属版本的校验凭据**。请求里带的代次对不上，协调器就拒绝，从而杜绝旧成员在归属切换后继续消费导致重复或丢失。
 
@@ -210,7 +212,7 @@ Modern ：ConsumerGroupHeartbeat 单请求（member epoch，增量调整受影�
 
 第三，Classic 每次变化都全组 stop-the-world，问题出在重平衡粒度。
 
-第四，Modern 用单一心跳承载加入、分配、回执、维持，member epoch 是回执凭据。
+第四，Modern 用单一心跳承载加入、分配、回执、维持，回执是成员回显的 owned 分区（topicPartitions），epoch 只是版本凭据。
 
 第五，Modern 只调整受影响成员，其余成员不动，这才是"增量"的确切含义。
 
@@ -226,9 +228,11 @@ Modern ：ConsumerGroupHeartbeat 单请求（member epoch，增量调整受影�
 
 1. **"协调器是独立进程服务。"** 它是 `__consumer_offsets` 分区 leader 上的 shard，状态随分区 leader 迁移。
 2. **"Classic 和 Modern 是完全独立的两套系统。"** 同一个 `GroupCoordinatorShard`/`GroupMetadataManager` 同时处理两条协议。
-3. **"generationId 就是 memberEpoch。"** Classic 世代号随整组重平衡递增，Modern 成员 epoch 随单成员协调递增，语义与时机都不同。
-4. **"Modern 不需要重平衡。"** 它仍有重平衡，只是增量调整受影响成员。
-5. **"分区分配一定在客户端完成。"** Modern 在服务端 assignor 计算，Classic 在客户端 leader 计算。
+3. **"generationId 就是 memberEpoch。"** Classic 世代号随整组重平衡递增，Modern 成员版本号随单成员协调递增，语义与时机都不同。
+4. **"fenced 后重加入会拿到新的 member id。"** memberId 是客户端进程启动时生成的，进程生命周期内不变；fenced 重加入只是 epoch 归 0。
+5. **"Modern 不需要重平衡。"** 它仍有重平衡，只是增量调整受影响成员。
+6. **"分区分配一定在客户端完成。"** Modern 在服务端 assignor 计算，Classic 在客户端 leader 计算。
+7. **"memberEpoch 就是接受归属的回执。"** 回执是心跳里回显的 owned 分区（topicPartitions）；epoch 只是始终携带的版本凭据，参与 fencing 校验。
 
 ### 关键证据清单
 
@@ -243,8 +247,11 @@ Modern ：ConsumerGroupHeartbeat 单请求（member epoch，增量调整受影�
 - `group-coordinator/src/main/java/org/apache/kafka/coordinator/group/GroupMetadataManager.java:6086`：classicGroupJoin 入口。
 - `group-coordinator/src/main/java/org/apache/kafka/coordinator/group/classic/ClassicGroupState.java:46`：Classic 组状态机。
 - `group-coordinator/src/main/java/org/apache/kafka/coordinator/group/classic/ClassicGroup.java:133`：generationId。
-- `group-coordinator/src/main/java/org/apache/kafka/coordinator/group/modern/consumer/ConsumerGroup.java:830`：validateMemberEpoch（StaleMemberEpoch）。
+- `group-coordinator/src/main/java/org/apache/kafka/coordinator/group/modern/consumer/ConsumerGroup.java:830`：validateMemberEpoch（offset 路径抛 StaleMemberEpoch）。
+- `group-coordinator/src/main/java/org/apache/kafka/coordinator/group/GroupMetadataManager.java:1523`：throwIfConsumerGroupMemberEpochIsInvalid（心跳路径抛 FencedMemberEpoch，previous epoch+owned 子集放行）。
 - `group-coordinator/src/main/java/org/apache/kafka/coordinator/group/modern/TargetAssignmentBuilder.java:53`：只对分配变化的成员生成记录。
+- `clients/src/main/java/org/apache/kafka/clients/consumer/internals/AbstractMembershipManager.java:79`：memberId 客户端启动生成，进程生命周期内不变。
+- `group-coordinator/src/main/java/org/apache/kafka/coordinator/group/modern/consumer/CurrentAssignmentBuilder.java:136`：STABLE 且 epoch != target 才重算；UNREVOKED 撤销完才 epoch+1。
 - `group-coordinator/src/main/java/org/apache/kafka/coordinator/group/assignor/UniformAssignor.java:53`：Modern 服务端 assignor。
 
 ### 版本与实现边界
