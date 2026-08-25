@@ -1,0 +1,141 @@
+# 18-01：18-microsphere-dynamic 源码文件清单
+
+> **核心命题**：18-microsphere-dynamic 模块的全部源码文件列表，共 127 个 Java 文件。
+
+---
+
+## 项目结构
+
+### microsphere-dynamic-jdbc-spring-boot（127 文件）
+
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/autoconfigure/DynamicJdbcAutoConfigurationImportFilter.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/autoconfigure/DynamicJdbcAutoConfigurationImportListener.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/autoconfigure/DynamicJdbcAutoConfigurationImportSelector.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/autoconfigure/DynamicJdbcAutoConfigurationRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/autoconfigure/EnableDynamicJdbcAutoConfiguration.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/AbstractConfigPostProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/AbstractConfigurationConfigPostProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/AbstractModuleConfigPostProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/ConfigPostProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/ConfigurationCapable.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/DynamicJdbcConfig.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/DynamicJdbcConfigPostProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/ModuleCapable.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/annotation/Module.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/validation/AbstractConfigValidator.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/validation/AbstractConfigurationConfigValidator.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/validation/ConfigValidationException.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/validation/ConfigValidator.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/validation/DynamicJdbcConfigValidator.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/config/validation/ValidationErrors.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/constants/DynamicJdbcConstants.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/AbstractConfigBeanDefinitionRegistrar.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/AbstractConfigurationConfigBeanDefinitionRegistrar.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/AbstractModuleConfigBeanDefinitionRegistrar.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/AbstractScannedConfigurationConfigBeanDefinitionRegistrar.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/ConfigBeanDefinitionRegistrar.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/DynamicJdbcChildContext.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/DynamicJdbcChildContextConfiguration.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/DynamicJdbcChildContextIdGenerator.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/DynamicJdbcChildContextRefreshedListener.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/DynamicJdbcConfigBeanDefinitionRegistrar.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/DynamicJdbcConfigChangedEvent.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/DynamicJdbcContextApplicationListener.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/DynamicJdbcContextProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/ModuleProperties.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/ParentContextBeanNameGenerator.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/PropagatingDynamicJdbcConfigChangedEventListener.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/error/DynamicJdbcInitializeException.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/context/error/InitializeErrors.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/datasource/DataSourceModuleProperties.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/datasource/DynamicDataSource.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/datasource/config/DataSourcePropertiesConfigPostProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/datasource/config/JdbcURLAssembler.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/datasource/constants/DataSourceConstants.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/datasource/env/DataSourceConfigurationPropertiesSynthesizer.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/datasource/validation/DataSourcePropertiesModuleValidator.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/env/AbstractConfigConfigurationPropertiesSynthesizer.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/env/AbstractConfigurationConfigConfigurationPropertiesSynthesizer.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/env/AbstractModuleConfigConfigurationPropertiesSynthesizer.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/env/ConfigConfigurationPropertiesSynthesizer.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/env/ConfigurationPropertiesFlatter.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/env/DynamicJdbcDefaultPropertiesPostProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/env/SyncExecutionShutdownHookApplicationListener.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/mybatis/config/MybatisConfigPostProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/mybatis/constants/MybatisConstants.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/mybatis/context/MybatisConfigurationConfigBeanDefinitionRegistrar.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/mybatis/context/MybatisMapperScanConfiguration.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/mybatis/env/MybatisConfigConfigurationPropertiesSynthesizer.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/mybatis/validation/MybatisConfigValidator.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/mybatisplus/config/MybatisPlusConfigPostProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/mybatisplus/constants/MybatisPlusConstants.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/mybatisplus/context/MybatisPlusConfigurationConfigBeanDefinitionRegistrar.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/mybatisplus/context/MybatisPlusMapperScanConfiguration.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/mybatisplus/env/MybatisPlusConfigConfigurationPropertiesSynthesizer.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/mybatisplus/validation/MybatisPlusConfigValidator.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/config/ShardingSphereConfigPostProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/constants/ShardingSphereConstants.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/context/ShardingSphereConfigurationConfigBeanDefinitionRegistrar.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/context/ShardingSphereShutdownHookThreadFilter.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/env/ShardingSphereConfigConfigurationPropertiesSynthesizer.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/validation/ShardingSphereConfigValidator.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/transaction/config/TransactionConfigPostProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/transaction/context/PlatformTransactionManagerBeanNameGenerator.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/transaction/context/TransactionConfigurationConfigBeanDefinitionRegistrar.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/transaction/env/TransactionConfigConfigurationPropertiesSynthesizer.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/transaction/validation/TransactionConfigValidator.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/util/DynamicJdbcConfigUtils.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/util/DynamicJdbcPropertyUtils.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/util/DynamicJdbcUtils.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/util/FunctionUtils.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/main/java/io/microsphere/dynamic/jdbc/spring/boot/util/URLUtils.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/AbstractMariaDB4jTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/AbstractTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/autoconfigure/EnableDynamicJdbcAutoConfigurationTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/config/AbstractConfigPostProcessorTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/config/DynamicJdbcConfigTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/config/JdbcURLAssemblerTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/config/validation/DynamicJdbcConfigValidatorTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/context/DynamicJdbcContextApplicationListenerMultipleContextTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/context/DynamicJdbcContextApplicationListenerTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/datasource/DataSourceModulePropertiesTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/datasource/validation/DataSourcePropertiesModuleValidatorTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/env/ConfigurationPropertiesFlatterTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/env/SpringBootTestDefaultPropertiesPostProcessor.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/config/YamlRootConfigurationTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/DataSourceUtil.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/ExampleExecuteTemplate.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/entity/Account.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/entity/Address.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/entity/Order.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/entity/OrderItem.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/entity/ShadowUser.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/entity/User.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/repository/AccountRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/repository/AddressRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/repository/CommonRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/repository/OrderItemRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/repository/OrderRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/repository/ShadowUserRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/repository/UserRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/service/ExampleService.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/core/api/service/ExampleServiceImpl.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/mybatis/repository/MybatisAddressRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/mybatis/repository/MybatisOrderItemRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/mybatis/repository/MybatisOrderRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/mybatis/repository/MybatisShadowUserRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/mybatis/repository/MybatisUserRepository.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/mybatis/service/OrderServiceImpl.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/mybatis/service/ShadowUserServiceImpl.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/shardingsphere/examples/mybatis/service/UserServiceImpl.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/test/ShardingSphereShardingDatabasesTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/test/ShardingSphereShardingReadWriteSplittingTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/test/ShardingSphereShardingTablesTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/test/SingleDataSourceTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/util/DynamicJdbcConfigUtilsTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/util/DynamicJdbcPropertyUtilsTest.java`
+- `microsphere-dynamic-jdbc-spring-boot/src/test/java/io/microsphere/dynamic/jdbc/spring/boot/util/DynamicJdbcUtilsTest.java`
+
+---
+
+**总计**：127 个 Java 文件

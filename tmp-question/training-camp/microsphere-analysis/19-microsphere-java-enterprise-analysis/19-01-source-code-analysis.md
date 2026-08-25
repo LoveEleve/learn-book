@@ -1,0 +1,255 @@
+# 19-01：19-microsphere-java-enterprise 源码文件清单
+
+> **核心命题**：19-microsphere-java-enterprise 模块的全部源码文件列表，共 229 个 Java 文件。
+
+---
+
+## 项目结构
+
+### microsphere-bean-validation（5 文件）
+
+- `microsphere-bean-validation/src/main/java/io/microsphere/enterprise/bean/validation/InterceptingValidationProvider.java`
+- `microsphere-bean-validation/src/main/java/io/microsphere/enterprise/bean/validation/InterceptingValidationProviderResolver.java`
+- `microsphere-bean-validation/src/main/java/io/microsphere/enterprise/bean/validation/InterceptingValidator.java`
+- `microsphere-bean-validation/src/main/java/io/microsphere/enterprise/bean/validation/InterceptingValidatorFactory.java`
+- `microsphere-bean-validation/src/main/java/io/microsphere/enterprise/bean/validation/ValidationInterceptor.java`
+
+### microsphere-cdi（119 文件）
+
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/se/StandardContainer.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/se/StandardContainerInitializer.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/AbstractInjectionPoint.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/AbstractInjectionTarget.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/AnnotatedTypeInjectionTarget.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/AnnotatedTypeInjectionTargetFactory.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/ConstructorParameterInjectionPoint.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/FieldInjectionPoint.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/MethodParameterInjectionPoint.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/ParameterInjectionPoint.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/annotation/ReflectiveAnnotated.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/annotation/ReflectiveAnnotatedCallable.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/annotation/ReflectiveAnnotatedConstructor.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/annotation/ReflectiveAnnotatedField.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/annotation/ReflectiveAnnotatedMember.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/annotation/ReflectiveAnnotatedMethod.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/annotation/ReflectiveAnnotatedParameter.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/annotation/ReflectiveAnnotatedType.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/AbstractBean.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/AbstractBeanAttributes.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/BeanArchiveType.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/BeanDiscoveryMode.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/BeanTypeSource.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/GenericBean.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/GenericBeanAttributes.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/InjectionTargetBean.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/ManagedBean.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/decorator/DecoratorBean.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/decorator/DecoratorManager.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/interceptor/InterceptorBean.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/manager/BeanArchiveManager.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/manager/StandardBeanManager.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/producer/ProducerBean.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/producer/ProducerFieldBean.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/producer/ProducerMethodBean.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/xml/BeansReader.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/xml/JAXBBeansReader.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/xml/bind/Alternatives.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/xml/bind/Beans.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/xml/bind/Decorators.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/xml/bind/Interceptors.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/xml/bind/ObjectFactory.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/xml/bind/Scan.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/beans/xml/bind/package-info.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/configurator/SimpleObserverMethodConfigurator.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/context/AbstractAlterableContext.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/context/AbstractContext.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/context/AbstractContextual.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/context/ApplicationScopedContext.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/context/DependentScopeContext.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/context/DependentScopeCreationalContext.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/context/NoOpCreationalContext.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/context/mananger/ContextManager.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/disposer/DisposerMethodManager.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/DefaultEventContext.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/DefaultEventMetadata.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/ImmutableAsyncNotificationOptions.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/ProcessAnnotatedTypeEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/ProcessBeanAttributesEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/ProcessBeanEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/ProcessInjectionPointEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/ProcessInjectionTargetEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/ProcessObserverMethodEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/ProcessProducerEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/ProcessSyntheticAnnotatedTypeEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/application/AfterBeanDiscoveryEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/application/AfterDeploymentValidationEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/application/AfterTypeDiscoveryEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/application/ApplicationEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/application/BeforeBeanDiscoveryEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/event/application/BeforeShutdownEvent.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/observer/ObserverMethodDiscoverer.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/observer/ObserverMethodManager.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/observer/ObserverMethodParameter.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/observer/ReflectiveObserverMethod.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/observer/ReflectiveObserverMethodDiscoverer.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/package-info.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/producer/AbstractProducer.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/producer/AnnotatedFieldProducer.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/producer/AnnotatedMethodProducer.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/producer/BeanProducer.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/producer/ProducerFieldBeanAttributes.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/producer/ProducerFieldFactory.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/producer/ProducerMethodBeanAttributes.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/standard/producer/ProducerMethodFactory.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Annotations.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Beans.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Contexts.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Decorators.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Disposers.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Events.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Exceptions.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Injections.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Parameters.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Producers.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Qualifiers.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Scopes.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/inject/util/Stereotypes.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/util/NormalScopeAnnotationLiteral.java`
+- `microsphere-cdi/src/main/java/io/microsphere/enterprise/util/ScopeAnnotationLiteral.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/Book.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/BookShop.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/Business.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/Dao.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/MyExtension.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/Order.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/Persistent.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/Shop.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/User.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/UserDao.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/se/StandardContainerInitializerTest.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/standard/beans/ManagedBeanTest.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/standard/beans/xml/JAXBBeansReaderTest.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/standard/context/BookContextual.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/standard/context/ExtBookContextual.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/standard/event/BeforeBeanDiscoveryEventTest.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/util/BeansTest.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/util/ContextsTest.java`
+- `microsphere-cdi/src/test/java/io/microsphere/enterprise/inject/util/ScopesTest.java`
+
+### microsphere-interceptor（37 文件）
+
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/AnnotatedInterceptor.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/ChainableInvocationContext.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/ComponentEnhancer.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/DefaultComponentEnhancer.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/DefaultInterceptorManager.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/Interceptor.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/InterceptorBindingAttributeFilter.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/InterceptorBindingComparator.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/InterceptorBindingInfo.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/InterceptorBindings.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/InterceptorInfo.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/InterceptorManager.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/ReflectiveConstructorInvocationContext.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/ReflectiveMethodInvocationContext.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/cdi/NonInterceptorBindingAttributeFilter.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/cglib/CglibComponentEnhancer.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/cglib/CglibMethodInvocationContext.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/cglib/MethodInterceptorAdapter.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/jdk/DynamicProxyComponentEnhancer.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/jdk/InvocationHandlerAdapter.java`
+- `microsphere-interceptor/src/main/java/io/microsphere/enterprise/interceptor/util/InterceptorUtils.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/AlwaysFalseInterceptorBindingAttributeFilter.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/ChainableInvocationContextTest.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/DataAccess.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/DefaultComponentEnhancerTest.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/EchoService.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/ExtLoggingInterceptor.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/ExternalInterceptor.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/InheritedAnnotationDemo.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/InterceptorBindingInfoTest.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/InterceptorManagerTest.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/Logging.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/LoggingInterceptor.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/Monitored.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/MonitoringInterceptor.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/cglib/CglibComponentEnhancerTest.java`
+- `microsphere-interceptor/src/test/java/io/microsphere/enterprise/interceptor/util/InterceptorUtilsTest.java`
+
+### microsphere-jcache（63 文件）
+
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/AbstractCache.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/AbstractCacheManager.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/ConfigurableCachingProvider.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/ExpirableEntry.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/InMemoryCache.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/InMemoryCacheManager.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/KeyValueTypePair.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/DefaultCacheKeyGenerator.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/DefaultCacheResolver.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/DefaultCacheResolverFactory.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/DefaultGeneratedCacheKey.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/ReflectiveCacheInvocationContext.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/ReflectiveCacheInvocationParameter.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/ReflectiveCacheKeyInvocationContext.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/ReflectiveCacheMethodDetails.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/interceptor/CacheOperationInterceptor.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/interceptor/CachePutInterceptor.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/interceptor/CacheRemoveAllInterceptor.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/interceptor/CacheRemoveInterceptor.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/interceptor/CacheResultInterceptor.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/util/CacheAnnotationUtils.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/annotation/util/CacheOperationAnnotationInfo.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/configuration/CacheConfiguration.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/configuration/ConfigurationUtils.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/configuration/ImmutableCompleteConfiguration.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/configuration/PropertiesCacheConfiguration.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/event/CacheEntryEventListenerAdapter.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/event/CacheEntryEventPublisher.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/event/ConditionalCacheEntryEventListener.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/event/GenericCacheEntryEvent.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/file/FileSystemCache.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/file/FileSystemCacheManager.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/integration/AbstractFallbackStorage.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/integration/CompositeFallbackStorage.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/integration/FallbackStorage.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/integration/FileFallbackStorage.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/management/CacheMXBeanAdapter.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/management/CacheStatistics.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/management/DummyCacheStatistics.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/management/ManagementUtils.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/management/SimpleCacheStatistics.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/processor/MutableEntryAdapter.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/redis/JedisCache.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/redis/JedisCacheManager.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/spring/SpringCacheAdapter.java`
+- `microsphere-jcache/src/main/java/io/microsphere/enterprise/cache/spring/SpringCacheManagerAdapter.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/AbstractCacheTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/CachingTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/DataRepository.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/InMemoryDataRepository.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/KeyValueTypePairTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/annotation/ReflectiveCacheInvocationContextTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/annotation/ReflectiveCacheKeyInvocationContextTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/annotation/ReflectiveCacheMethodDetailsTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/annotation/interceptor/CachePutInterceptorTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/annotation/interceptor/CacheRemoveAllInterceptorTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/annotation/interceptor/CacheRemoveInterceptorTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/annotation/interceptor/CacheResultInterceptorTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/configuration/PropertiesCacheConfigurationTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/event/CacheEntryEventListenerAdapterTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/event/TestCacheEntryListener.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/integration/CompositeFallbackStorageTest.java`
+- `microsphere-jcache/src/test/java/io/microsphere/enterprise/cache/integration/FileFallbackStorageTest.java`
+
+### microsphere-servlet（5 文件）
+
+- `microsphere-servlet/src/main/java/io/microsphere/enterprise/servlet/enumeration/ServletVersion.java`
+- `microsphere-servlet/src/main/java/io/microsphere/enterprise/servlet/util/ServletContextUtils.java`
+- `microsphere-servlet/src/main/java/io/microsphere/enterprise/servlet/util/ServletRequestUtils.java`
+- `microsphere-servlet/src/main/java/io/microsphere/enterprise/servlet/util/ServletUtils.java`
+- `microsphere-servlet/src/test/java/io/microsphere/enterprise/servlet/enumeration/ServletVersionTest.java`
+
+---
+
+**总计**：229 个 Java 文件

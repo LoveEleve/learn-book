@@ -1,0 +1,167 @@
+# 06-01：06-microsphere-nacos 源码文件清单
+
+> **核心命题**：06-microsphere-nacos 模块的全部源码文件列表，共 150 个 Java 文件。
+
+---
+
+## 项目结构
+
+### microsphere-nacos-discovery-spring-cloud（10 文件）
+
+- `microsphere-nacos-discovery-spring-cloud/src/main/java/io/microsphere/nacos/client/discovery/spring/cloud/NacosDiscoveryClient.java`
+- `microsphere-nacos-discovery-spring-cloud/src/main/java/io/microsphere/nacos/client/discovery/spring/cloud/NacosDiscoveryConfiguration.java`
+- `microsphere-nacos-discovery-spring-cloud/src/main/java/io/microsphere/nacos/client/discovery/spring/cloud/NacosDiscoveryContextFactory.java`
+- `microsphere-nacos-discovery-spring-cloud/src/main/java/io/microsphere/nacos/client/discovery/spring/cloud/NacosDiscoverySpecification.java`
+- `microsphere-nacos-discovery-spring-cloud/src/main/java/io/microsphere/nacos/client/discovery/spring/cloud/NacosServiceInstance.java`
+- `microsphere-nacos-discovery-spring-cloud/src/main/java/io/microsphere/nacos/client/discovery/spring/cloud/autoconfigure/NacosDiscoveryAutoConfiguration.java`
+- `microsphere-nacos-discovery-spring-cloud/src/main/java/io/microsphere/nacos/client/spring/NacosClientConfiguration.java`
+- `microsphere-nacos-discovery-spring-cloud/src/main/java/io/microsphere/nacos/client/spring/boot/NacosClientProperties.java`
+- `microsphere-nacos-discovery-spring-cloud/src/main/java/io/microsphere/nacos/client/spring/boot/autoconfigure/NacosClientAutoConfiguration.java`
+- `microsphere-nacos-discovery-spring-cloud/src/main/java/io/microsphere/nacos/client/spring/util/NacosClientUtils.java`
+
+### microsphere-nacos-openapi（140 文件）
+
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/AbstractClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/Client.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/ErrorCode.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/NacosClientConfig.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/NacosClientException.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/OpenApiVersion.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/OpenApiTemplateClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/auth/AuthenticationClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/auth/AuthorizationException.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/auth/AuthorizationManager.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/auth/OpenApiAuthenticationClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/auth/model/Authentication.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/ConfigClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/ConfigOperationType.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/ConfigType.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/event/ConfigChangedEvent.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/event/ConfigChangedListener.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/io/BaseConfigDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/io/ConfigDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/io/HistoryConfigDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/io/HistoryConfigPageDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/model/BaseConfig.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/model/Config.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/model/HistoryConfig.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/model/HistoryConfigPage.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/config/model/NewConfig.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/ConsistencyType.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/InstanceClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/ServiceClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/BaseInstance.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/BatchMetadataResult.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/Cluster.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/DeleteInstance.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/DiscoverableModel.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/GenericInstance.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/HealthChecker.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/Heartbeat.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/Instance.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/InstancesList.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/NewInstance.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/QueryInstance.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/Selector.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/Service.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/ServiceList.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/UpdateHealthInstance.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/discovery/model/UpdateInstance.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/model/Model.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/model/Page.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/model/Result.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/namespace/NamespaceClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/namespace/io/NamespaceDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/namespace/model/Namespace.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/common/namespace/model/NamespacesList.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/constants/Constants.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/http/HttpMethod.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/io/DefaultDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/io/DefaultSerializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/io/DeserializationException.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/io/Deserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/io/GsonDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/io/SerializationException.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/io/Serializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/transport/AbstractOpenApiClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/transport/OpenApiClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/transport/OpenApiClientException.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/transport/OpenApiHttpClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/transport/OpenApiRequest.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/transport/OpenApiRequestHeader.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/transport/OpenApiRequestParam.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/transport/OpenApiResponse.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/util/CollectionUtils.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/util/ErrorCodeControl.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/util/IOUtils.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/util/JsonUtils.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/util/ModelUtils.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/util/OpenApiUtils.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/util/StringUtils.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/util/TypeUtils.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/NacosClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/OpenApiNacosClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/config/ConfigListenerManager.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/config/OpenApiConfigClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/config/util/ConfigUtil.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/discovery/OpenApiInstanceClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/discovery/OpenApiServiceClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/namespace/OpenApiNamespaceClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/raft/OpenApiRaftClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/raft/RaftClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/raft/io/RaftModelDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/raft/model/RaftModel.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/raft/model/RaftPeer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/OpenApiServerClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/ServerClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/ServerMetricsClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/ServerStatus.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/ServerSwitchClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/ServersListClient.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/io/ServerDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/io/ServerMetricsDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/io/ServerStateDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/model/Server.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/model/ServerMetrics.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/model/ServerState.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/model/ServerSwitch.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v1/server/model/ServersList.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/NacosClientV2.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/OpenApiNacosClientV2.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/client/io/ClientInfoDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/client/io/ClientInstanceDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/client/io/ClientSubscriberDeserializer.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/client/model/ClientDetail.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/client/model/ClientInfo.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/client/model/ClientInstance.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/client/model/ClientSubscriber.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/config/OpenApiConfigClientV2.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/discovery/OpenApiInstanceClientV2.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/discovery/OpenApiServiceClientV2.java`
+- `microsphere-nacos-openapi/src/main/java/io/microsphere/nacos/client/v2/namespace/OpenApiNamespaceClientV2.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/ErrorCodeTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/OpenApiTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/OpenApiTestContainersExtension.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/transport/OpenApiHttpClientTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/util/IOUtilsTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/util/JsonUtilsTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/util/StringUtilsTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v1/auth/OpenApiAuthenticationClientTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v1/config/OpenApiConfigClientTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v1/discovery/OpenApiInstanceClientTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v1/discovery/OpenApiServiceClientTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v1/namespace/OpenApiNamespaceClientTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v1/raft/RaftClientTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v1/server/ServerClientTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v1/server/ServerMetricsClientTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v1/server/ServerSwitchClientTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v1/server/ServersListClientTest.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v2/OpenApiNacosClientV2Test.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v2/config/OpenApiConfigClientV2Test.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v2/discovery/OpenApiInstanceClientV2Test.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v2/discovery/OpenApiServiceClientV2Test.java`
+- `microsphere-nacos-openapi/src/test/java/io/microsphere/nacos/client/v2/namespace/OpenApiNamespaceClientV2Test.java`
+
+---
+
+**总计**：150 个 Java 文件
